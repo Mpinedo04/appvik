@@ -1,0 +1,155 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Mando directo de un cilindro de doble efecto",
+  "description": "Al mantener pulsada la válvula 5/2 el cilindro avanza; al soltarla, el muelle devuelve la válvula y el cilindro retrocede.",
+  "circuit": {
+    "components": {
+      "c_lescd1b": {
+        "id": "c_lescd1b",
+        "type": "pneu-cyl-double",
+        "x": 300,
+        "y": 120,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {}
+      },
+      "c_79ksk4w": {
+        "id": "c_79ksk4w",
+        "type": "pneu-valve-52",
+        "x": 270,
+        "y": 260,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_l9jx2tr": {
+        "id": "c_l9jx2tr",
+        "type": "pneu-supply",
+        "x": 300,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_hbgqiee": {
+        "id": "c_hbgqiee",
+        "type": "pneu-gauge",
+        "x": 450,
+        "y": 270,
+        "rot": 0,
+        "flip": false,
+        "label": "P1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_h7084wx": {
+        "id": "w_h7084wx",
+        "a": {
+          "kind": "port",
+          "comp": "c_79ksk4w",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_lescd1b",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 280,
+            "y": 190
+          },
+          {
+            "x": 250,
+            "y": 190
+          }
+        ]
+      },
+      "w_mkzmwaf": {
+        "id": "w_mkzmwaf",
+        "a": {
+          "kind": "port",
+          "comp": "c_79ksk4w",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_lescd1b",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 190
+          },
+          {
+            "x": 330,
+            "y": 190
+          }
+        ]
+      },
+      "w_tipflxe": {
+        "id": "w_tipflxe",
+        "a": {
+          "kind": "port",
+          "comp": "c_l9jx2tr",
+          "port": "1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_ldahs25"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_lum7ld1": {
+        "id": "w_lum7ld1",
+        "a": {
+          "kind": "junction",
+          "id": "j_ldahs25"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_79ksk4w",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_qcuiy3a": {
+        "id": "w_qcuiy3a",
+        "a": {
+          "kind": "junction",
+          "id": "j_ldahs25"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_hbgqiee",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 450,
+            "y": 330
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_ldahs25": {
+        "id": "j_ldahs25",
+        "x": 300,
+        "y": 330,
+        "medium": "pneu"
+      }
+    }
+  }
+}
