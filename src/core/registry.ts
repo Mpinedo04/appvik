@@ -46,10 +46,13 @@ export type ParamDef = {
   label: string;
   unit?: string;
   help?: string;
+  /** Sólo se muestra en el panel si se cumple la condición (p. ej. según el accionamiento). */
+  when?: (p: Params) => boolean;
 } & (
   | { type: 'number'; default: number; min?: number; max?: number; step?: number }
   | { type: 'select'; default: string; options: { value: string; label: string }[] }
   | { type: 'boolean'; default: boolean }
+  | { type: 'text'; default: string; placeholder?: string }
 );
 
 export interface BBox {
@@ -84,6 +87,10 @@ export interface StepCtx {
   addVolume(node: number, volume: number): void;
   /** Caudal másico del último paso por un orificio [kg/s] (positivo de a→b). */
   massFlow(orifice: number): number;
+  /** Lee una señal publicada en el paso anterior (0 si no existe). */
+  signal(name: string): number;
+  /** Publica una señal para el paso siguiente (finales de carrera, sensores…). */
+  setSignal(name: string, value: number | boolean): void;
 }
 
 export type UserAction = 'press' | 'release';
@@ -103,8 +110,8 @@ export interface ComponentModel<S = any, H = any> {
   build(b: BuildCtx, p: Params): H;
   /** Actualiza mecánica/estado interno y declara aperturas y volúmenes para este paso. */
   update(ctx: StepCtx, s: S, h: H, p: Params, dt: number): void;
-  /** El usuario hace clic sobre el componente durante la simulación. */
-  onUserAction?(s: S, p: Params, action: UserAction): void;
+  /** El usuario hace clic sobre el componente durante la simulación (`side`: mitad pulsada). */
+  onUserAction?(s: S, p: Params, action: UserAction, side?: 'left' | 'right'): void;
   /** Explicación en lenguaje natural de lo que ocurre dentro del componente. */
   explain(s: S, p: Params, ctx: { p(portId: string): number }): string[];
   /** Si es true, el componente reacciona a clics durante la simulación. */

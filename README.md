@@ -31,6 +31,7 @@ npm run dev          # abre http://localhost:5173
 - **Editar tuberías:** arrastra un tramo intermedio para desplazarlo.
 - **Atajos:** `R` girar · `F` reflejar · `Supr` borrar · `Ctrl+Z / Ctrl+Y` deshacer/rehacer · `Ctrl+C / Ctrl+V` copiar/pegar · `Ctrl+A` seleccionar todo · `Ctrl+S` guardar · `F9` iniciar/pausar · `Esc` parar.
 - **Vista:** rueda = zoom; botón central o `Espacio` + arrastrar = desplazar.
+- **Vistas 2D / 3D:** el selector `2D · 2D | 3D · 3D` de la barra superior. El esquema 2D sirve para diseñar; la vista 3D, generada automáticamente a partir del esquema, sirve para ver por dentro cómo funciona cada pieza. En 3D: arrastrar = girar, rueda = zoom, botón derecho = desplazar, doble clic = enfocar un componente. Los modos **Normal**, **Rayos X** y **Corte** (con altura del plano ajustable) se eligen arriba a la izquierda y también por componente en el panel de propiedades. Las válvulas se accionan también haciendo clic en 3D.
 - **Simular:** pulsa ▶. Mantén pulsado el botón del ratón sobre una válvula con pulsador para accionarla (las palancas con enclavamiento cambian con cada clic). Selecciona un componente para ver en el panel derecho **qué está pasando dentro**. La velocidad baja hasta 0,01× (cámara lenta).
 - Los proyectos se guardan como `.fluidlab.json`; además hay autoguardado en el navegador.
 
@@ -43,6 +44,9 @@ src/
     registry.ts    Contrato ComponentModel + registro de tipos
     sim/           Compilador (circuito → red), red neumática ISO 6358, mecánica, motor
   components/      Un directorio por componente: model.ts (física) + Symbol2D.tsx (símbolo)
+                   + Model3D.tsx (modelo 3D procedural)
+  view3d/          Escena 3D (Three.js / react-three-fiber): tablero, tuberías, partículas,
+                   materiales por modo (normal, rayos X, corte), cámara
   editor/          Lienzo SVG (selección, arrastre, trazado de tuberías)
   store/           Zustand: proyecto (historial) y simulación
   ui/              Barra de herramientas, biblioteca, propiedades, barra de estado
@@ -64,7 +68,7 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 
 - [x] **Fase 0:** base del proyecto (Vite + TS + React, Vitest, Playwright, ESLint/Prettier, modelo de datos, registro, store con deshacer/rehacer, maquetación).
 - [x] **Fase 1:** editor 2D + neumática básica (fuente, silenciador, cilindro de doble efecto, válvulas 5/2, 3/2 NC y 3/2 NA con pulsador/palanca/pedal y muelle, manómetro), simulación con colores de presión, guardar/abrir, exportar PNG, ejemplo `01`.
-- [ ] Fase 2: vista 3D sincronizada con corte, rayos X y partículas de flujo.
+- [x] **Fase 2:** vista 3D sincronizada (2D / 3D / dividida) con modos normal, rayos X y corte, partículas de flujo por tuberías y conductos internos, cámara con enfoque, accionamiento desde el 3D; 60 FPS con 48 componentes. Además: válvulas de N posiciones (2/2, 4/2, 5/3) y accionamientos por lado (rodillo, rodillo abatible, pilotaje, servopilotado…).
 - [ ] Fase 3: biblioteca neumática completa + diagrama espacio-fase.
 - [ ] Fase 4: electroneumática.
 - [ ] Fase 5: hidráulica, GRAFCET/PLC, galería de ejemplos y versión de escritorio.

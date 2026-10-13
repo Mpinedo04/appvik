@@ -20,6 +20,7 @@ import {
   autoRoute,
   connectionPolyline,
   endpointGeom,
+  sideAt,
   snap,
   svgTransform,
   worldBBox,
@@ -191,7 +192,7 @@ export function Canvas() {
         const c = circuit.components[id];
         const m = getModel(c.type);
         if (m.interactive?.(resolveParams(m, c.params))) {
-          useSim.getState().press(id);
+          useSim.getState().press(id, sideAt(c, w));
           setDrag({ kind: 'press', comp: id });
           return;
         }

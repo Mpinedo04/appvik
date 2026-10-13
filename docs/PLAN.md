@@ -1,6 +1,6 @@
 # Plan de desarrollo de FluidLab 3D
 
-> **Estado:** fases 0 y 1 terminadas. Siguiente: fase 2 (vista 3D).
+> **Estado:** fases 0, 1 y 2 terminadas. Siguiente: fase 3 (biblioteca neumática completa + diagramas).
 
 ## Contexto
 El usuario quiere una aplicación con las funciones y la libertad de diseño de FluidSIM (editor libre de circuitos con símbolos ISO 1219 y simulación neumática, electroneumática e hidráulica), pero con una vista 3D sincronizada donde se vea por dentro cómo actúa cada componente: émbolos, correderas, muelles, flujo de aire o aceite, presiones…
@@ -106,7 +106,7 @@ Una única fuente de verdad: `Project` (topología + layout 2D) y `SimSnapshot` 
 - **Ejemplo:** `examples/01-mando-directo-cilindro.json`.
 - **Criterio de aceptación:** se construye el circuito desde cero, se simula, al pulsar sale el cilindro y al soltar vuelve. El manómetro marca valores realistas.
 
-### Fase 2: Vista 3D sincronizada con interior visible
+### Fase 2: Vista 3D sincronizada con interior visible ✅
 - Escena 3D: tablero de perfiles de aluminio, iluminación PBR suave, OrbitControls, doble clic para enfocar un componente.
 - Modos de vista: **2D**, **3D** y **dividida**, con selección sincronizada.
 - Modelos procedurales detallados del cilindro (camisa, émbolo, juntas, vástago, culatas, amortiguadores) y de la válvula 5/2 (cuerpo, corredera con juntas, muelle helicoidal que se comprime, pulsador).

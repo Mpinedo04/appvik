@@ -3,6 +3,7 @@ import { canvasApi } from '../editor/canvasApi';
 import { EXAMPLES } from '../examples';
 import { parseProject, useProject } from '../store/project';
 import { SPEEDS, useSim } from '../store/sim';
+import { useView, type Layout } from '../store/view';
 import {
   deleteSelection,
   exportPng,
@@ -151,6 +152,8 @@ export function Toolbar() {
         <Btn icon="fit" label="Ajustar a la ventana" onClick={() => canvasApi.fit()} />
       </div>
 
+      <ViewSwitch />
+
       <div className="tb-group sim-group" aria-label="Simulación">
         <Btn
           icon="play"
@@ -189,5 +192,32 @@ export function Toolbar() {
         </span>
       </div>
     </header>
+  );
+}
+
+const LAYOUTS: { id: Layout; label: string; title: string }[] = [
+  { id: '2d', label: '2D', title: 'Esquema 2D (diseño)' },
+  { id: 'split', label: '2D | 3D', title: 'Vista dividida' },
+  { id: '3d', label: '3D', title: 'Vista 3D (ver por dentro)' },
+];
+
+function ViewSwitch() {
+  const layout = useView((s) => s.layout);
+  return (
+    <div className="tb-group" aria-label="Vista">
+      <div className="seg dark" role="group">
+        {LAYOUTS.map((l) => (
+          <button
+            key={l.id}
+            className={layout === l.id ? 'on' : ''}
+            title={l.title}
+            onClick={() => useView.getState().setLayout(l.id)}
+            data-testid={`layout-${l.id}`}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

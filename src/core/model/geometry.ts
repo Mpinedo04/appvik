@@ -15,6 +15,22 @@ export function localToWorld(
   return { x: c.x + x, y: c.y + y };
 }
 
+/** Mundo → local (inversa de localToWorld). */
+export function worldToLocal(
+  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip'>,
+  p: Vec2,
+): Vec2 {
+  const [x, y] = rotate(p.x - c.x, p.y - c.y, ((360 - c.rot) % 360) as Rotation);
+  return { x: c.flip ? -x : x, y };
+}
+
+/** Mitad del componente (izquierda/derecha en coordenadas locales) en la que cae un punto. */
+export function sideAt(c: ComponentInstance, world: Vec2): 'left' | 'right' {
+  const m = getModel(c.type);
+  const b = m.bbox(resolveParams(m, c.params));
+  return worldToLocal(c, world).x < (b.x0 + b.x1) / 2 ? 'left' : 'right';
+}
+
 function rotate(x: number, y: number, rot: Rotation): [number, number] {
   switch (rot) {
     case 90:

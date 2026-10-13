@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { connectionPolyline, polylineLength } from '../core/model/geometry';
-import { rerouteConnection } from '../core/model/edit';
+import { pruneDanglingConnections, rerouteConnection } from '../core/model/edit';
 import type { Circuit, ParamValue } from '../core/model/types';
 import { getModel, resolveParams, type ParamDef } from '../core/registry';
 import { TUBE_INNER_DIAMETER_MM, TUBE_MM_PER_UNIT } from '../core/sim/compiler';
 import { useProject } from '../store/project';
 import { currentSimulation, useSim } from '../store/sim';
+import { RENDER_LABELS, useView, type Render3D } from '../store/view';
 
 function NumberField({
   def,
@@ -37,6 +38,53 @@ function NumberField({
       onBlur={commit}
       onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
     />
+  );
+}
+
+function TextField({
+  value,
+  placeholder,
+  onCommit,
+}: {
+  value: string;
+  placeholder?: string;
+  onCommit: (v: string) => void;
+}) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  return (
+    <input
+      value={text}
+      placeholder={placeholder}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => text !== value && onCommit(text.trim())}
+      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+    />
+  );
+}
+
+/** Modo de visualización 3D particular de un componente (si no, el global). */
+function Render3DSelect({ id }: { id: string }) {
+  const layout = useView((s) => s.layout);
+  const mode = useView((s) => s.perComp[id] ?? '');
+  if (layout === '2d') return null;
+  return (
+    <label className="field">
+      <span>Vista 3D de este componente</span>
+      <select
+        value={mode}
+        onChange={(e) =>
+          useView.getState().setCompRender(id, (e.target.value || null) as Render3D | null)
+        }
+      >
+        <option value="">Como el resto (global)</option>
+        {(Object.keys(RENDER_LABELS) as Render3D[]).map((r) => (
+          <option key={r} value={r}>
+            {RENDER_LABELS[r]}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -75,6 +123,7 @@ export function Properties() {
               {single.label} · {getModel(single.type).name}
             </h2>
             <Explain compId={single.id} />
+            <Render3DSelect id={single.id} />
           </div>
         ) : (
           <div className="props-body hint">
@@ -102,7 +151,9 @@ export function Properties() {
     const setParam = (key: string, v: ParamValue) =>
       commit((d) => {
         d.components[single.id].params[key] = v;
-        // Si cambian los puertos (p. ej. tipo de accionamiento), las tuberías se vuelven a trazar.
+        // Si desaparece un puerto (p. ej. al quitar un pilotaje) se borran sus tuberías;
+        // las demás se vuelven a trazar porque los puertos pueden haberse movido.
+        pruneDanglingConnections(d as Circuit);
         for (const c of Object.values(d.connections)) {
           if (
             (c.a.kind === 'port' && c.a.comp === single.id) ||
@@ -117,47 +168,57 @@ export function Properties() {
         <div className="props-body">
           <h2>{m.name}</h2>
           <p className="desc">{m.description}</p>
+          <Render3DSelect id={single.id} />
           <label className="field">
             <span>Etiqueta</span>
-            <input
+            <TextField
               value={single.label}
-              onChange={(e) => commit((d) => void (d.components[single.id].label = e.target.value))}
+              onCommit={(v) => commit((d) => void (d.components[single.id].label = v))}
             />
           </label>
-          {m.params.map((def) => (
-            <label className="field" key={def.key}>
-              <span>
-                {def.label}
-                {def.unit ? ` [${def.unit}]` : ''}
-              </span>
-              {def.type === 'number' && (
-                <NumberField
-                  def={def}
-                  value={Number(params[def.key])}
-                  onCommit={(v) => setParam(def.key, v)}
-                />
-              )}
-              {def.type === 'select' && (
-                <select
-                  value={String(params[def.key])}
-                  onChange={(e) => setParam(def.key, e.target.value)}
-                >
-                  {def.options.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {def.type === 'boolean' && (
-                <input
-                  type="checkbox"
-                  checked={Boolean(params[def.key])}
-                  onChange={(e) => setParam(def.key, e.target.checked)}
-                />
-              )}
-            </label>
-          ))}
+          {m.params
+            .filter((def) => !def.when || def.when(params))
+            .map((def) => (
+              <label className="field" key={def.key}>
+                <span>
+                  {def.label}
+                  {def.unit ? ` [${def.unit}]` : ''}
+                </span>
+                {def.type === 'number' && (
+                  <NumberField
+                    def={def}
+                    value={Number(params[def.key])}
+                    onCommit={(v) => setParam(def.key, v)}
+                  />
+                )}
+                {def.type === 'select' && (
+                  <select
+                    value={String(params[def.key])}
+                    onChange={(e) => setParam(def.key, e.target.value)}
+                  >
+                    {def.options.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {def.type === 'text' && (
+                  <TextField
+                    value={String(params[def.key])}
+                    placeholder={def.placeholder}
+                    onCommit={(v) => setParam(def.key, v)}
+                  />
+                )}
+                {def.type === 'boolean' && (
+                  <input
+                    type="checkbox"
+                    checked={Boolean(params[def.key])}
+                    onChange={(e) => setParam(def.key, e.target.checked)}
+                  />
+                )}
+              </label>
+            ))}
         </div>
       </aside>
     );

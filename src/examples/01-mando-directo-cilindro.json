@@ -5,8 +5,8 @@
   "description": "Al mantener pulsada la válvula 5/2 el cilindro avanza; al soltarla, el muelle devuelve la válvula y el cilindro retrocede.",
   "circuit": {
     "components": {
-      "c_lescd1b": {
-        "id": "c_lescd1b",
+      "c_m5bqutz": {
+        "id": "c_m5bqutz",
         "type": "pneu-cyl-double",
         "x": 300,
         "y": 120,
@@ -15,8 +15,8 @@
         "label": "1A",
         "params": {}
       },
-      "c_79ksk4w": {
-        "id": "c_79ksk4w",
+      "c_dnlzc63": {
+        "id": "c_dnlzc63",
         "type": "pneu-valve-52",
         "x": 270,
         "y": 260,
@@ -25,8 +25,8 @@
         "label": "1V1",
         "params": {}
       },
-      "c_l9jx2tr": {
-        "id": "c_l9jx2tr",
+      "c_zys2ti1": {
+        "id": "c_zys2ti1",
         "type": "pneu-supply",
         "x": 300,
         "y": 400,
@@ -35,8 +35,8 @@
         "label": "0Z1",
         "params": {}
       },
-      "c_hbgqiee": {
-        "id": "c_hbgqiee",
+      "c_r9p3ukr": {
+        "id": "c_r9p3ukr",
         "type": "pneu-gauge",
         "x": 450,
         "y": 270,
@@ -47,16 +47,16 @@
       }
     },
     "connections": {
-      "w_h7084wx": {
-        "id": "w_h7084wx",
+      "w_cjmxng3": {
+        "id": "w_cjmxng3",
         "a": {
           "kind": "port",
-          "comp": "c_79ksk4w",
+          "comp": "c_dnlzc63",
           "port": "4"
         },
         "b": {
           "kind": "port",
-          "comp": "c_lescd1b",
+          "comp": "c_m5bqutz",
           "port": "1"
         },
         "medium": "pneu",
@@ -71,16 +71,16 @@
           }
         ]
       },
-      "w_mkzmwaf": {
-        "id": "w_mkzmwaf",
+      "w_0y6dhbi": {
+        "id": "w_0y6dhbi",
         "a": {
           "kind": "port",
-          "comp": "c_79ksk4w",
+          "comp": "c_dnlzc63",
           "port": "2"
         },
         "b": {
           "kind": "port",
-          "comp": "c_lescd1b",
+          "comp": "c_m5bqutz",
           "port": "2"
         },
         "medium": "pneu",
@@ -95,43 +95,43 @@
           }
         ]
       },
-      "w_tipflxe": {
-        "id": "w_tipflxe",
+      "w_jxrtpqy": {
+        "id": "w_jxrtpqy",
         "a": {
           "kind": "port",
-          "comp": "c_l9jx2tr",
+          "comp": "c_zys2ti1",
           "port": "1"
         },
         "b": {
           "kind": "junction",
-          "id": "j_ldahs25"
+          "id": "j_dvk2umv"
         },
         "medium": "pneu",
         "points": []
       },
-      "w_lum7ld1": {
-        "id": "w_lum7ld1",
+      "w_6qgejyx": {
+        "id": "w_6qgejyx",
         "a": {
           "kind": "junction",
-          "id": "j_ldahs25"
+          "id": "j_dvk2umv"
         },
         "b": {
           "kind": "port",
-          "comp": "c_79ksk4w",
+          "comp": "c_dnlzc63",
           "port": "1"
         },
         "medium": "pneu",
         "points": []
       },
-      "w_qcuiy3a": {
-        "id": "w_qcuiy3a",
+      "w_63dw6uc": {
+        "id": "w_63dw6uc",
         "a": {
           "kind": "junction",
-          "id": "j_ldahs25"
+          "id": "j_dvk2umv"
         },
         "b": {
           "kind": "port",
-          "comp": "c_hbgqiee",
+          "comp": "c_r9p3ukr",
           "port": "1"
         },
         "medium": "pneu",
@@ -144,8 +144,8 @@
       }
     },
     "junctions": {
-      "j_ldahs25": {
-        "id": "j_ldahs25",
+      "j_dvk2umv": {
+        "id": "j_dvk2umv",
         "x": 300,
         "y": 330,
         "medium": "pneu"

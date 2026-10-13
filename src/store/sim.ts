@@ -22,7 +22,7 @@ interface SimStore {
   stop(): void;
   stepOnce(): void;
   setSpeed(s: number): void;
-  press(compId: string): void;
+  press(compId: string, side?: 'left' | 'right'): void;
   release(compId: string): void;
 }
 
@@ -74,6 +74,7 @@ export const useSim = create<SimStore>((set, get) => {
       if (get().status === 'running' || !ensureSim()) return;
       useProject.getState().clearSelection();
       set({ status: 'running' });
+      publish();
       last = performance.now();
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(loop);
@@ -98,8 +99,8 @@ export const useSim = create<SimStore>((set, get) => {
     setSpeed(speed) {
       set({ speed });
     },
-    press(id) {
-      sim?.userAction(id, 'press');
+    press(id, side) {
+      sim?.userAction(id, 'press', side);
       if (get().status === 'paused') {
         sim?.advance(0);
         publish();

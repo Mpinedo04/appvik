@@ -45,6 +45,18 @@ export interface SimSnapshot {
   junctionNode: Record<string, number>;
   /** Caudal másico por orificio [kg/s]. */
   orificeFlow: number[];
+  /** Caudal másico por puerto `${comp}:${port}` [kg/s], positivo hacia el interior del componente. */
+  portFlow: Record<string, number>;
+  /** Señales publicadas por los componentes (finales de carrera, etc.). */
+  signals: Record<string, number>;
+}
+
+/** Orificio de un componente que toca uno de sus puertos (para medir el caudal por puerto). */
+interface PortTap {
+  key: string;
+  orifice: number;
+  /** +1 si el orificio sale del nodo del puerto hacia el componente, −1 al revés. */
+  sign: 1 | -1;
 }
 
 export class Simulation {
@@ -55,6 +67,10 @@ export class Simulation {
   t = 0;
   dt: number;
   private ctx: StepCtx;
+  private taps: PortTap[] = [];
+  /** Señales legibles en este paso (las publicadas en el paso anterior). */
+  private signals = new Map<string, number>();
+  private nextSignals = new Map<string, number>();
 
   constructor(circuit: Circuit, opts: { dt?: number } = {}) {
     this.dt = opts.dt ?? DEFAULT_DT;
@@ -64,6 +80,12 @@ export class Simulation {
     for (const inst of Object.values(circuit.components)) {
       const model = getModel(inst.type);
       const params = resolveParams(model, inst.params);
+      // Nodo → puerto de este componente, para saber qué orificios miden el caudal de cada puerto.
+      const nodePort = new Map<number, string>();
+      for (const pd of model.ports(params)) {
+        const n = this.nets.portNode.get(portKey(inst.id, pd.id));
+        if (n !== undefined) nodePort.set(n, portKey(inst.id, pd.id));
+      }
       const handles = model.build(
         {
           port: (portId) => {
@@ -73,7 +95,14 @@ export class Simulation {
           },
           addNode: (o) => net.addNode(o),
           atmosphere: net.atmosphere,
-          addOrifice: (a, b, o) => net.addOrifice(a, b, o.C, o.b ?? 0.3, o.name ?? `${inst.label}`),
+          addOrifice: (a, b, o) => {
+            const index = net.addOrifice(a, b, o.C, o.b ?? 0.3, o.name ?? `${inst.label}`);
+            const ka = nodePort.get(a);
+            const kb = nodePort.get(b);
+            if (ka) this.taps.push({ key: ka, orifice: index, sign: 1 });
+            if (kb) this.taps.push({ key: kb, orifice: index, sign: -1 });
+            return index;
+          },
           addBaseVolume: (n, v) => {
             net.nodes[n].baseVolume += v;
           },
@@ -95,12 +124,24 @@ export class Simulation {
         net.nodes[n].dynVolume += v;
       },
       massFlow: (o) => net.orifices[o].mdot,
+      signal: (name) => this.signals.get(name) ?? 0,
+      setSignal: (name, v) => {
+        this.nextSignals.set(name, typeof v === 'boolean' ? (v ? 1 : 0) : v);
+      },
     };
 
     // Paso de inicialización (dt = 0) para fijar volúmenes y aperturas iniciales.
     net.beginStep();
     for (const it of this.instances) it.model.update(this.ctx, it.state, it.handles, it.params, 0);
+    this.swapSignals();
     net.initMasses();
+  }
+
+  private swapSignals() {
+    const read = this.signals;
+    this.signals = this.nextSignals;
+    this.nextSignals = read;
+    this.nextSignals.clear();
   }
 
   step() {
@@ -108,6 +149,7 @@ export class Simulation {
     (this.ctx as { t: number }).t = this.t;
     net.beginStep();
     for (const it of this.instances) it.model.update(this.ctx, it.state, it.handles, it.params, dt);
+    this.swapSignals();
     net.integrate(dt);
     this.t += dt;
   }
@@ -118,9 +160,9 @@ export class Simulation {
     for (let i = 0; i < n; i++) this.step();
   }
 
-  userAction(compId: string, action: UserAction) {
+  userAction(compId: string, action: UserAction, side?: 'left' | 'right') {
     const it = this.byId.get(compId);
-    it?.model.onUserAction?.(it.state, it.params, action);
+    it?.model.onUserAction?.(it.state, it.params, action, side);
   }
 
   state(compId: string): any {
@@ -138,6 +180,18 @@ export class Simulation {
     return it.model.explain(it.state, it.params, { p: (port) => this.portPressure(compId, port) });
   }
 
+  /** Caudal másico por puerto [kg/s], positivo hacia el componente. */
+  portFlows(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const tap of this.taps)
+      out[tap.key] = (out[tap.key] ?? 0) + tap.sign * this.net.orifices[tap.orifice].mdot;
+    return out;
+  }
+
+  signal(name: string): number {
+    return this.signals.get(name) ?? 0;
+  }
+
   snapshot(): SimSnapshot {
     const comp: Record<string, any> = {};
     for (const it of this.instances) comp[it.inst.id] = cloneState(it.state);
@@ -149,6 +203,8 @@ export class Simulation {
       connNode: Object.fromEntries(this.nets.connNode),
       junctionNode: Object.fromEntries(this.nets.junctionNode),
       orificeFlow: this.net.orifices.map((o) => o.mdot),
+      portFlow: this.portFlows(),
+      signals: Object.fromEntries(this.signals),
     };
   }
 }

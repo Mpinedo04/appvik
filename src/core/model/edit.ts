@@ -208,6 +208,25 @@ export function removeItems(
   cleanupJunctions(circuit);
 }
 
+/** Borra las tuberías cuyo puerto ya no existe (p. ej. tras cambiar un accionamiento). */
+export function pruneDanglingConnections(circuit: Circuit) {
+  const exists = (e: Endpoint) => {
+    if (e.kind === 'junction') return Boolean(circuit.junctions[e.id]);
+    const c = circuit.components[e.comp];
+    if (!c) return false;
+    const m = getModel(c.type);
+    return m.ports(resolveParams(m, c.params)).some((p) => p.id === e.port);
+  };
+  let removed = false;
+  for (const c of Object.values(circuit.connections)) {
+    if (!exists(c.a) || !exists(c.b)) {
+      delete circuit.connections[c.id];
+      removed = true;
+    }
+  }
+  if (removed) cleanupJunctions(circuit);
+}
+
 export function rerouteConnection(circuit: Circuit, connId: string) {
   const c = circuit.connections[connId];
   const ga = endpointGeom(circuit, c.a);

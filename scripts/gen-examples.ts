@@ -36,3 +36,28 @@ function save(file: string, name: string, description: string, circuit: Circuit)
     b.circuit,
   );
 }
+
+// 99 · Prueba de rendimiento: 12 mandos directos (48 componentes)
+{
+  const b = new CircuitBuilder();
+  for (let i = 0; i < 12; i++) {
+    const ox = (i % 4) * 300;
+    const oy = Math.floor(i / 4) * 360;
+    const cyl = b.add('pneu-cyl-double', 300 + ox, 120 + oy);
+    const valve = b.add('pneu-valve-52', 270 + ox, 260 + oy, {
+      actLeft: i % 2 ? 'lever' : 'pushbutton',
+    });
+    const src = b.add('pneu-supply', 300 + ox, 400 + oy);
+    const sil = b.add('pneu-silencer', 330 + ox, 330 + oy);
+    b.connect(valve, '4', cyl, '1');
+    b.connect(valve, '2', cyl, '2');
+    b.connect(src, '1', valve, '1');
+    b.connect(valve, '3', sil, '1');
+  }
+  save(
+    '99-prueba-rendimiento.json',
+    'Prueba de rendimiento (48 componentes)',
+    'Doce mandos directos para comprobar la fluidez de la simulación y de la vista 3D.',
+    b.circuit,
+  );
+}
