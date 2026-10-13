@@ -3,6 +3,7 @@
  * abrir la vista 3D (el editor 2D arranca sin él).
  */
 import { createElement, type FC } from 'react';
+import { useView } from '../store/view';
 import { ALL_WAY_VALVES } from './models';
 import type { Model3DProps } from './parts3d';
 import { CylinderDouble3D, CylinderSingle3D } from './pneumatic/cylinder-double/Model3D';
@@ -26,11 +27,23 @@ import {
 } from './pneumatic/models3d';
 import { Supply3D } from './pneumatic/supply/Model3D';
 import { makeWayValve3D } from './pneumatic/way-valve/Model3D';
+import { makeWayValveIso3D } from './pneumatic/way-valve/ModelIso3D';
+import type { WayValveConfig } from './pneumatic/way-valve/config';
 
 const variant =
   <K extends string>(C: FC<Model3DProps & Record<K, boolean>>, key: K): FC<Model3DProps> =>
   (p) =>
     createElement(C, { ...p, [key]: true } as Model3DProps & Record<K, boolean>);
+
+/** Válvula de vías: corredera real o esquema ISO según la preferencia de la vista. */
+function wayValve3D(cfg: WayValveConfig): FC<Model3DProps> {
+  const Real = makeWayValve3D(cfg);
+  const Iso = makeWayValveIso3D(cfg);
+  return function WayValve(p) {
+    const style = useView((s) => s.valveStyle);
+    return createElement(style === 'iso' ? Iso : Real, p);
+  };
+}
 
 const models = new Map<string, FC<Model3DProps>>([
   ['pneu-supply', Supply3D],
@@ -55,7 +68,7 @@ const models = new Map<string, FC<Model3DProps>>([
   ['pneu-timer', Timer3D],
   ['pneu-gauge', Gauge3D],
   ['pneu-flowmeter', Flowmeter3D],
-  ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, makeWayValve3D(cfg)] as [string, FC<Model3DProps>]),
+  ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, wayValve3D(cfg)] as [string, FC<Model3DProps>]),
 ]);
 
 export function getModel3D(type: string): FC<Model3DProps> | null {

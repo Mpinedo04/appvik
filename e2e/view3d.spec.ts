@@ -15,6 +15,9 @@ test('la vista 3D y la dividida se abren, simulan y no dan errores', async ({ pa
   await page.getByTestId('layout-3d').click();
   await expect(page.locator('#circuit-svg')).toHaveCount(0);
   for (const mode of ['xray', 'cut', 'normal']) await page.getByTestId(`render-${mode}`).click();
+  // Las válvulas: esquema ISO y vuelta a la corredera real.
+  await page.getByTestId('valve-iso').click();
+  await page.getByTestId('valve-real').click();
 
   // Simula y acciona la válvula desde el store (el clic 3D depende del raycast de WebGL).
   await page.getByTestId('sim-start').click();

@@ -6,7 +6,8 @@ export function ViewOverlay() {
   const render3d = useView((s) => s.render3d);
   const cutOffset = useView((s) => s.cutOffset);
   const labels = useView((s) => s.labels);
-  const { setRender, setCutOffset, setLabels } = useView.getState();
+  const valveStyle = useView((s) => s.valveStyle);
+  const { setRender, setCutOffset, setLabels, setValveStyle } = useView.getState();
   return (
     <div className="overlay3d">
       <div className="seg" role="group" aria-label="Modo de visualización 3D">
@@ -34,6 +35,24 @@ export function ViewOverlay() {
           />
         </label>
       )}
+      <div className="seg" role="group" aria-label="Dibujo de las válvulas">
+        <button
+          className={valveStyle === 'real' ? 'on' : ''}
+          onClick={() => setValveStyle('real')}
+          title="Cuerpo con taladro y corredera con resaltes, como la válvula real"
+          data-testid="valve-real"
+        >
+          Corredera real
+        </button>
+        <button
+          className={valveStyle === 'iso' ? 'on' : ''}
+          onClick={() => setValveStyle('iso')}
+          title="Una cámara por cada casilla del símbolo ISO"
+          data-testid="valve-iso"
+        >
+          Esquema ISO
+        </button>
+      </div>
       <button className="plain" onClick={() => sceneApi.fitAll()}>
         Encuadrar
       </button>

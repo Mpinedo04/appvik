@@ -10,5 +10,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
+    // Con «forks», en Windows los procesos se disputan la caché de módulos en disco (EBUSY).
+    pool: 'threads',
   },
 });

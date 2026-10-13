@@ -32,6 +32,13 @@ export interface WayValveConfig {
   rest: number;
   /** Puertos de pilotaje de cada lado (si el accionamiento es neumático). */
   pilots: { left: string; right: string };
+  /**
+   * Corredera real (ver spool.ts): orden de las ranuras a lo largo del taladro (un puerto puede
+   * repetirse si tiene dos ranuras unidas por dentro), resaltes en reposo en medios pasos y
+   * carrera por casilla. Está precalculada con `solveSpool` y la comprueba spool.test.ts; si
+   * falta, se calcula al cargar.
+   */
+  spool?: { bore: string[]; lands: number[]; stroke: number };
 }
 
 export const BOX_H = 40;
@@ -70,6 +77,7 @@ export const VALVE_52: WayValveConfig = {
   positions: [P52_LEFT, P52_RIGHT],
   rest: 1,
   pilots: { left: '14', right: '12' },
+  spool: { bore: ['5', '4', '1', '2', '3'], lands: [-2, 3, 8], stroke: 2 },
 };
 
 const P32_PORTS: ValvePortCfg[] = [
@@ -92,6 +100,7 @@ export const VALVE_32NC: WayValveConfig = {
   ],
   rest: 1,
   pilots: { left: '12', right: '10' },
+  spool: { bore: ['1', '2', '3'], lands: [-3, 1, 5], stroke: 2 },
 };
 
 export const VALVE_32NO: WayValveConfig = {
@@ -108,6 +117,7 @@ export const VALVE_32NO: WayValveConfig = {
   ],
   rest: 1,
   pilots: { left: '10', right: '12' },
+  spool: { bore: ['1', '2', '3'], lands: [-2, 4], stroke: 2 },
 };
 
 export const VALVE_22NC: WayValveConfig = {
@@ -126,6 +136,7 @@ export const VALVE_22NC: WayValveConfig = {
   ],
   rest: 1,
   pilots: { left: '12', right: '10' },
+  spool: { bore: ['2', '1'], lands: [-3, 2], stroke: 2 },
 };
 
 export const VALVE_42: WayValveConfig = {
@@ -159,6 +170,8 @@ export const VALVE_42: WayValveConfig = {
   ],
   rest: 1,
   pilots: { left: '14', right: '12' },
+  // Un único escape con dos ranuras unidas por dentro, como una 5/2 con 3 y 5 comunicados.
+  spool: { bore: ['3', '4', '1', '2', '3'], lands: [-2, 3, 8], stroke: 2 },
 };
 
 function valve53(kind: 'closed' | 'exhaust' | 'pressure'): WayValveConfig {
@@ -180,6 +193,11 @@ function valve53(kind: 'closed' | 'exhaust' | 'pressure'): WayValveConfig {
             ],
             blocked: ['3', '5'],
           };
+  const spool = {
+    closed: { lands: [-3, 2, 6, 11], stroke: 3 },
+    exhaust: { lands: [-1, 4, 9], stroke: 1 },
+    pressure: { lands: [-4, 1, 7, 12], stroke: 4 },
+  }[kind];
   const names = {
     closed: 'centro cerrado',
     exhaust: 'centro a escape',
@@ -200,6 +218,7 @@ function valve53(kind: 'closed' | 'exhaust' | 'pressure'): WayValveConfig {
     positions: [P52_LEFT, center, P52_RIGHT],
     rest: 1,
     pilots: { left: '14', right: '12' },
+    spool: { bore: ['5', '4', '1', '2', '3'], ...spool },
   };
 }
 

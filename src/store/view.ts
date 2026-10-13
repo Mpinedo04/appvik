@@ -3,6 +3,8 @@ import { create } from 'zustand';
 
 export type Layout = '2d' | '3d' | 'split';
 export type Render3D = 'normal' | 'xray' | 'cut';
+/** Cómo se dibujan las válvulas de vías en 3D: corredera real o cámaras del símbolo ISO. */
+export type ValveStyle = 'real' | 'iso';
 
 export const RENDER_LABELS: Record<Render3D, string> = {
   normal: 'Normal',
@@ -23,6 +25,7 @@ interface ViewStore {
   labels: boolean;
   /** Panel de diagramas abierto. */
   diagrams: boolean;
+  valveStyle: ValveStyle;
   setLayout(l: Layout): void;
   setRender(r: Render3D): void;
   setCompRender(id: string, r: Render3D | null): void;
@@ -30,6 +33,7 @@ interface ViewStore {
   setSplit(v: number): void;
   setLabels(v: boolean): void;
   setDiagrams(v: boolean): void;
+  setValveStyle(v: ValveStyle): void;
 }
 
 const KEY = 'fluidlab3d.view';
@@ -46,8 +50,8 @@ export const useView = create<ViewStore>((set, get) => {
   const saved = load();
   const persist = () => {
     try {
-      const { layout, render3d, split, labels } = get();
-      localStorage.setItem(KEY, JSON.stringify({ layout, render3d, split, labels }));
+      const { layout, render3d, split, labels, valveStyle } = get();
+      localStorage.setItem(KEY, JSON.stringify({ layout, render3d, split, labels, valveStyle }));
     } catch {
       /* sin almacenamiento */
     }
@@ -60,6 +64,7 @@ export const useView = create<ViewStore>((set, get) => {
     split: saved.split ?? 0.5,
     labels: saved.labels ?? true,
     diagrams: false,
+    valveStyle: saved.valveStyle ?? 'real',
     setLayout(layout) {
       set({ layout });
       persist();
@@ -87,6 +92,10 @@ export const useView = create<ViewStore>((set, get) => {
     },
     setDiagrams(diagrams) {
       set({ diagrams });
+    },
+    setValveStyle(valveStyle) {
+      set({ valveStyle });
+      persist();
     },
   };
 });
