@@ -1,0 +1,508 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Enclavamiento marcha/paro (electroneumática)",
+  "description": "Pulsa S1 (marcha): el relé K1 se queda enclavado por su propio contacto, la bobina Y1 hace salir el cilindro y se enciende H1. S0 (paro) o la seta S2 lo cortan.",
+  "circuit": {
+    "components": {
+      "c_5m31pn7": {
+        "id": "c_5m31pn7",
+        "type": "pneu-cyl-double",
+        "x": 220,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {}
+      },
+      "c_8oa57cx": {
+        "id": "c_8oa57cx",
+        "type": "pneu-valve-52-sol",
+        "x": 190,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_pklz7wr": {
+        "id": "c_pklz7wr",
+        "type": "pneu-supply",
+        "x": 220,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_thmb8v1": {
+        "id": "c_thmb8v1",
+        "type": "elec-24v",
+        "x": 520,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_eq6wnru": {
+        "id": "c_eq6wnru",
+        "type": "elec-estop",
+        "x": 520,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S2",
+        "params": {}
+      },
+      "c_97sya38": {
+        "id": "c_97sya38",
+        "type": "elec-button-nc",
+        "x": 520,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "S0",
+        "params": {}
+      },
+      "c_gmubqyd": {
+        "id": "c_gmubqyd",
+        "type": "elec-button-no",
+        "x": 520,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "S1",
+        "params": {}
+      },
+      "c_87hteyh": {
+        "id": "c_87hteyh",
+        "type": "elec-relay",
+        "x": 520,
+        "y": 330,
+        "rot": 0,
+        "flip": false,
+        "label": "K1",
+        "params": {}
+      },
+      "c_h73wfu3": {
+        "id": "c_h73wfu3",
+        "type": "elec-0v",
+        "x": 520,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_2a2sdui": {
+        "id": "c_2a2sdui",
+        "type": "elec-contact",
+        "x": 580,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "K1",
+        "params": {}
+      },
+      "c_qhko1fw": {
+        "id": "c_qhko1fw",
+        "type": "elec-24v",
+        "x": 680,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_bxw7012": {
+        "id": "c_bxw7012",
+        "type": "elec-contact",
+        "x": 680,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "K1",
+        "params": {}
+      },
+      "c_tkkxk3u": {
+        "id": "c_tkkxk3u",
+        "type": "elec-solenoid",
+        "x": 680,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "Y1",
+        "params": {}
+      },
+      "c_b6wl4u6": {
+        "id": "c_b6wl4u6",
+        "type": "elec-0v",
+        "x": 680,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_a7oxzex": {
+        "id": "c_a7oxzex",
+        "type": "elec-24v",
+        "x": 780,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_zt2b38c": {
+        "id": "c_zt2b38c",
+        "type": "elec-contact",
+        "x": 780,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "K1",
+        "params": {}
+      },
+      "c_3j116vk": {
+        "id": "c_3j116vk",
+        "type": "elec-lamp",
+        "x": 780,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "H1",
+        "params": {
+          "color": "green"
+        }
+      },
+      "c_brvgpnk": {
+        "id": "c_brvgpnk",
+        "type": "elec-0v",
+        "x": 780,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_kzvawct": {
+        "id": "w_kzvawct",
+        "a": {
+          "kind": "port",
+          "comp": "c_8oa57cx",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_5m31pn7",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 200,
+            "y": 170
+          },
+          {
+            "x": 170,
+            "y": 170
+          }
+        ]
+      },
+      "w_0awjkd8": {
+        "id": "w_0awjkd8",
+        "a": {
+          "kind": "port",
+          "comp": "c_8oa57cx",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_5m31pn7",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 240,
+            "y": 170
+          },
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_wqhuxvf": {
+        "id": "w_wqhuxvf",
+        "a": {
+          "kind": "port",
+          "comp": "c_pklz7wr",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_8oa57cx",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_gk4zcop": {
+        "id": "w_gk4zcop",
+        "a": {
+          "kind": "port",
+          "comp": "c_thmb8v1",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_eq6wnru",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_76t7imu": {
+        "id": "w_76t7imu",
+        "a": {
+          "kind": "port",
+          "comp": "c_eq6wnru",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_97sya38",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_ecq94gq": {
+        "id": "w_ecq94gq",
+        "a": {
+          "kind": "port",
+          "comp": "c_87hteyh",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_h73wfu3",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_f2vpsb5": {
+        "id": "w_f2vpsb5",
+        "a": {
+          "kind": "port",
+          "comp": "c_97sya38",
+          "port": "2"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_b16z8en"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_g9yre21": {
+        "id": "w_g9yre21",
+        "a": {
+          "kind": "junction",
+          "id": "j_b16z8en"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gmubqyd",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_adel2w7": {
+        "id": "w_adel2w7",
+        "a": {
+          "kind": "junction",
+          "id": "j_b16z8en"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_2a2sdui",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": [
+          {
+            "x": 520,
+            "y": 200
+          },
+          {
+            "x": 580,
+            "y": 200
+          }
+        ]
+      },
+      "w_orbc3pw": {
+        "id": "w_orbc3pw",
+        "a": {
+          "kind": "port",
+          "comp": "c_gmubqyd",
+          "port": "4"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_t39rm82"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_iqf90r6": {
+        "id": "w_iqf90r6",
+        "a": {
+          "kind": "junction",
+          "id": "j_t39rm82"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_87hteyh",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_wiecd9u": {
+        "id": "w_wiecd9u",
+        "a": {
+          "kind": "junction",
+          "id": "j_t39rm82"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_2a2sdui",
+          "port": "4"
+        },
+        "medium": "elec",
+        "points": [
+          {
+            "x": 520,
+            "y": 300
+          },
+          {
+            "x": 580,
+            "y": 300
+          }
+        ]
+      },
+      "w_mzovpvm": {
+        "id": "w_mzovpvm",
+        "a": {
+          "kind": "port",
+          "comp": "c_qhko1fw",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_bxw7012",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_efulhx6": {
+        "id": "w_efulhx6",
+        "a": {
+          "kind": "port",
+          "comp": "c_bxw7012",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_tkkxk3u",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_kjbg883": {
+        "id": "w_kjbg883",
+        "a": {
+          "kind": "port",
+          "comp": "c_tkkxk3u",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_b6wl4u6",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_f6l4xo8": {
+        "id": "w_f6l4xo8",
+        "a": {
+          "kind": "port",
+          "comp": "c_a7oxzex",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zt2b38c",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_ttdp4cz": {
+        "id": "w_ttdp4cz",
+        "a": {
+          "kind": "port",
+          "comp": "c_zt2b38c",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_3j116vk",
+          "port": "X1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_1gyfio7": {
+        "id": "w_1gyfio7",
+        "a": {
+          "kind": "port",
+          "comp": "c_3j116vk",
+          "port": "X2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_brvgpnk",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      }
+    },
+    "junctions": {
+      "j_b16z8en": {
+        "id": "j_b16z8en",
+        "x": 520,
+        "y": 210,
+        "medium": "elec"
+      },
+      "j_t39rm82": {
+        "id": "j_t39rm82",
+        "x": 520,
+        "y": 290,
+        "medium": "elec"
+      }
+    }
+  }
+}

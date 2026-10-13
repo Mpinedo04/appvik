@@ -1,6 +1,6 @@
 # FluidLab 3D
 
-Simulador de circuitos neumáticos (y, en próximas fases, electroneumáticos e hidráulicos) con editor libre de símbolos ISO 1219 y, a partir de la fase 2, una vista 3D en la que se ve por dentro cómo funciona cada componente.
+Simulador de circuitos neumáticos y electroneumáticos (y, en la fase 5, hidráulicos) con editor libre de símbolos ISO 1219 / IEC 60617 y una vista 3D en la que se ve por dentro cómo funciona cada componente.
 
 > Proyecto independiente, inspirado en los simuladores didácticos de neumática. No usa marcas, logotipos ni recursos de terceros.
 
@@ -35,7 +35,8 @@ npm run dev          # abre http://localhost:5173
 - **Simular:** pulsa ▶. Mantén pulsado el botón del ratón sobre una válvula con pulsador para accionarla (las palancas con enclavamiento cambian con cada clic). Selecciona un componente para ver en el panel derecho **qué está pasando dentro**. La velocidad baja hasta 0,01× (cámara lenta).
 - **Finales de carrera:** en las propiedades del cilindro escribe sus marcas, p. ej. `1S1@0; 1S2@100` (etiqueta@mm). Una válvula con rodillo (p. ej. «Final de carrera (3/2 con rodillo)») se acciona cuando la leva pasa por la marca con la misma etiqueta. El rodillo abatible sólo actúa en el sentido elegido.
 - **Diagramas:** botón 📈 junto a los controles de simulación. *Espacio-tiempo* (carrera de los actuadores y estado de las válvulas frente al tiempo) y *espacio-fase* (un paso por movimiento, con la secuencia, p. ej. `1A+ → 2A+ → 2A− → 1A−`). Se exportan a PNG y CSV.
-- **Renumerar:** botón 🏷 de la barra: etiqueta todo según la norma (`1A`, `1V1`, `1S1`, `0Z1`…).
+- **Electroneumática:** el esquema eléctrico se dibuja en el mismo lienzo con los componentes de las categorías *Eléctricos*, *Relés, contadores y bobinas* y *Sensores eléctricos*, unidos con cables (arrastrando de borne a borne). Las ramas van de **+24 V** a **0 V**. Como en los simuladores clásicos, **la etiqueta es el enlace**: los contactos con la etiqueta `K1` los mueve la bobina `K1`; la bobina `Y1` acciona el lado de la válvula cuyo accionamiento *Electroimán* tiene `Y1`; los sensores y finales de carrera eléctricos con la etiqueta `1B1` se activan en la marca `1B1@…` del cilindro. Durante la simulación los cables con +24 V se ven en rojo y los de 0 V en azul, las bobinas activadas se rellenan y las lámparas se encienden; un cortocircuito se avisa en la barra de estado. Los pulsadores, interruptores y la seta de emergencia se accionan con clic (en 2D o en 3D).
+- **Renumerar:** botón 🏷 de la barra: etiqueta la parte neumática según la norma (`1A`, `1V1`, `1S1`, `0Z1`…). Las etiquetas de los componentes eléctricos no se tocan, porque son sus enlaces.
 - Los proyectos se guardan como `.fluidlab.json`; además hay autoguardado en el navegador.
 
 ## Componentes
@@ -44,13 +45,16 @@ npm run dev          # abre http://localhost:5173
 | --- | --- |
 | Alimentación | Fuente de aire, compresor con depósito y presostato, unidad de mantenimiento (FRL), depósito, silenciador |
 | Actuadores | Cilindro de simple efecto (muelle), de doble efecto (amortiguación regulable), sin vástago, actuador de giro, motor neumático, pinza |
-| Válvulas de vías | 2/2, 3/2 NC, 3/2 NA, 4/2, 5/2, 5/3 (centro cerrado, a escape, a presión), 5/2 pilotada y 5/2 biestable. Accionamientos por lado: pulsador, palanca con enclavamiento, pedal, rodillo, rodillo abatible, pilotaje, servopilotado, muelle |
+| Válvulas de vías | 2/2, 3/2 NC, 3/2 NA, 4/2, 5/2, 5/3 (centro cerrado, a escape, a presión), 5/2 pilotada, 5/2 biestable y electroválvulas 3/2, 5/2 monoestable y 5/2 biestable. Accionamientos por lado: pulsador, palanca con enclavamiento, pedal, rodillo, rodillo abatible, pilotaje, servopilotado, electroimán, electroimán servopilotado, muelle |
 | Bloqueo y lógica | Antirretorno, selectora (O), simultaneidad (Y), escape rápido |
 | Caudal y presión | Estranguladora, estranguladora antirretorno, limitadora, reguladora con escape, válvula de secuencia, temporizador neumático |
 | Sensores | Final de carrera 3/2 con rodillo |
 | Instrumentos | Manómetro, caudalímetro |
+| Eléctricos | Alimentación +24 V y 0 V, pulsador NA, pulsador NC, interruptor, seta de emergencia, lámpara |
+| Relés y bobinas | Relé, relé temporizado (a la conexión / a la desconexión), contacto de relé (NA, NC, conmutado), contador con puesta a cero, bobina de electroválvula |
+| Sensores eléctricos | Final de carrera eléctrico, sensor de proximidad (magnético, inductivo, capacitivo, óptico), presostato |
 
-Ejemplos incluidos: mando directo, mando indirecto, funciones O e Y, regulación de velocidad, temporizador, ciclo A+ B+ B− A− y una prueba de rendimiento.
+Ejemplos incluidos: mando directo, mando indirecto, funciones O e Y, regulación de velocidad, temporizador, ciclo A+ B+ B− A−, enclavamiento marcha/paro con relé, ciclo A+ B+ A− B− electroneumático con sensores (ciclo único o continuo), retorno temporizado con relé y una prueba de rendimiento.
 
 ## Arquitectura
 
@@ -59,7 +63,8 @@ src/
   core/            TypeScript puro (sin React): se puede testear y ejecutar en un Worker
     model/         Datos del circuito, geometría, operaciones de edición, validación
     registry.ts    Contrato ComponentModel + registro de tipos
-    sim/           Compilador (circuito → red), red neumática ISO 6358, mecánica, motor
+    sim/           Compilador (circuito → redes), red neumática ISO 6358, red eléctrica,
+                   mecánica, motor, grabador de diagramas
   components/      Un directorio por componente: model.ts (física) + Symbol2D.tsx (símbolo)
                    + Model3D.tsx (modelo 3D procedural)
   view3d/          Escena 3D (Three.js / react-three-fiber): tablero, tuberías, partículas,
@@ -76,6 +81,7 @@ src/
 - **Restricciones ISO 6358** (conductancia sónica C, relación crítica b) con régimen sónico y subsónico. Las válvulas abren/cierran sus vías según la posición continua de la corredera (con recubrimiento positivo).
 - **Émbolos** con masa, carga, fricción estática, de Coulomb y viscosa, y topes de final de carrera.
 - **Integración** de paso fijo (0,1 ms) con limitador de equilibrio por orificio: estable con volúmenes pequeños.
+- **Red eléctrica de 24 V** resuelta por conectividad: los cables y los contactos cerrados unen nodos; una bobina o lámpara está activada si un borne llega a +24 V y el otro a 0 V. Se resuelve sólo cuando cambia algún contacto y se lee en el paso siguiente (0,1 ms después), así las autorretenciones funcionan sin bucles. Simplificación didáctica: no se calculan corrientes, así que dos cargas en serie no se encienden.
 
 Para añadir un componente: crea su carpeta en `src/components/…` con `model.ts` (puertos, parámetros, `build`, `update`, `explain`) y `Symbol2D.tsx`, y regístralo en `components/models.ts` y `components/views.ts`.
 
@@ -87,5 +93,5 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 - [x] **Fase 1:** editor 2D + neumática básica (fuente, silenciador, cilindro de doble efecto, válvulas 5/2, 3/2 NC y 3/2 NA con pulsador/palanca/pedal y muelle, manómetro), simulación con colores de presión, guardar/abrir, exportar PNG, ejemplo `01`.
 - [x] **Fase 2:** vista 3D sincronizada (2D / 3D / dividida) con modos normal, rayos X y corte, partículas de flujo por tuberías y conductos internos, cámara con enfoque, accionamiento desde el 3D; 60 FPS con 48 componentes. Además: válvulas de N posiciones (2/2, 4/2, 5/3) y accionamientos por lado (rodillo, rodillo abatible, pilotaje, servopilotado…).
 - [x] **Fase 3:** biblioteca neumática completa (tabla de arriba) con símbolo 2D, modelo 3D, explicación y test de cada componente; finales de carrera vinculados a marcas del cilindro; etiquetado automático; diagramas espacio-tiempo y espacio-fase (PNG/CSV); 7 ejemplos, entre ellos el ciclo A+ B+ B− A−.
-- [ ] Fase 4: electroneumática.
+- [x] **Fase 4:** electroneumática: red eléctrica de 24 V acoplada al motor neumático, 15 componentes eléctricos (pulsadores, interruptor, seta, lámpara, relés normal y temporizado, contactos, contador, bobina de electroválvula, finales de carrera, sensores de proximidad, presostato) con símbolo IEC, modelo 3D (bobinas que brillan, contactos y armaduras que se mueven) y explicación; electroimanes en todas las válvulas de vías; cables coloreados en 2D y 3D; ejemplos `08`–`10`. Además, las válvulas 3D muestran su **corredera real**.
 - [ ] Fase 5: hidráulica, GRAFCET/PLC, galería de ejemplos y versión de escritorio.

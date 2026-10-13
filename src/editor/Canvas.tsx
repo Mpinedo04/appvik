@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { getView } from '../components/views';
-import { INK, pressureColor } from '../components/symbols';
+import { INK, pressureColor, wireColor } from '../components/symbols';
 import {
   addComponent,
   connect,
@@ -406,8 +406,13 @@ export function Canvas() {
             {/* Tuberías */}
             {Object.values(circuit.connections).map((conn) => {
               const poly = connectionPolyline(circuit, conn.id);
+              const elec = conn.medium === 'elec';
               const node = snapshot?.connNode[conn.id];
-              const color = snapshot ? pressureColor(barOf(node), maxBar) : INK;
+              const color = !snapshot
+                ? INK
+                : elec
+                  ? wireColor(snapshot.elec.connLevel[conn.id])
+                  : pressureColor(barOf(node), maxBar);
               const selected = selConns.has(conn.id);
               const pts = poly.map((p) => `${p.x},${p.y}`).join(' ');
               return (
@@ -426,7 +431,7 @@ export function Canvas() {
                     points={pts}
                     fill="none"
                     stroke={color}
-                    strokeWidth={snapshot ? 2.2 : 1.6}
+                    strokeWidth={elec ? 1.3 : snapshot ? 2.2 : 1.6}
                     strokeLinejoin="round"
                   />
                   {!simMode &&
@@ -449,9 +454,11 @@ export function Canvas() {
             })}
             {/* Derivaciones */}
             {Object.values(circuit.junctions).map((j) => {
-              const color = snapshot
-                ? pressureColor(barOf(snapshot.junctionNode[j.id]), maxBar)
-                : INK;
+              const color = !snapshot
+                ? INK
+                : j.medium === 'elec'
+                  ? wireColor(snapshot.elec.junctionLevel[j.id])
+                  : pressureColor(barOf(snapshot.junctionNode[j.id]), maxBar);
               return (
                 <g key={j.id}>
                   {selJunctions.has(j.id) && (
@@ -507,17 +514,19 @@ export function Canvas() {
                       height={wb.y1 - wb.y0 + 10}
                     />
                   )}
-                  <text
-                    x={wb.x0 - 4}
-                    y={wb.y0 - 6}
-                    className="comp-label"
-                    fontSize={10}
-                    fontWeight={600}
-                    fill="#334155"
-                    fontFamily="Inter, system-ui, sans-serif"
-                  >
-                    {c.label}
-                  </text>
+                  {!m.hideLabel && (
+                    <text
+                      x={wb.x0 - 4}
+                      y={wb.y0 - 6}
+                      className="comp-label"
+                      fontSize={10}
+                      fontWeight={600}
+                      fill="#334155"
+                      fontFamily="Inter, system-ui, sans-serif"
+                    >
+                      {c.label}
+                    </text>
+                  )}
                 </g>
               );
             })}

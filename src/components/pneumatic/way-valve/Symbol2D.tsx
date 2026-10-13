@@ -1,6 +1,6 @@
 import { str } from '../../../core/registry';
 import { Arrow, INK, PAPER, SW, pressureColor, type SymbolProps } from '../../symbols';
-import { isRoller } from '../actuation';
+import { isRoller, isSolenoid } from '../actuation';
 import { Actuator2D, PilotLine } from '../actuator2d';
 import { BOX_H, boxesExtent, spoolShift, valvePortPos, type WayValveConfig } from './config';
 import { hasPilot, type WayValveState } from './model';
@@ -139,6 +139,32 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
               fontFamily="Inter, system-ui, sans-serif"
             >
               {str(params, 'sensor')}
+            </text>
+          )}
+          {isSolenoid(actLeft) && (
+            <text
+              x={ext.left - (actLeft === 'solenoid-servo' ? 14 : 4)}
+              y={-12}
+              textAnchor="middle"
+              fontSize={7}
+              fontWeight={600}
+              fill="#2563eb"
+              fontFamily="Inter, system-ui, sans-serif"
+            >
+              {str(params, 'solLeft')}
+            </text>
+          )}
+          {isSolenoid(actRight) && (
+            <text
+              x={ext.right + (actRight === 'solenoid-servo' ? 14 : 4)}
+              y={-12}
+              textAnchor="middle"
+              fontSize={7}
+              fontWeight={600}
+              fill="#2563eb"
+              fontFamily="Inter, system-ui, sans-serif"
+            >
+              {str(params, 'solRight')}
             </text>
           )}
           <g transform={springs ? 'translate(0 -8)' : undefined}>

@@ -3,6 +3,14 @@
  * abrir la vista 3D (el editor 2D arranca sin él).
  */
 import { createElement, type FC } from 'react';
+import {
+  Counter3D,
+  Lamp3D,
+  makeContact3D,
+  makeRail3D,
+  makeRelay3D,
+  Solenoid3D,
+} from './electric/models3d';
 import { useView } from '../store/view';
 import { ALL_WAY_VALVES } from './models';
 import type { Model3DProps } from './parts3d';
@@ -69,6 +77,22 @@ const models = new Map<string, FC<Model3DProps>>([
   ['pneu-gauge', Gauge3D],
   ['pneu-flowmeter', Flowmeter3D],
   ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, wayValve3D(cfg)] as [string, FC<Model3DProps>]),
+  // Eléctricos
+  ['elec-24v', makeRail3D('+24')],
+  ['elec-0v', makeRail3D('0')],
+  ['elec-button-no', makeContact3D('elec-button-no', 'button', 'no')],
+  ['elec-button-nc', makeContact3D('elec-button-nc', 'button', 'nc')],
+  ['elec-switch', makeContact3D('elec-switch', 'switch')],
+  ['elec-estop', makeContact3D('elec-estop', 'estop', 'nc')],
+  ['elec-contact', makeContact3D('elec-contact', 'relay')],
+  ['elec-limit', makeContact3D('elec-limit', 'limit')],
+  ['elec-proximity', makeContact3D('elec-proximity', 'proximity', 'no')],
+  ['elec-pressure-switch', makeContact3D('elec-pressure-switch', 'pressure', 'co')],
+  ['elec-relay', makeRelay3D(false)],
+  ['elec-relay-timer', makeRelay3D(true)],
+  ['elec-counter', Counter3D],
+  ['elec-solenoid', Solenoid3D],
+  ['elec-lamp', Lamp3D],
 ]);
 
 export function getModel3D(type: string): FC<Model3DProps> | null {

@@ -2,6 +2,16 @@
 import { createElement } from 'react';
 import { getModel, resolveParams } from '../core/registry';
 import { ALL_WAY_VALVES } from './models';
+import {
+  CounterSymbol,
+  LampSymbol,
+  makeContactSymbol,
+  Plus24Symbol,
+  RelaySymbol,
+  RelayTimerSymbol,
+  SolenoidSymbol,
+  Zero0Symbol,
+} from './electric/symbols2d';
 import { GripperSymbol, MotorSymbol, RodlessSymbol, RotarySymbol } from './pneumatic/actuators2d';
 import { CylinderDoubleSymbol, CylinderSingleSymbol } from './pneumatic/cylinder-double/Symbol2D';
 import { SilencerSymbol } from './pneumatic/exhaust/Symbol2D';
@@ -48,6 +58,22 @@ const views = new Map<string, ComponentView>([
   ['pneu-timer', { Symbol2D: TimerSymbol }],
   ['pneu-gauge', { Symbol2D: GaugeSymbol }],
   ['pneu-flowmeter', { Symbol2D: FlowmeterSymbol }],
+  // Eléctricos
+  ['elec-24v', { Symbol2D: Plus24Symbol }],
+  ['elec-0v', { Symbol2D: Zero0Symbol }],
+  ['elec-button-no', { Symbol2D: makeContactSymbol('button', 'no') }],
+  ['elec-button-nc', { Symbol2D: makeContactSymbol('button', 'nc') }],
+  ['elec-switch', { Symbol2D: makeContactSymbol('switch') }],
+  ['elec-estop', { Symbol2D: makeContactSymbol('estop', 'nc') }],
+  ['elec-contact', { Symbol2D: makeContactSymbol('relay') }],
+  ['elec-limit', { Symbol2D: makeContactSymbol('limit') }],
+  ['elec-proximity', { Symbol2D: makeContactSymbol('proximity', 'no') }],
+  ['elec-pressure-switch', { Symbol2D: makeContactSymbol('pressure', 'co') }],
+  ['elec-relay', { Symbol2D: RelaySymbol }],
+  ['elec-relay-timer', { Symbol2D: RelayTimerSymbol }],
+  ['elec-counter', { Symbol2D: CounterSymbol }],
+  ['elec-solenoid', { Symbol2D: SolenoidSymbol }],
+  ['elec-lamp', { Symbol2D: LampSymbol }],
   ...ALL_WAY_VALVES.map(
     ({ cfg }) => [cfg.type, { Symbol2D: makeWayValveSymbol(cfg) }] as [string, ComponentView],
   ),

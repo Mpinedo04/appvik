@@ -14,6 +14,8 @@ export type CategoryId =
   | 'sensors'
   | 'instruments'
   | 'electric'
+  | 'relays'
+  | 'electric-sensors'
   | 'hydraulic';
 
 export const CATEGORIES: { id: CategoryId; name: string }[] = [
@@ -24,7 +26,9 @@ export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'flowpressure', name: 'Válvulas de caudal y presión' },
   { id: 'sensors', name: 'Sensores' },
   { id: 'instruments', name: 'Instrumentos' },
-  { id: 'electric', name: 'Eléctricos' },
+  { id: 'electric', name: 'Eléctricos: alimentación y mando' },
+  { id: 'relays', name: 'Relés, contadores y bobinas' },
+  { id: 'electric-sensors', name: 'Sensores eléctricos' },
   { id: 'hydraulic', name: 'Hidráulica' },
 ];
 
@@ -80,6 +84,16 @@ export interface BuildCtx {
   addOrifice(a: number, b: number, opts: { C: number; b?: number; name?: string }): number;
   /** Añade volumen muerto fijo a un nodo [m³]. */
   addBaseVolume(node: number, volume: number): void;
+  /** Etiqueta del componente (en los eléctricos es el enlace: K1, Y1, 1B1…). */
+  readonly label: string;
+  /** Nodo eléctrico de un borne. */
+  ePort(portId: string): number;
+  /** Contacto entre dos nodos eléctricos (abierto al crearlo). Devuelve su índice. */
+  addContact(a: number, b: number): number;
+  /** Carga (bobina, lámpara) entre dos nodos eléctricos. Devuelve su índice. */
+  addLoad(a: number, b: number): number;
+  /** Une un nodo al potencial de +24 V o de 0 V. */
+  addRail(node: number, kind: '+24' | '0'): void;
 }
 
 /** Contexto disponible en cada paso de integración. */
@@ -97,6 +111,10 @@ export interface StepCtx {
   signal(name: string): number;
   /** Publica una señal para el paso siguiente (finales de carrera, sensores…). */
   setSignal(name: string, value: number | boolean): void;
+  /** Abre o cierra un contacto eléctrico. */
+  setContact(contact: number, closed: boolean): void;
+  /** ¿Recibió la carga 24 V en la última resolución de la red eléctrica? */
+  energized(load: number): boolean;
 }
 
 export type UserAction = 'press' | 'release';
@@ -122,6 +140,13 @@ export interface ComponentModel<S = any, H = any> {
   explain(s: S, p: Params, ctx: { p(portId: string): number }): string[];
   /** Si es true, el componente reacciona a clics durante la simulación. */
   interactive?(p: Params): boolean;
+  /**
+   * La etiqueta es un enlace y puede repetirse (los contactos K1 de un relé K1): al añadir uno
+   * nuevo se le da `autoLabel(1)` y el renumerado no la cambia.
+   */
+  sharedLabel?: boolean;
+  /** No dibujar la etiqueta (el símbolo ya lleva su texto, p. ej. +24 V). */
+  hideLabel?: boolean;
 }
 
 const models = new Map<string, ComponentModel>();

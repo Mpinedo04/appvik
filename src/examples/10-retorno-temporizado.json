@@ -1,0 +1,391 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Retorno temporizado con relé",
+  "description": "Pulsa S1: el cilindro sale y, al llegar al final (1B2), el relé temporizado KT1 espera 2 s antes de dar la orden de retorno (Y2).",
+  "circuit": {
+    "components": {
+      "c_zvbhj46": {
+        "id": "c_zvbhj46",
+        "type": "pneu-cyl-double",
+        "x": 220,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "marks": "1B1@0; 1B2@100"
+        }
+      },
+      "c_bax4dmz": {
+        "id": "c_bax4dmz",
+        "type": "pneu-valve-52-sol2",
+        "x": 190,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_ge54769": {
+        "id": "c_ge54769",
+        "type": "pneu-supply",
+        "x": 220,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_amlnn2u": {
+        "id": "c_amlnn2u",
+        "type": "elec-24v",
+        "x": 520,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_vuu9kk5": {
+        "id": "c_vuu9kk5",
+        "type": "elec-button-no",
+        "x": 520,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S1",
+        "params": {}
+      },
+      "c_xtgazzw": {
+        "id": "c_xtgazzw",
+        "type": "elec-proximity",
+        "x": 520,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "1B1",
+        "params": {}
+      },
+      "c_cvdzw44": {
+        "id": "c_cvdzw44",
+        "type": "elec-solenoid",
+        "x": 520,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "Y1",
+        "params": {}
+      },
+      "c_i7h71ic": {
+        "id": "c_i7h71ic",
+        "type": "elec-0v",
+        "x": 520,
+        "y": 320,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_2rtytin": {
+        "id": "c_2rtytin",
+        "type": "elec-24v",
+        "x": 620,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_hv070at": {
+        "id": "c_hv070at",
+        "type": "elec-proximity",
+        "x": 620,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "1B2",
+        "params": {}
+      },
+      "c_axakp6d": {
+        "id": "c_axakp6d",
+        "type": "elec-relay-timer",
+        "x": 620,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "KT1",
+        "params": {
+          "mode": "on-delay",
+          "delay": 2
+        }
+      },
+      "c_6muf6d3": {
+        "id": "c_6muf6d3",
+        "type": "elec-0v",
+        "x": 620,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_0v2j05d": {
+        "id": "c_0v2j05d",
+        "type": "elec-24v",
+        "x": 720,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_c835zv8": {
+        "id": "c_c835zv8",
+        "type": "elec-contact",
+        "x": 720,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "KT1",
+        "params": {}
+      },
+      "c_obf5hw2": {
+        "id": "c_obf5hw2",
+        "type": "elec-solenoid",
+        "x": 720,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "Y2",
+        "params": {}
+      },
+      "c_2nq00xp": {
+        "id": "c_2nq00xp",
+        "type": "elec-0v",
+        "x": 720,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_t7h35js": {
+        "id": "w_t7h35js",
+        "a": {
+          "kind": "port",
+          "comp": "c_bax4dmz",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zvbhj46",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 200,
+            "y": 170
+          },
+          {
+            "x": 170,
+            "y": 170
+          }
+        ]
+      },
+      "w_1jrz2gs": {
+        "id": "w_1jrz2gs",
+        "a": {
+          "kind": "port",
+          "comp": "c_bax4dmz",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zvbhj46",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 240,
+            "y": 170
+          },
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_nqdxd6n": {
+        "id": "w_nqdxd6n",
+        "a": {
+          "kind": "port",
+          "comp": "c_ge54769",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_bax4dmz",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_02mekd4": {
+        "id": "w_02mekd4",
+        "a": {
+          "kind": "port",
+          "comp": "c_amlnn2u",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_vuu9kk5",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_3zhp4pa": {
+        "id": "w_3zhp4pa",
+        "a": {
+          "kind": "port",
+          "comp": "c_vuu9kk5",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_xtgazzw",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_btornls": {
+        "id": "w_btornls",
+        "a": {
+          "kind": "port",
+          "comp": "c_xtgazzw",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_cvdzw44",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_whz7mo0": {
+        "id": "w_whz7mo0",
+        "a": {
+          "kind": "port",
+          "comp": "c_cvdzw44",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_i7h71ic",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_8v5yzz0": {
+        "id": "w_8v5yzz0",
+        "a": {
+          "kind": "port",
+          "comp": "c_2rtytin",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_hv070at",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_4vckz4t": {
+        "id": "w_4vckz4t",
+        "a": {
+          "kind": "port",
+          "comp": "c_hv070at",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_axakp6d",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_ul81gds": {
+        "id": "w_ul81gds",
+        "a": {
+          "kind": "port",
+          "comp": "c_axakp6d",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_6muf6d3",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_mw52uxx": {
+        "id": "w_mw52uxx",
+        "a": {
+          "kind": "port",
+          "comp": "c_0v2j05d",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_c835zv8",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_84ob976": {
+        "id": "w_84ob976",
+        "a": {
+          "kind": "port",
+          "comp": "c_c835zv8",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_obf5hw2",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_i4g0mqe": {
+        "id": "w_i4g0mqe",
+        "a": {
+          "kind": "port",
+          "comp": "c_obf5hw2",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_2nq00xp",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      }
+    },
+    "junctions": {}
+  }
+}

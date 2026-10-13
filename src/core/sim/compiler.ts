@@ -111,3 +111,53 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
   }
   return result;
 }
+
+export interface CompiledElectric {
+  /** `${compId}:${portId}` → nodo eléctrico */
+  portNode: Map<string, number>;
+  connNode: Map<string, number>;
+  junctionNode: Map<string, number>;
+}
+
+/** Une los bornes eléctricos conectados por cables (y derivaciones) en nodos eléctricos. */
+export function compileElectricNets(
+  circuit: Circuit,
+  net: { addNode(): number },
+): CompiledElectric {
+  const uf = new UnionFind();
+  for (const conn of Object.values(circuit.connections)) {
+    if (conn.medium !== 'elec') continue;
+    uf.union(endpointKey(conn.a), endpointKey(conn.b));
+  }
+  const rootNode = new Map<string, number>();
+  const nodeFor = (key: string) => {
+    const r = uf.find(key);
+    let n = rootNode.get(r);
+    if (n === undefined) {
+      n = net.addNode();
+      rootNode.set(r, n);
+    }
+    return n;
+  };
+  const result: CompiledElectric = {
+    portNode: new Map(),
+    connNode: new Map(),
+    junctionNode: new Map(),
+  };
+  for (const c of Object.values(circuit.components)) {
+    const m = getModel(c.type);
+    for (const p of m.ports(resolveParams(m, c.params))) {
+      if (p.medium !== 'elec') continue;
+      result.portNode.set(
+        portKey(c.id, p.id),
+        nodeFor(endpointKey({ kind: 'port', comp: c.id, port: p.id })),
+      );
+    }
+  }
+  for (const conn of Object.values(circuit.connections))
+    if (conn.medium === 'elec') result.connNode.set(conn.id, nodeFor(endpointKey(conn.a)));
+  for (const j of Object.values(circuit.junctions))
+    if (j.medium === 'elec')
+      result.junctionNode.set(j.id, nodeFor(endpointKey({ kind: 'junction', id: j.id })));
+  return result;
+}

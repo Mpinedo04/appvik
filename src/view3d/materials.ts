@@ -113,3 +113,39 @@ export function tintMat(opacity = 0.42): THREE.MeshStandardMaterial {
     metalness: 0,
   });
 }
+
+/** Bobina de cobre; al energizarse brilla (emisiva). */
+export function coilMat(on: boolean): THREE.Material {
+  const key = `coil:${on}`;
+  let m = cache.get(key);
+  if (!m) {
+    m = new THREE.MeshStandardMaterial({
+      color: '#b8732f',
+      metalness: 0.7,
+      roughness: 0.35,
+      emissive: on ? '#ff7a1a' : '#000000',
+      emissiveIntensity: on ? 0.9 : 0,
+    });
+    cache.set(key, m);
+  }
+  return m;
+}
+
+/** Piloto luminoso (LED o lámpara) de un color; apagado es oscuro y translúcido. */
+export function ledMat(on: boolean, color = '#facc15'): THREE.Material {
+  const key = `led:${color}:${on}`;
+  let m = cache.get(key);
+  if (!m) {
+    const c = new THREE.Color(color);
+    m = new THREE.MeshStandardMaterial({
+      color: on ? c : c.clone().multiplyScalar(0.35),
+      emissive: on ? c : new THREE.Color('#000000'),
+      emissiveIntensity: on ? 1.6 : 0,
+      roughness: 0.3,
+      transparent: !on,
+      opacity: on ? 1 : 0.75,
+    });
+    cache.set(key, m);
+  }
+  return m;
+}

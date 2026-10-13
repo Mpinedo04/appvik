@@ -7,6 +7,7 @@ export function StatusBar() {
   const circuit = useProject((s) => s.circuit);
   const toast = useProject((s) => s.toast);
   const simError = useSim((s) => s.error);
+  const short = useSim((s) => s.snapshot?.elec.short ?? false);
   const issues = useMemo(() => validate(circuit), [circuit]);
   const [open, setOpen] = useState(false);
 
@@ -22,7 +23,7 @@ export function StatusBar() {
   return (
     <footer className="statusbar">
       <span>
-        {nComp} componentes · {nConn} tuberías
+        {nComp} componentes · {nConn} conexiones
       </span>
       {issues.length > 0 ? (
         <button className="issues" onClick={() => setOpen(!open)} aria-expanded={open}>
@@ -30,6 +31,11 @@ export function StatusBar() {
         </button>
       ) : (
         nComp > 0 && <span className="ok">✓ Sin puertos abiertos</span>
+      )}
+      {short && (
+        <span className="toast error" data-testid="short-circuit">
+          ⚡ Cortocircuito: +24 V unido a 0 V sin ninguna carga. No se energiza nada.
+        </span>
       )}
       {(simError || toast) && (
         <span className={simError ? 'toast error' : 'toast'}>{simError ?? toast}</span>

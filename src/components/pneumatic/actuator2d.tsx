@@ -71,6 +71,19 @@ export function Actuator2D({
         </>
       )}
       {type === 'pilot' && <polygon points="0,0 -9,-5 -9,5" fill={engaged ? ACCENT : PAPER} />}
+      {/* Electroimán: rectángulo con una diagonal (servopilotado: con triángulo de pilotaje) */}
+      {(type === 'solenoid' || type === 'solenoid-servo') && (
+        <g transform={type === 'solenoid-servo' ? 'translate(-10 0)' : undefined}>
+          {type === 'solenoid-servo' && (
+            <>
+              <rect x={0} y={-7} width={10} height={14} fill={PAPER} />
+              <polygon points="9,0 2,-4 2,4" fill={engaged ? ACCENT : PAPER} strokeWidth={1} />
+            </>
+          )}
+          <rect x={-8} y={-7} width={8} height={14} fill={engaged ? '#dbeafe' : PAPER} />
+          <line x1={-8} y1={7} x2={0} y2={-7} />
+        </g>
+      )}
       {type === 'servo' && (
         <>
           <rect x={-10} y={-7} width={10} height={14} fill={PAPER} />

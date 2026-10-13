@@ -85,22 +85,34 @@ function TimeChart({
       series: [
         { label: 't' },
         ...rec.series.map((s, i) => ({
-          label: s.kind === 'valve' ? `${s.label} (posición)` : s.label,
+          label:
+            s.kind === 'valve'
+              ? `${s.label} (posición)`
+              : s.kind === 'electric'
+                ? `${s.label} (activada)`
+                : s.label,
           scale: s.kind === 'gauge' ? 'bar' : 'pos',
           stroke: COLORS[i % COLORS.length],
           width: s.kind === 'actuator' ? 2.2 : 1.2,
-          dash: s.kind === 'valve' ? [5, 4] : undefined,
-          paths: s.kind === 'valve' ? uPlot.paths.stepped!({ align: 1 }) : undefined,
+          dash: s.kind === 'valve' ? [5, 4] : s.kind === 'electric' ? [2, 3] : undefined,
+          paths:
+            s.kind === 'valve' || s.kind === 'electric'
+              ? uPlot.paths.stepped!({ align: 1 })
+              : undefined,
           value: (_: uPlot, v: number | null) =>
             v === null
               ? '—'
-              : s.kind === 'valve'
-                ? v > 0.75
-                  ? 'accionada'
-                  : v > 0.25
-                    ? 'centro'
-                    : 'reposo'
-                : `${v.toFixed(1)} ${s.unit}`,
+              : s.kind === 'electric'
+                ? v > 50
+                  ? 'activada'
+                  : 'desactivada'
+                : s.kind === 'valve'
+                  ? v > 0.75
+                    ? 'accionada'
+                    : v > 0.25
+                      ? 'centro'
+                      : 'reposo'
+                  : `${v.toFixed(1)} ${s.unit}`,
         })),
       ],
     };
@@ -131,7 +143,11 @@ function TimeChart({
 function toData(rec: Recording): uPlot.AlignedData {
   return [
     rec.t,
-    ...rec.values.map((v, i) => (rec.series[i].kind === 'valve' ? v.map((x) => x * 100) : v)),
+    ...rec.values.map((v, i) =>
+      rec.series[i].kind === 'valve' || rec.series[i].kind === 'electric'
+        ? v.map((x) => x * 100)
+        : v,
+    ),
   ];
 }
 

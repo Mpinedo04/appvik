@@ -17,6 +17,7 @@ import { S } from './layout';
 import { setCutOffset } from './materials';
 import { sceneApi } from './sceneApi';
 import { Tubes3D } from './Tubes3D';
+import { Wires3D } from './Wires3D';
 import { ViewOverlay } from './ViewOverlay';
 
 const SHOW_FPS = typeof location !== 'undefined' && new URLSearchParams(location.search).has('fps');
@@ -172,6 +173,7 @@ export default function Scene3D() {
         <group scale={S}>
           <Board bounds={bounds} />
           <Tubes3D circuit={circuit} />
+          <Wires3D circuit={circuit} />
           {Object.values(circuit.components).map((c) => (
             <ComponentNode key={c.id} c={c} selected={selected.has(c.id)} showLabel={labels} />
           ))}

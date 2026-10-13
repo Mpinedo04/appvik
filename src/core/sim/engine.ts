@@ -10,7 +10,14 @@ import {
   type StepCtx,
   type UserAction,
 } from '../registry';
-import { compileFluidNets, portKey, type CompiledNets } from './compiler';
+import {
+  compileElectricNets,
+  compileFluidNets,
+  portKey,
+  type CompiledElectric,
+  type CompiledNets,
+} from './compiler';
+import { ElectricNetwork } from './electric/network';
 import { FluidNetwork } from './fluid/network';
 import type { Recorder } from './recorder';
 
@@ -50,6 +57,12 @@ export interface SimSnapshot {
   portFlow: Record<string, number>;
   /** Señales publicadas por los componentes (finales de carrera, etc.). */
   signals: Record<string, number>;
+  /** Red eléctrica: nivel de cada cable y derivación (+1 = +24 V, −1 = 0 V, 0 = sin tensión). */
+  elec: {
+    connLevel: Record<string, number>;
+    junctionLevel: Record<string, number>;
+    short: boolean;
+  };
 }
 
 /** Orificio de un componente que toca uno de sus puertos (para medir el caudal por puerto). */
@@ -63,6 +76,8 @@ interface PortTap {
 export class Simulation {
   readonly net = new FluidNetwork();
   readonly nets: CompiledNets;
+  readonly enet = new ElectricNetwork();
+  readonly enets: CompiledElectric;
   readonly instances: Instance[] = [];
   private byId = new Map<string, Instance>();
   t = 0;
@@ -78,7 +93,9 @@ export class Simulation {
   constructor(circuit: Circuit, opts: { dt?: number } = {}) {
     this.dt = opts.dt ?? DEFAULT_DT;
     this.nets = compileFluidNets(circuit, this.net);
+    this.enets = compileElectricNets(circuit, this.enet);
     const net = this.net;
+    const enet = this.enet;
 
     for (const inst of Object.values(circuit.components)) {
       const model = getModel(inst.type);
@@ -109,6 +126,15 @@ export class Simulation {
           addBaseVolume: (n, v) => {
             net.nodes[n].baseVolume += v;
           },
+          label: inst.label,
+          ePort: (portId) => {
+            const n = this.enets.portNode.get(portKey(inst.id, portId));
+            if (n === undefined) throw new Error(`Borne ${portId} no existe en ${inst.label}`);
+            return n;
+          },
+          addContact: (a, b) => enet.addContact(a, b),
+          addLoad: (a, b) => enet.addLoad(a, b),
+          addRail: (n, kind) => enet.addRail(n, kind),
         },
         params,
       );
@@ -131,12 +157,15 @@ export class Simulation {
       setSignal: (name, v) => {
         this.nextSignals.set(name, typeof v === 'boolean' ? (v ? 1 : 0) : v);
       },
+      setContact: (i, closed) => enet.setContact(i, closed),
+      energized: (i) => enet.energized[i] ?? false,
     };
 
     // Paso de inicialización (dt = 0) para fijar volúmenes y aperturas iniciales.
     net.beginStep();
     for (const it of this.instances) it.model.update(this.ctx, it.state, it.handles, it.params, 0);
     this.swapSignals();
+    enet.solve();
     net.initMasses();
   }
 
@@ -152,7 +181,10 @@ export class Simulation {
     (this.ctx as { t: number }).t = this.t;
     net.beginStep();
     for (const it of this.instances) it.model.update(this.ctx, it.state, it.handles, it.params, dt);
+    // Las señales y la red eléctrica se leen en el paso siguiente (0,1 ms después): así el orden
+    // de los componentes no importa y las autorretenciones se mantienen sin bucles.
     this.swapSignals();
+    this.enet.solve();
     net.integrate(dt);
     this.t += dt;
     this.recorder?.maybeSample(this.t, (id) => this.byId.get(id)?.state);
@@ -199,6 +231,9 @@ export class Simulation {
   snapshot(): SimSnapshot {
     const comp: Record<string, any> = {};
     for (const it of this.instances) comp[it.inst.id] = cloneState(it.state);
+    const level = this.enet.level;
+    const levels = (m: Map<string, number>) =>
+      Object.fromEntries([...m].map(([k, n]) => [k, level[n] ?? 0]));
     return {
       t: this.t,
       comp,
@@ -209,6 +244,11 @@ export class Simulation {
       orificeFlow: this.net.orifices.map((o) => o.mdot),
       portFlow: this.portFlows(),
       signals: Object.fromEntries(this.signals),
+      elec: {
+        connLevel: levels(this.enets.connNode),
+        junctionLevel: levels(this.enets.junctionNode),
+        short: this.enet.short,
+      },
     };
   }
 }

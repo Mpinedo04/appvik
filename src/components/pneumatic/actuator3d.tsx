@@ -5,6 +5,7 @@
 import { AXIS_Y } from '../../view3d/layout';
 import { box, cylX, cylZ, sphere } from '../../view3d/geom';
 import { Part } from '../parts3d';
+import { coilMat, ledMat } from '../../view3d/materials';
 
 export function Actuator3D({ type, engaged }: { type: string; engaged: boolean }) {
   const y = AXIS_Y;
@@ -70,7 +71,33 @@ export function Actuator3D({ type, engaged }: { type: string; engaged: boolean }
           </group>
         </group>
       );
+    case 'solenoid':
+    case 'solenoid-servo':
+      return <Solenoid3D engaged={engaged} servo={type === 'solenoid-servo'} />;
     default:
       return null;
   }
+}
+
+/** Electroimán: carcasa con la bobina (brilla al recibir 24 V), núcleo móvil y conector. */
+function Solenoid3D({ engaged, servo }: { engaged: boolean; servo: boolean }) {
+  const y = AXIS_Y;
+  const ox = servo ? -8 : 0;
+  return (
+    <group>
+      {servo && <Part geom={box(8, 14, 14)} mat="anodizedBlue" position={[-4, y, 0]} />}
+      <group position={[ox, 0, 0]}>
+        {/* Núcleo que empuja la corredera */}
+        <Part geom={cylX(2.2, 6)} mat="steel" position={[engaged ? -2 : -4, y, 0]} />
+        {/* Bobina a la vista entre las dos bridas del bastidor */}
+        <Part geom={box(2, 17, 17)} mat="black" position={[-7, y, 0]} />
+        <Part geom={box(2, 17, 17)} mat="black" position={[-21, y, 0]} />
+        <Part geom={box(16, 2, 17)} mat="black" position={[-14, y - 7.5, 0]} />
+        <mesh geometry={cylX(6.5, 12, 24)} material={coilMat(engaged)} position={[-14, y, 0]} />
+        {/* Conector DIN con su piloto */}
+        <Part geom={box(9, 8, 14)} mat="dark" position={[-14, y + 12, 0]} />
+        <mesh geometry={sphere(1.6)} material={ledMat(engaged)} position={[-14, y + 16.5, 5]} />
+      </group>
+    </group>
+  );
 }

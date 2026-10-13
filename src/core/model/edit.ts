@@ -18,6 +18,7 @@ import {
 
 export function nextLabel(circuit: Circuit, type: string): string {
   const m = getModel(type);
+  if (m.sharedLabel) return m.autoLabel(1);
   const used = new Set(Object.values(circuit.components).map((c) => c.label));
   for (let n = 1; ; n++) if (!used.has(m.autoLabel(n))) return m.autoLabel(n);
 }
@@ -341,7 +342,8 @@ export function validate(circuit: Circuit): DesignIssue[] {
   for (const c of Object.values(circuit.components)) {
     const m = getModel(c.type);
     for (const p of m.ports(resolveParams(m, c.params))) {
-      if (p.exhaust) continue;
+      // Un borne eléctrico libre no es un fallo (contactos sin usar, por ejemplo).
+      if (p.exhaust || p.medium === 'elec') continue;
       if (!connected.has(endpointKey({ kind: 'port', comp: c.id, port: p.id })))
         issues.push({
           kind: 'open-port',

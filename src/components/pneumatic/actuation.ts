@@ -14,6 +14,8 @@ export type ActuatorType =
   | 'roller-oneway'
   | 'pilot'
   | 'servo'
+  | 'solenoid'
+  | 'solenoid-servo'
   | 'spring';
 
 export const ACTUATOR_OPTIONS: { value: ActuatorType; label: string }[] = [
@@ -24,6 +26,8 @@ export const ACTUATOR_OPTIONS: { value: ActuatorType; label: string }[] = [
   { value: 'roller-oneway', label: 'Rodillo abatible (un sentido)' },
   { value: 'pilot', label: 'Pilotaje neumático' },
   { value: 'servo', label: 'Pulsador servopilotado' },
+  { value: 'solenoid', label: 'Electroimán (bobina Y)' },
+  { value: 'solenoid-servo', label: 'Electroimán servopilotado' },
   { value: 'spring', label: 'Muelle' },
   { value: 'none', label: 'Ninguno' },
 ];
@@ -33,6 +37,7 @@ export const ROLLERS: ActuatorType[] = ['roller', 'roller-oneway'];
 
 export const isManual = (t: string) => MANUAL.includes(t as ActuatorType);
 export const isRoller = (t: string) => ROLLERS.includes(t as ActuatorType);
+export const isSolenoid = (t: string) => t === 'solenoid' || t === 'solenoid-servo';
 
 export const ACT_NAME: Record<ActuatorType, string> = {
   none: 'nada',
@@ -43,6 +48,8 @@ export const ACT_NAME: Record<ActuatorType, string> = {
   'roller-oneway': 'el rodillo abatible',
   pilot: 'la presión de pilotaje',
   servo: 'el pulsador servopilotado',
+  solenoid: 'el electroimán',
+  'solenoid-servo': 'el electroimán servopilotado',
   spring: 'el muelle',
 };
 
@@ -98,6 +105,24 @@ export const actuationParams = (defaults: { left: ActuatorType; right: ActuatorT
       str(p, 'actLeft') === 'roller-oneway' || str(p, 'actRight') === 'roller-oneway',
   },
   {
+    key: 'solLeft',
+    label: 'Bobina izquierda',
+    help: 'Etiqueta de la bobina del esquema eléctrico que acciona este lado.',
+    type: 'text' as const,
+    default: 'Y1',
+    placeholder: 'p. ej. Y1',
+    when: (p: Params) => isSolenoid(str(p, 'actLeft')),
+  },
+  {
+    key: 'solRight',
+    label: 'Bobina derecha',
+    help: 'Etiqueta de la bobina del esquema eléctrico que acciona este lado.',
+    type: 'text' as const,
+    default: 'Y2',
+    placeholder: 'p. ej. Y2',
+    when: (p: Params) => isSolenoid(str(p, 'actRight')),
+  },
+  {
     key: 'pilotBar',
     label: 'Presión mínima de pilotaje',
     unit: 'bar',
@@ -107,8 +132,8 @@ export const actuationParams = (defaults: { left: ActuatorType; right: ActuatorT
     max: 8,
     step: 0.1,
     when: (p: Params) =>
-      ['pilot', 'servo'].includes(str(p, 'actLeft')) ||
-      ['pilot', 'servo'].includes(str(p, 'actRight')),
+      ['pilot', 'servo', 'solenoid-servo'].includes(str(p, 'actLeft')) ||
+      ['pilot', 'servo', 'solenoid-servo'].includes(str(p, 'actRight')),
   },
 ];
 
@@ -148,6 +173,13 @@ export function sideActive(side: Side, s: ActuationState, p: Params, io: Actuati
       return pressed && io.supplyBar() >= threshold;
     case 'pilot':
       return io.pilotBar(side) >= threshold;
+    case 'solenoid':
+      return io.sensor(str(p, side === 'left' ? 'solLeft' : 'solRight')).on;
+    case 'solenoid-servo':
+      return (
+        io.sensor(str(p, side === 'left' ? 'solLeft' : 'solRight')).on &&
+        io.supplyBar() >= threshold
+      );
     case 'roller':
       return io.sensor(str(p, 'sensor')).on;
     case 'roller-oneway': {

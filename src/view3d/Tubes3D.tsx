@@ -99,15 +99,17 @@ export function Tubes3D({ circuit }: { circuit: Circuit }) {
       {tubes.map((t) => (
         <mesh key={t.id} geometry={t.geom} material={t.mat} />
       ))}
-      {Object.values(circuit.junctions).map((j) => (
-        <mesh
-          key={j.id}
-          geometry={box(7, 7, 7)}
-          material={partMat('brass')}
-          position={[j.x, AXIS_Y, j.y]}
-          castShadow
-        />
-      ))}
+      {Object.values(circuit.junctions)
+        .filter((j) => j.medium === 'pneu')
+        .map((j) => (
+          <mesh
+            key={j.id}
+            geometry={box(7, 7, 7)}
+            material={partMat('brass')}
+            position={[j.x, AXIS_Y, j.y]}
+            castShadow
+          />
+        ))}
       {total > 0 && (
         <instancedMesh
           key={total}

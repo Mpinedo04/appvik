@@ -1,6 +1,6 @@
 # Plan de desarrollo de FluidLab 3D
 
-> **Estado:** fases 0 a 3 terminadas. Siguiente: fase 4 (electroneumática).
+> **Estado:** fases 0 a 4 terminadas. Siguiente: fase 5 (hidráulica, GRAFCET/PLC, ejemplos y escritorio).
 
 ## Contexto
 El usuario quiere una aplicación con las funciones y la libertad de diseño de FluidSIM (editor libre de circuitos con símbolos ISO 1219 y simulación neumática, electroneumática e hidráulica), pero con una vista 3D sincronizada donde se vea por dentro cómo actúa cada componente: émbolos, correderas, muelles, flujo de aire o aceite, presiones…
@@ -77,7 +77,7 @@ Para añadir un componente solo hay que crear una carpeta y registrarla. El núc
 - **Mecánica:** émbolo como masa, con `F = p₁A₁ − p₂A₂ − F_muelle − F_carga − fricción (Stribeck simplificada)`, topes de final de carrera y amortiguación opcional.
 - **Integración:** paso fijo `dt` = 0,5 ms con subpasos, desacoplado del render. Explícito para neumática y semi-implícito con compresibilidad efectiva (módulo de compresibilidad) para hidráulica, que es un sistema rígido. El solver va detrás de una interfaz para poder cambiarlo.
 - **Válvulas:** la corredera tiene una posición continua 0..1 con un tiempo de conmutación pequeño. Se usa para el caudal y para animar el 3D de forma fluida.
-- **Electricidad:** en cada paso se calcula la conectividad booleana desde +24 V hasta 0 V a través de los contactos cerrados (unión de conjuntos sobre el grafo). Así se sabe qué bobinas, relés y lámparas están energizados, con retardos de relé y temporizadores. Los sensores (finales de carrera, sensores de proximidad, presostatos) leen el estado mecánico/fluido y cierran contactos. Se itera hasta alcanzar un punto fijo para que las realimentaciones de los relés (enclavamientos) funcionen.
+- **Electricidad:** en cada paso se calcula la conectividad booleana desde +24 V hasta 0 V a través de los contactos cerrados (unión de conjuntos sobre el grafo). Así se sabe qué bobinas, relés y lámparas están energizados, con retardos de relé y temporizadores. Los sensores (finales de carrera, sensores de proximidad, presostatos) leen el estado mecánico/fluido y cierran contactos. La red se resuelve sólo cuando cambia algún contacto y los componentes leen el resultado en el paso siguiente (0,1 ms después, igual que el bus de señales): así las realimentaciones de los relés (enclavamientos) funcionan sin iterar.
 - **Ejecución:** al principio en el hilo principal. Si el rendimiento lo pide, se pasa a un Web Worker; el núcleo es puro TypeScript, así que el cambio es trivial.
 - **Controles:** iniciar, pausar, parar (restablece el estado), paso a paso y factor de tiempo de 0,01× a 2× (cámara lenta).
 
@@ -129,10 +129,10 @@ Una única fuente de verdad: `Project` (topología + layout 2D) y `SimSnapshot` 
 - **Ejemplos:** mando indirecto, puerta Y/O, ciclo A+ B+ B− A− con finales de carrera, temporizador y regulación de velocidad.
 - **Criterio de aceptación:** el ciclo A+ B+ B− A− funciona solo y el diagrama espacio-fase coincide con el esperado.
 
-### Fase 4: Electroneumática
+### Fase 4: Electroneumática ✅
 - **Componentes eléctricos** con símbolos IEC: fuente de 24 V / 0 V, pulsadores NA/NC, interruptor, seta de emergencia, relé con contactos configurables (NA/NC/conmutados, enlazados por etiqueta K1), relé temporizado (a la conexión y a la desconexión), contador, lámpara, final de carrera eléctrico, sensores de proximidad (inductivo, capacitivo, magnético en el cilindro), presostato.
 - **Electroválvulas:** accionamiento por solenoide (Y1, Y2) en todas las válvulas de vías, con monoestable y biestable, y servopilotado.
-- Resolvedor eléctrico (conectividad + punto fijo) acoplado al motor de fluidos dentro del mismo paso. Cables y nodos con color según estén energizados. Esquema eléctrico en el mismo lienzo o en una hoja aparte.
+- Resolvedor eléctrico (conectividad, con un paso de retraso) acoplado al motor de fluidos. Cables y nodos con color según estén energizados. Esquema eléctrico en el mismo lienzo o en una hoja aparte.
 - **3D:** bobina con efecto de energización (brillo) y núcleo móvil, relé con contacto móvil visible.
 - **Ejemplos:** enclavamiento (marcha/paro), ciclo A+ B+ A− B− electroneumático con sensores, temporizado.
 - **Criterio de aceptación:** el enclavamiento con relé se mantiene, el paro de emergencia lo corta y el ciclo con sensores funciona de forma continua.

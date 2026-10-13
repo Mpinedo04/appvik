@@ -1,0 +1,679 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Ciclo A+ B+ A− B− electroneumático",
+  "description": "Electroválvulas biestables y sensores magnéticos en los cilindros. Pulsa S1 para un ciclo o activa el interruptor S2 para ciclo continuo.",
+  "circuit": {
+    "components": {
+      "c_mvkd84p": {
+        "id": "c_mvkd84p",
+        "type": "pneu-cyl-double",
+        "x": 150,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "marks": "1B1@0; 1B2@100"
+        }
+      },
+      "c_tkjgd4p": {
+        "id": "c_tkjgd4p",
+        "type": "pneu-valve-52-sol2",
+        "x": 120,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "solLeft": "Y1",
+          "solRight": "Y2",
+          "qn": 25
+        }
+      },
+      "c_0c4wmns": {
+        "id": "c_0c4wmns",
+        "type": "pneu-supply",
+        "x": 150,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_6y21vmk": {
+        "id": "c_6y21vmk",
+        "type": "pneu-cyl-double",
+        "x": 420,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "2A",
+        "params": {
+          "marks": "2B1@0; 2B2@100"
+        }
+      },
+      "c_ivceg2b": {
+        "id": "c_ivceg2b",
+        "type": "pneu-valve-52-sol2",
+        "x": 390,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "2V1",
+        "params": {
+          "solLeft": "Y3",
+          "solRight": "Y4",
+          "qn": 25
+        }
+      },
+      "c_b4f4art": {
+        "id": "c_b4f4art",
+        "type": "pneu-supply",
+        "x": 420,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {}
+      },
+      "c_zy3dx4a": {
+        "id": "c_zy3dx4a",
+        "type": "elec-24v",
+        "x": 640,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_rgebn1h": {
+        "id": "c_rgebn1h",
+        "type": "elec-button-no",
+        "x": 640,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S1",
+        "params": {}
+      },
+      "c_e8dlbd5": {
+        "id": "c_e8dlbd5",
+        "type": "elec-proximity",
+        "x": 640,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "2B1",
+        "params": {
+          "sensorType": "magnetic"
+        }
+      },
+      "c_fxtv8cr": {
+        "id": "c_fxtv8cr",
+        "type": "elec-solenoid",
+        "x": 640,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "Y1",
+        "params": {}
+      },
+      "c_io0m9f7": {
+        "id": "c_io0m9f7",
+        "type": "elec-0v",
+        "x": 640,
+        "y": 320,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_gsba5f0": {
+        "id": "c_gsba5f0",
+        "type": "elec-switch",
+        "x": 700,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S2",
+        "params": {}
+      },
+      "c_8ye7mok": {
+        "id": "c_8ye7mok",
+        "type": "elec-24v",
+        "x": 780,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_r568mqm": {
+        "id": "c_r568mqm",
+        "type": "elec-proximity",
+        "x": 780,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "1B2",
+        "params": {
+          "sensorType": "magnetic"
+        }
+      },
+      "c_yhu7m7y": {
+        "id": "c_yhu7m7y",
+        "type": "elec-solenoid",
+        "x": 780,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "Y3",
+        "params": {}
+      },
+      "c_6zqix3e": {
+        "id": "c_6zqix3e",
+        "type": "elec-0v",
+        "x": 780,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_2v87lh2": {
+        "id": "c_2v87lh2",
+        "type": "elec-24v",
+        "x": 860,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_gvshdy8": {
+        "id": "c_gvshdy8",
+        "type": "elec-proximity",
+        "x": 860,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "2B2",
+        "params": {
+          "sensorType": "magnetic"
+        }
+      },
+      "c_7rj8skg": {
+        "id": "c_7rj8skg",
+        "type": "elec-solenoid",
+        "x": 860,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "Y2",
+        "params": {}
+      },
+      "c_59i38y2": {
+        "id": "c_59i38y2",
+        "type": "elec-0v",
+        "x": 860,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_b9vmtfc": {
+        "id": "c_b9vmtfc",
+        "type": "elec-24v",
+        "x": 940,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_t5zunpy": {
+        "id": "c_t5zunpy",
+        "type": "elec-proximity",
+        "x": 940,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "1B1",
+        "params": {
+          "sensorType": "magnetic"
+        }
+      },
+      "c_yqeitxw": {
+        "id": "c_yqeitxw",
+        "type": "elec-solenoid",
+        "x": 940,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "Y4",
+        "params": {}
+      },
+      "c_bfubctb": {
+        "id": "c_bfubctb",
+        "type": "elec-0v",
+        "x": 940,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_bc88f47": {
+        "id": "w_bc88f47",
+        "a": {
+          "kind": "port",
+          "comp": "c_tkjgd4p",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_mvkd84p",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 130,
+            "y": 170
+          },
+          {
+            "x": 100,
+            "y": 170
+          }
+        ]
+      },
+      "w_g9pmz7t": {
+        "id": "w_g9pmz7t",
+        "a": {
+          "kind": "port",
+          "comp": "c_tkjgd4p",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_mvkd84p",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 170,
+            "y": 170
+          },
+          {
+            "x": 180,
+            "y": 170
+          }
+        ]
+      },
+      "w_kjl77sg": {
+        "id": "w_kjl77sg",
+        "a": {
+          "kind": "port",
+          "comp": "c_0c4wmns",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_tkjgd4p",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_yk6vbee": {
+        "id": "w_yk6vbee",
+        "a": {
+          "kind": "port",
+          "comp": "c_ivceg2b",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_6y21vmk",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 400,
+            "y": 170
+          },
+          {
+            "x": 370,
+            "y": 170
+          }
+        ]
+      },
+      "w_482qf7k": {
+        "id": "w_482qf7k",
+        "a": {
+          "kind": "port",
+          "comp": "c_ivceg2b",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_6y21vmk",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 440,
+            "y": 170
+          },
+          {
+            "x": 450,
+            "y": 170
+          }
+        ]
+      },
+      "w_ecdyj25": {
+        "id": "w_ecdyj25",
+        "a": {
+          "kind": "port",
+          "comp": "c_b4f4art",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ivceg2b",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_78fvdj2": {
+        "id": "w_78fvdj2",
+        "a": {
+          "kind": "port",
+          "comp": "c_e8dlbd5",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_fxtv8cr",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_rpjwuaf": {
+        "id": "w_rpjwuaf",
+        "a": {
+          "kind": "port",
+          "comp": "c_fxtv8cr",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_io0m9f7",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_m95krty": {
+        "id": "w_m95krty",
+        "a": {
+          "kind": "port",
+          "comp": "c_zy3dx4a",
+          "port": "1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_f5kh09j"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_qs1imkp": {
+        "id": "w_qs1imkp",
+        "a": {
+          "kind": "junction",
+          "id": "j_f5kh09j"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_rgebn1h",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_wpz0fkm": {
+        "id": "w_wpz0fkm",
+        "a": {
+          "kind": "junction",
+          "id": "j_f5kh09j"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gsba5f0",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": [
+          {
+            "x": 640,
+            "y": 40
+          },
+          {
+            "x": 700,
+            "y": 40
+          }
+        ]
+      },
+      "w_yk1qiql": {
+        "id": "w_yk1qiql",
+        "a": {
+          "kind": "port",
+          "comp": "c_rgebn1h",
+          "port": "4"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_bhoub3l"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_h4neqy0": {
+        "id": "w_h4neqy0",
+        "a": {
+          "kind": "junction",
+          "id": "j_bhoub3l"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_e8dlbd5",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_njzcyce": {
+        "id": "w_njzcyce",
+        "a": {
+          "kind": "junction",
+          "id": "j_bhoub3l"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gsba5f0",
+          "port": "4"
+        },
+        "medium": "elec",
+        "points": [
+          {
+            "x": 640,
+            "y": 140
+          },
+          {
+            "x": 700,
+            "y": 140
+          }
+        ]
+      },
+      "w_umx9em8": {
+        "id": "w_umx9em8",
+        "a": {
+          "kind": "port",
+          "comp": "c_8ye7mok",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_r568mqm",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_hagnxt8": {
+        "id": "w_hagnxt8",
+        "a": {
+          "kind": "port",
+          "comp": "c_r568mqm",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_yhu7m7y",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_mz2q538": {
+        "id": "w_mz2q538",
+        "a": {
+          "kind": "port",
+          "comp": "c_yhu7m7y",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_6zqix3e",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_qgan5rx": {
+        "id": "w_qgan5rx",
+        "a": {
+          "kind": "port",
+          "comp": "c_2v87lh2",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gvshdy8",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_6ktybak": {
+        "id": "w_6ktybak",
+        "a": {
+          "kind": "port",
+          "comp": "c_gvshdy8",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_7rj8skg",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_vf0mt1l": {
+        "id": "w_vf0mt1l",
+        "a": {
+          "kind": "port",
+          "comp": "c_7rj8skg",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_59i38y2",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_bi1odv0": {
+        "id": "w_bi1odv0",
+        "a": {
+          "kind": "port",
+          "comp": "c_b9vmtfc",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_t5zunpy",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_dtwjyds": {
+        "id": "w_dtwjyds",
+        "a": {
+          "kind": "port",
+          "comp": "c_t5zunpy",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_yqeitxw",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_gazsvky": {
+        "id": "w_gazsvky",
+        "a": {
+          "kind": "port",
+          "comp": "c_yqeitxw",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_bfubctb",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      }
+    },
+    "junctions": {
+      "j_f5kh09j": {
+        "id": "j_f5kh09j",
+        "x": 640,
+        "y": 50,
+        "medium": "elec"
+      },
+      "j_bhoub3l": {
+        "id": "j_bhoub3l",
+        "x": 640,
+        "y": 130,
+        "medium": "elec"
+      }
+    }
+  }
+}

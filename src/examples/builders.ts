@@ -3,6 +3,7 @@
  * (lo que carga la aplicación) y los tests los usan directamente.
  */
 import { CircuitBuilder } from '../core/model/builder';
+import { getModel, resolveParams } from '../core/registry';
 import type { Circuit } from '../core/model/types';
 
 export interface ExampleDef {
@@ -146,6 +147,167 @@ export function cycleABBA() {
   return b.renumber().circuit;
 }
 
+/* ───────────── Electroneumática ───────────── */
+
+interface PathItem {
+  type: string;
+  label?: string;
+  params?: Record<string, string | number | boolean>;
+}
+
+/** Bornes superior e inferior de un componente eléctrico vertical. */
+function terminals(b: CircuitBuilder, id: string): [string, string] {
+  const c = b.circuit.components[id];
+  const m = getModel(c.type);
+  const ports = m.ports(resolveParams(m, c.params)).filter((p) => p.medium === 'elec');
+  return [ports.find((p) => p.dir === 'up')!.id, ports.find((p) => p.dir === 'down')!.id];
+}
+
+/**
+ * Rama de corriente vertical en x: +24 V arriba, los elementos en serie y 0 V abajo.
+ * Devuelve los componentes y el cable que entra en cada uno (el último entra en 0 V).
+ */
+function currentPath(b: CircuitBuilder, x: number, y0: number, items: PathItem[]) {
+  const plus = b.add('elec-24v', x, y0);
+  let prev: [string, string] = [plus, '1'];
+  let y = y0 + 20;
+  const ids: string[] = [];
+  const wires: string[] = [];
+  for (const it of items) {
+    const center = y + 20 + 30;
+    const id = b.add(it.type, x, center, it.params ?? {}, { label: it.label });
+    const [top, bottom] = terminals(b, id);
+    wires.push(b.connect(prev[0], prev[1], id, top));
+    ids.push(id);
+    prev = [id, bottom];
+    y = center + 30;
+  }
+  const zero = b.add('elec-0v', x, y + 40);
+  wires.push(b.connect(prev[0], prev[1], zero, '1'));
+  return { ids, wires };
+}
+
+/** Pone un elemento en paralelo con el elemento k de una rama (a la derecha, a `dx`). */
+function parallel(
+  b: CircuitBuilder,
+  path: ReturnType<typeof currentPath>,
+  k: number,
+  dx: number,
+  it: PathItem,
+) {
+  const c = b.circuit.components[path.ids[k]];
+  const id = b.add(it.type, c.x + dx, c.y, it.params ?? {}, { label: it.label });
+  const [top, bottom] = terminals(b, id);
+  b.tee(path.wires[k], c.x, c.y - 40, id, top);
+  b.tee(path.wires[k + 1], c.x, c.y + 40, id, bottom);
+  return id;
+}
+
+/** Cilindro de doble efecto con su válvula de potencia y su alimentación. */
+function powerStage(
+  b: CircuitBuilder,
+  x: number,
+  valveType: string,
+  cylParams: Record<string, string | number>,
+  valveParams: Record<string, string | number> = {},
+) {
+  const cyl = b.add('pneu-cyl-double', x, 100, cylParams);
+  const valve = b.add(valveType, x - 30, 240, valveParams);
+  const src = b.add('pneu-supply', x, 380);
+  b.connect(valve, '4', cyl, '1');
+  b.connect(valve, '2', cyl, '2');
+  b.connect(src, '1', valve, '1');
+  return { cyl, valve };
+}
+
+/**
+ * 08 · Enclavamiento marcha/paro: S1 (marcha) activa K1, que se mantiene por su propio
+ * contacto K1; S0 (paro) o la seta de emergencia S2 lo cortan. K1 manda la bobina Y1 de una
+ * electroválvula 5/2 monoestable y enciende la lámpara H1.
+ */
+export function latchStartStop() {
+  const b = new CircuitBuilder();
+  powerStage(b, 220, 'pneu-valve-52-sol', {});
+  const p1 = currentPath(b, 520, 20, [
+    { type: 'elec-estop', label: 'S2' },
+    { type: 'elec-button-nc', label: 'S0' },
+    { type: 'elec-button-no', label: 'S1' },
+    { type: 'elec-relay', label: 'K1' },
+  ]);
+  parallel(b, p1, 2, 60, { type: 'elec-contact', label: 'K1' });
+  currentPath(b, 680, 20, [
+    { type: 'elec-contact', label: 'K1' },
+    { type: 'elec-solenoid', label: 'Y1' },
+  ]);
+  currentPath(b, 780, 20, [
+    { type: 'elec-contact', label: 'K1' },
+    { type: 'elec-lamp', label: 'H1', params: { color: 'green' } },
+  ]);
+  return b.renumber().circuit;
+}
+
+/**
+ * 09 · Ciclo A+ B+ A− B− electroneumático con electroválvulas biestables y sensores
+ * magnéticos. Y1 = marcha · 2B1, Y3 = 1B2, Y2 = 2B2, Y4 = 1B1: ninguna señal se solapa con la
+ * contraria. Con el interruptor S2 el ciclo se repite solo.
+ */
+export function cycleABAB() {
+  const b = new CircuitBuilder();
+  powerStage(
+    b,
+    150,
+    'pneu-valve-52-sol2',
+    { marks: '1B1@0; 1B2@100' },
+    // Válvulas de poco caudal: un ciclo de unos 2 s, que se puede seguir con la vista.
+    { solLeft: 'Y1', solRight: 'Y2', qn: 25 },
+  );
+  powerStage(
+    b,
+    420,
+    'pneu-valve-52-sol2',
+    { marks: '2B1@0; 2B2@100' },
+    { solLeft: 'Y3', solRight: 'Y4', qn: 25 },
+  );
+  const sensor = (label: string): PathItem => ({
+    type: 'elec-proximity',
+    label,
+    params: { sensorType: 'magnetic' },
+  });
+  const p1 = currentPath(b, 640, 20, [
+    { type: 'elec-button-no', label: 'S1' },
+    sensor('2B1'),
+    { type: 'elec-solenoid', label: 'Y1' },
+  ]);
+  parallel(b, p1, 0, 60, { type: 'elec-switch', label: 'S2' });
+  currentPath(b, 780, 20, [sensor('1B2'), { type: 'elec-solenoid', label: 'Y3' }]);
+  currentPath(b, 860, 20, [sensor('2B2'), { type: 'elec-solenoid', label: 'Y2' }]);
+  currentPath(b, 940, 20, [sensor('1B1'), { type: 'elec-solenoid', label: 'Y4' }]);
+  return b.renumber().circuit;
+}
+
+/**
+ * 10 · Temporizado: S1 hace salir el cilindro (Y1); al llegar al final (1B2) se activa el relé
+ * temporizado KT1 y, 2 s después, su contacto da tensión a Y2 y el cilindro vuelve.
+ */
+export function timedReturn() {
+  const b = new CircuitBuilder();
+  powerStage(b, 220, 'pneu-valve-52-sol2', { marks: '1B1@0; 1B2@100' });
+  currentPath(b, 520, 20, [
+    { type: 'elec-button-no', label: 'S1' },
+    { type: 'elec-proximity', label: '1B1' },
+    { type: 'elec-solenoid', label: 'Y1' },
+  ]);
+  currentPath(b, 620, 20, [
+    { type: 'elec-proximity', label: '1B2' },
+    { type: 'elec-relay-timer', label: 'KT1', params: { mode: 'on-delay', delay: 2 } },
+  ]);
+  currentPath(b, 720, 20, [
+    { type: 'elec-contact', label: 'KT1' },
+    { type: 'elec-solenoid', label: 'Y2' },
+  ]);
+  return b.renumber().circuit;
+}
+
 /** 99 · Prueba de rendimiento: 12 mandos directos (48 componentes). */
 function stress() {
   const b = new CircuitBuilder();
@@ -214,6 +376,27 @@ export const EXAMPLE_DEFS: ExampleDef[] = [
     description:
       'Dos cilindros en secuencia automática con finales de carrera. Pulsa el arranque (abajo a la izquierda) y abre el diagrama espacio-fase.',
     build: cycleABBA,
+  },
+  {
+    file: '08-enclavamiento-marcha-paro.json',
+    name: 'Enclavamiento marcha/paro (electroneumática)',
+    description:
+      'Pulsa S1 (marcha): el relé K1 se queda enclavado por su propio contacto, la bobina Y1 hace salir el cilindro y se enciende H1. S0 (paro) o la seta S2 lo cortan.',
+    build: latchStartStop,
+  },
+  {
+    file: '09-ciclo-AB-AB-electro.json',
+    name: 'Ciclo A+ B+ A− B− electroneumático',
+    description:
+      'Electroválvulas biestables y sensores magnéticos en los cilindros. Pulsa S1 para un ciclo o activa el interruptor S2 para ciclo continuo.',
+    build: cycleABAB,
+  },
+  {
+    file: '10-retorno-temporizado.json',
+    name: 'Retorno temporizado con relé',
+    description:
+      'Pulsa S1: el cilindro sale y, al llegar al final (1B2), el relé temporizado KT1 espera 2 s antes de dar la orden de retorno (Y2).',
+    build: timedReturn,
   },
   {
     file: '99-prueba-rendimiento.json',

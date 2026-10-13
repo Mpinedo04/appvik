@@ -45,6 +45,39 @@ export const VALVE_PRESETS: { cfg: WayValveConfig; preset: ValvePreset }[] = [
   },
   {
     cfg: {
+      ...VALVE_52,
+      type: 'pneu-valve-52-sol',
+      name: 'Electroválvula 5/2 monoestable',
+      short: '5/2 electro',
+      description:
+        'Válvula 5/2 accionada por el electroimán Y1 y con retorno por muelle: conmuta mientras la bobina Y1 recibe 24 V.',
+    },
+    preset: { defaults: { actLeft: 'solenoid', actRight: 'spring' } },
+  },
+  {
+    cfg: {
+      ...VALVE_52,
+      type: 'pneu-valve-52-sol2',
+      name: 'Electroválvula 5/2 biestable',
+      short: '5/2 electro biest.',
+      description:
+        'Válvula 5/2 con dos electroimanes (Y1 y Y2) y sin muelle: un impulso en Y1 o en Y2 la cambia de posición y se queda así.',
+    },
+    preset: { defaults: { actLeft: 'solenoid', actRight: 'solenoid' } },
+  },
+  {
+    cfg: {
+      ...VALVE_32NC,
+      type: 'pneu-valve-32-sol',
+      name: 'Electroválvula 3/2 NC',
+      short: '3/2 electro',
+      description:
+        'Válvula 3/2 normalmente cerrada accionada por el electroimán Y1 y con retorno por muelle.',
+    },
+    preset: { defaults: { actLeft: 'solenoid', actRight: 'spring' } },
+  },
+  {
+    cfg: {
       ...VALVE_32NC,
       type: 'pneu-sequence',
       name: 'Válvula de secuencia',

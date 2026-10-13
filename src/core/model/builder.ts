@@ -1,5 +1,11 @@
 /** Construcción programática de circuitos (tests, ejemplos). */
-import { addComponent, connect, nearestOnConnection, splitConnection } from './edit';
+import {
+  addComponent,
+  connect,
+  endpointMedium,
+  nearestOnConnection,
+  splitConnection,
+} from './edit';
 import { renumber } from './labels';
 import { emptyCircuit, type Circuit, type Endpoint, type Params, type Rotation } from './types';
 
@@ -37,10 +43,12 @@ export class CircuitBuilder {
     return r.id;
   }
 
-  /** Deriva desde la tubería más cercana al punto (x, y). */
+  /** Deriva desde la tubería (o cable) del mismo tipo más cercana al punto (x, y). */
   teeAt(x: number, y: number, comp: string, portId: string) {
+    const medium = endpointMedium(this.circuit, port(comp, portId));
     let best = { id: '', d: Infinity };
-    for (const id of Object.keys(this.circuit.connections)) {
+    for (const [id, conn] of Object.entries(this.circuit.connections)) {
+      if (conn.medium !== medium) continue;
       const { d } = nearestOnConnection(this.circuit, id, { x, y });
       if (d < best.d) best = { id, d };
     }

@@ -13,6 +13,8 @@ import { endpointKey, type Circuit } from './types';
 
 const SUPPLY_TYPES = new Set(['pneu-supply', 'pneu-compressor', 'pneu-frl', 'pneu-tank']);
 const INSTRUMENT_CATS = new Set(['instruments']);
+/** Los componentes eléctricos llevan como etiqueta su enlace (K1, Y1, 1B1…): no se renumeran. */
+const ELECTRIC_CATS = new Set(['electric', 'relays', 'electric-sensors']);
 
 function isRollerValve(circuit: Circuit, id: string) {
   const c = circuit.components[id];
@@ -31,6 +33,8 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
     return r;
   };
   for (const w of Object.values(circuit.connections)) {
+    // Sólo la red neumática: los cables eléctricos no forman parte de las cadenas de mando.
+    if (w.medium !== 'pneu') continue;
     const a = find(endpointKey(w.a));
     const b = find(endpointKey(w.b));
     if (a !== b) parent.set(a, b);
@@ -39,6 +43,7 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
   for (const c of Object.values(circuit.components)) {
     const m = getModel(c.type);
     for (const p of m.ports(resolveParams(m, c.params))) {
+      if (p.medium !== 'pneu') continue;
       const net = find(endpointKey({ kind: 'port', comp: c.id, port: p.id }));
       if (!byNet.has(net)) byNet.set(net, new Set());
       byNet.get(net)!.add(c.id);
@@ -53,8 +58,8 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
 
 /** Calcula las etiquetas nuevas (no modifica el circuito). */
 export function computeLabels(circuit: Circuit): Record<string, string> {
-  const comps = Object.values(circuit.components);
   const cat = (id: string) => getModel(circuit.components[id].type).category;
+  const comps = Object.values(circuit.components).filter((c) => !ELECTRIC_CATS.has(cat(c.id)));
   const adj = adjacency(circuit);
   const labels: Record<string, string> = {};
   const assigned = new Set<string>();
@@ -101,7 +106,8 @@ export function computeLabels(circuit: Circuit): Record<string, string> {
       for (const nb of adj.get(cur) ?? []) {
         if (dist.has(nb)) continue;
         const c = circuit.components[nb];
-        if (SUPPLY_TYPES.has(c.type) || cat(nb) === 'actuators') continue;
+        if (SUPPLY_TYPES.has(c.type) || cat(nb) === 'actuators' || ELECTRIC_CATS.has(cat(nb)))
+          continue;
         dist.set(nb, dist.get(cur)! + 1);
         queue.push(nb);
       }

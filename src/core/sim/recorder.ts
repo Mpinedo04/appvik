@@ -5,7 +5,16 @@
 import type { Circuit } from '../model/types';
 import { getModel } from '../registry';
 
-export type SeriesKind = 'actuator' | 'valve' | 'gauge';
+export type SeriesKind = 'actuator' | 'valve' | 'gauge' | 'electric';
+
+/** Componentes eléctricos que aparecen en el diagrama (bobinas, relés, contadores, lámparas). */
+const ELECTRIC_SERIES = new Set([
+  'elec-relay',
+  'elec-relay-timer',
+  'elec-counter',
+  'elec-solenoid',
+  'elec-lamp',
+]);
 
 export interface SeriesInfo {
   id: string;
@@ -26,6 +35,7 @@ export interface Recording {
 function sampleValue(kind: SeriesKind, state: any): number {
   if (kind === 'actuator') return (state?.pos ?? 0) * 100;
   if (kind === 'gauge') return state?.bar ?? 0;
+  if (kind === 'electric') return state?.on ? 1 : 0;
   // Válvula: 1 = casilla izquierda (accionada), 0 = derecha; en las de 3 posiciones, 0,5 = centro.
   if (typeof state?.pos === 'number') return state.pos;
   return 0;
@@ -59,6 +69,7 @@ export class Recorder {
       )
         kind = 'valve';
       else if (c.type === 'pneu-gauge') kind = 'gauge';
+      else if (ELECTRIC_SERIES.has(c.type)) kind = 'electric';
       if (!kind) continue;
       this.series.push({
         id: c.id,

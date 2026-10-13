@@ -15,6 +15,11 @@ export function pressureColor(bar: number, maxBar = 6): string {
   return `hsl(${hue.toFixed(0)} 80% ${(48 - 4 * t).toFixed(0)}%)`;
 }
 
+/** Color de un cable eléctrico según su nivel: +24 V rojo, 0 V azul, sin tensión negro. */
+export function wireColor(level: number | undefined): string {
+  return level === 1 ? '#dc2626' : level === -1 ? '#2563eb' : INK;
+}
+
 export interface SymbolProps {
   params: Params;
   /** Estado de simulación (ausente en modo edición). */

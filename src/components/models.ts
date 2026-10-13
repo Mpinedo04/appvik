@@ -1,5 +1,6 @@
 /** Registro de la parte lógica de todos los componentes. Importar una vez al arrancar. */
 import { registerModel } from '../core/registry';
+import { ELECTRIC_MODELS } from './electric/models';
 import { compressorModel } from './pneumatic/compressor/model';
 import { cylinderDoubleModel } from './pneumatic/cylinder-double/model';
 import { cylinderRodlessModel } from './pneumatic/cylinder-rodless/model';
@@ -57,6 +58,8 @@ let done = false;
 export function registerAllModels() {
   if (done) return;
   done = true;
+  // Eléctricos
+  for (const m of ELECTRIC_MODELS) registerModel(m);
   // Alimentación
   registerModel(supplyModel);
   registerModel(compressorModel);

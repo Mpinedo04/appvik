@@ -76,9 +76,7 @@ export function Library() {
             </section>
           );
         })}
-        <p className="lib-note">
-          La electroneumática y la hidráulica llegarán en las próximas fases.
-        </p>
+        <p className="lib-note">La hidráulica llegará en la fase 5.</p>
       </div>
     </aside>
   );
