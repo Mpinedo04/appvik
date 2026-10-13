@@ -1,5 +1,6 @@
 import { str } from '../../../core/registry';
 import { Arrow, INK, PAPER, SW, pressureColor, type SymbolProps } from '../../symbols';
+import { isRoller } from '../actuation';
 import { Actuator2D, PilotLine } from '../actuator2d';
 import { BOX_H, boxesExtent, spoolShift, valvePortPos, type WayValveConfig } from './config';
 import { hasPilot, type WayValveState } from './model';
@@ -113,6 +114,32 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
             <g transform="translate(0 12)">
               <Actuator2D x={ext.right} side="right" type="spring" engaged={false} />
             </g>
+          )}
+          {isRoller(actLeft) && (
+            <text
+              x={ext.left - 18}
+              y={-14}
+              textAnchor="middle"
+              fontSize={7}
+              fontWeight={600}
+              fill="#2563eb"
+              fontFamily="Inter, system-ui, sans-serif"
+            >
+              {str(params, 'sensor')}
+            </text>
+          )}
+          {isRoller(actRight) && (
+            <text
+              x={ext.right + 18}
+              y={-14}
+              textAnchor="middle"
+              fontSize={7}
+              fontWeight={600}
+              fill="#2563eb"
+              fontFamily="Inter, system-ui, sans-serif"
+            >
+              {str(params, 'sensor')}
+            </text>
           )}
           <g transform={springs ? 'translate(0 -8)' : undefined}>
             <Actuator2D x={ext.left} side="left" type={actLeft} engaged={!!s?.leftOn} />

@@ -12,6 +12,7 @@ import {
 } from '../registry';
 import { compileFluidNets, portKey, type CompiledNets } from './compiler';
 import { FluidNetwork } from './fluid/network';
+import type { Recorder } from './recorder';
 
 /** Copia del estado con un nivel de profundidad (los estados son planos o casi planos). */
 function cloneState(s: any): any {
@@ -68,6 +69,8 @@ export class Simulation {
   dt: number;
   private ctx: StepCtx;
   private taps: PortTap[] = [];
+  /** Grabador opcional para los diagramas. */
+  recorder: Recorder | null = null;
   /** Señales legibles en este paso (las publicadas en el paso anterior). */
   private signals = new Map<string, number>();
   private nextSignals = new Map<string, number>();
@@ -152,6 +155,7 @@ export class Simulation {
     this.swapSignals();
     net.integrate(dt);
     this.t += dt;
+    this.recorder?.maybeSample(this.t, (id) => this.byId.get(id)?.state);
   }
 
   /** Avanza `seconds` de tiempo simulado. */

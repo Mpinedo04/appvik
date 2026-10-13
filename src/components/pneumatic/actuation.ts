@@ -58,6 +58,8 @@ export interface ActuationState {
   /** Estado de cada lado en el último paso (para dibujar y explicar). */
   leftOn: boolean;
   rightOn: boolean;
+  /** Última orden recibida (para las válvulas biestables). */
+  memory: Side | null;
 }
 
 export const actuationParams = (defaults: { left: ActuatorType; right: ActuatorType }) => [
@@ -117,6 +119,7 @@ export const initActuation = (): ActuationState => ({
   latchR: false,
   leftOn: false,
   rightOn: false,
+  memory: null,
 });
 
 /** Lecturas que necesita un accionamiento en cada paso. */
@@ -182,6 +185,8 @@ export function targetBox(
   left: boolean,
   right: boolean,
   p: Params,
+  /** Última orden recibida (memoria de las válvulas biestables). */
+  memory: Side | null = null,
 ): number {
   if (left && !right) return 0;
   if (right && !left) return n - 1;
@@ -192,6 +197,8 @@ export function targetBox(
   if (sL && sR) return rest;
   if (sR) return n - 1;
   if (sL) return 0;
+  // Biestable: completa el cambio que ordenó el último impulso aunque éste ya haya terminado.
+  if (memory) return memory === 'left' ? 0 : n - 1;
   return Math.round(current);
 }
 

@@ -1,0 +1,183 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Mando indirecto",
+  "description": "Un pulsador 3/2 pequeño envía una señal de pilotaje a la 5/2 de potencia, que es la que mueve el cilindro.",
+  "circuit": {
+    "components": {
+      "c_3le96gk": {
+        "id": "c_3le96gk",
+        "type": "pneu-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {}
+      },
+      "c_eyht1k1": {
+        "id": "c_eyht1k1",
+        "type": "pneu-valve-52-pilot",
+        "x": 270,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_0s33ch0": {
+        "id": "c_0s33ch0",
+        "type": "pneu-valve-32nc",
+        "x": 120,
+        "y": 360,
+        "rot": 0,
+        "flip": false,
+        "label": "1S1",
+        "params": {}
+      },
+      "c_rbpruzy": {
+        "id": "c_rbpruzy",
+        "type": "pneu-supply",
+        "x": 300,
+        "y": 480,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_fzwxruh": {
+        "id": "w_fzwxruh",
+        "a": {
+          "kind": "port",
+          "comp": "c_eyht1k1",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_3le96gk",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 280,
+            "y": 170
+          },
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_tqffjuy": {
+        "id": "w_tqffjuy",
+        "a": {
+          "kind": "port",
+          "comp": "c_eyht1k1",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_3le96gk",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      },
+      "w_d0d6w95": {
+        "id": "w_d0d6w95",
+        "a": {
+          "kind": "port",
+          "comp": "c_rbpruzy",
+          "port": "1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_ib866d6"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_cai4bsb": {
+        "id": "w_cai4bsb",
+        "a": {
+          "kind": "junction",
+          "id": "j_ib866d6"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_eyht1k1",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_fo1q5vu": {
+        "id": "w_fo1q5vu",
+        "a": {
+          "kind": "junction",
+          "id": "j_ib866d6"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0s33ch0",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 130,
+            "y": 420
+          }
+        ]
+      },
+      "w_p7756po": {
+        "id": "w_p7756po",
+        "a": {
+          "kind": "port",
+          "comp": "c_0s33ch0",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_eyht1k1",
+          "port": "14"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 140,
+            "y": 280
+          },
+          {
+            "x": 160,
+            "y": 280
+          },
+          {
+            "x": 160,
+            "y": 240
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_ib866d6": {
+        "id": "j_ib866d6",
+        "x": 300,
+        "y": 420,
+        "medium": "pneu"
+      }
+    }
+  }
+}

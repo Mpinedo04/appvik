@@ -1,10 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-// Intenta usar la GPU real (ANGLE/Direct3D); si no hay, Chromium cae a SwiftShader.
-test.use({
-  launchOptions: { args: ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] },
-});
-
 test('rendimiento de la vista 3D con 48 componentes', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() =>

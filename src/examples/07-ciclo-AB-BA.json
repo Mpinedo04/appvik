@@ -1,0 +1,507 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Ciclo A+ B+ B− A−",
+  "description": "Dos cilindros en secuencia automática con finales de carrera. Pulsa el arranque (abajo a la izquierda) y abre el diagrama espacio-fase.",
+  "circuit": {
+    "components": {
+      "c_qpthw8b": {
+        "id": "c_qpthw8b",
+        "type": "pneu-cyl-double",
+        "x": 200,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "marks": "1S1@0; 1S2@90",
+          "mass": 0.5
+        }
+      },
+      "c_b4iidvr": {
+        "id": "c_b4iidvr",
+        "type": "pneu-cyl-double",
+        "x": 560,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "2A",
+        "params": {
+          "marks": "2S1@10; 2S2@100",
+          "mass": 0.5
+        }
+      },
+      "c_fzwm4c7": {
+        "id": "c_fzwm4c7",
+        "type": "pneu-valve-52-memory",
+        "x": 170,
+        "y": 260,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "qn": 80
+        }
+      },
+      "c_g3hei9e": {
+        "id": "c_g3hei9e",
+        "type": "pneu-valve-52-memory",
+        "x": 530,
+        "y": 260,
+        "rot": 0,
+        "flip": false,
+        "label": "2V1",
+        "params": {
+          "qn": 80
+        }
+      },
+      "c_i3pyqpe": {
+        "id": "c_i3pyqpe",
+        "type": "pneu-valve-32nc",
+        "x": 60,
+        "y": 470,
+        "rot": 0,
+        "flip": false,
+        "label": "1S3",
+        "params": {}
+      },
+      "c_hhwrvao": {
+        "id": "c_hhwrvao",
+        "type": "pneu-limit-32",
+        "x": 60,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "1S1",
+        "params": {
+          "sensor": "1S1"
+        }
+      },
+      "c_wt1hz8s": {
+        "id": "c_wt1hz8s",
+        "type": "pneu-limit-32",
+        "x": 300,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "2S1",
+        "params": {
+          "sensor": "2S1",
+          "actLeft": "roller-oneway",
+          "rollerDir": "-"
+        }
+      },
+      "c_nh7lpjr": {
+        "id": "c_nh7lpjr",
+        "type": "pneu-limit-32",
+        "x": 420,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "1S2",
+        "params": {
+          "sensor": "1S2",
+          "actLeft": "roller-oneway",
+          "rollerDir": "+"
+        }
+      },
+      "c_wqtrnlj": {
+        "id": "c_wqtrnlj",
+        "type": "pneu-limit-32",
+        "x": 660,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "2S2",
+        "params": {
+          "sensor": "2S2"
+        }
+      },
+      "c_0eiwhy0": {
+        "id": "c_0eiwhy0",
+        "type": "pneu-supply",
+        "x": 200,
+        "y": 560,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {}
+      },
+      "c_0pxanu4": {
+        "id": "c_0pxanu4",
+        "type": "pneu-supply",
+        "x": 560,
+        "y": 560,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z5",
+        "params": {}
+      },
+      "c_yr8ytkz": {
+        "id": "c_yr8ytkz",
+        "type": "pneu-supply",
+        "x": 70,
+        "y": 560,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_9uj3y92": {
+        "id": "c_9uj3y92",
+        "type": "pneu-supply",
+        "x": 310,
+        "y": 470,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z3",
+        "params": {}
+      },
+      "c_14mfsi4": {
+        "id": "c_14mfsi4",
+        "type": "pneu-supply",
+        "x": 430,
+        "y": 470,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z4",
+        "params": {}
+      },
+      "c_8glj5eg": {
+        "id": "c_8glj5eg",
+        "type": "pneu-supply",
+        "x": 670,
+        "y": 470,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z6",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_ks2qno3": {
+        "id": "w_ks2qno3",
+        "a": {
+          "kind": "port",
+          "comp": "c_fzwm4c7",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_qpthw8b",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 180,
+            "y": 180
+          },
+          {
+            "x": 150,
+            "y": 180
+          }
+        ]
+      },
+      "w_ko61cqi": {
+        "id": "w_ko61cqi",
+        "a": {
+          "kind": "port",
+          "comp": "c_fzwm4c7",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_qpthw8b",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 220,
+            "y": 180
+          },
+          {
+            "x": 230,
+            "y": 180
+          }
+        ]
+      },
+      "w_8ly33s2": {
+        "id": "w_8ly33s2",
+        "a": {
+          "kind": "port",
+          "comp": "c_g3hei9e",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_b4iidvr",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 540,
+            "y": 180
+          },
+          {
+            "x": 510,
+            "y": 180
+          }
+        ]
+      },
+      "w_pupz2wu": {
+        "id": "w_pupz2wu",
+        "a": {
+          "kind": "port",
+          "comp": "c_g3hei9e",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_b4iidvr",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 580,
+            "y": 180
+          },
+          {
+            "x": 590,
+            "y": 180
+          }
+        ]
+      },
+      "w_xj1g1ka": {
+        "id": "w_xj1g1ka",
+        "a": {
+          "kind": "port",
+          "comp": "c_i3pyqpe",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_hhwrvao",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 80,
+            "y": 420
+          },
+          {
+            "x": 70,
+            "y": 420
+          }
+        ]
+      },
+      "w_9kh1cl2": {
+        "id": "w_9kh1cl2",
+        "a": {
+          "kind": "port",
+          "comp": "c_hhwrvao",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_fzwm4c7",
+          "port": "14"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 80,
+            "y": 300
+          },
+          {
+            "x": 60,
+            "y": 300
+          },
+          {
+            "x": 60,
+            "y": 260
+          }
+        ]
+      },
+      "w_2wbpfzt": {
+        "id": "w_2wbpfzt",
+        "a": {
+          "kind": "port",
+          "comp": "c_wt1hz8s",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_fzwm4c7",
+          "port": "12"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 300
+          },
+          {
+            "x": 280,
+            "y": 300
+          },
+          {
+            "x": 280,
+            "y": 260
+          }
+        ]
+      },
+      "w_zz77613": {
+        "id": "w_zz77613",
+        "a": {
+          "kind": "port",
+          "comp": "c_nh7lpjr",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_g3hei9e",
+          "port": "14"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 440,
+            "y": 300
+          },
+          {
+            "x": 420,
+            "y": 300
+          },
+          {
+            "x": 420,
+            "y": 260
+          }
+        ]
+      },
+      "w_nojz986": {
+        "id": "w_nojz986",
+        "a": {
+          "kind": "port",
+          "comp": "c_wqtrnlj",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_g3hei9e",
+          "port": "12"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 680,
+            "y": 300
+          },
+          {
+            "x": 640,
+            "y": 300
+          },
+          {
+            "x": 640,
+            "y": 260
+          }
+        ]
+      },
+      "w_tlirlhs": {
+        "id": "w_tlirlhs",
+        "a": {
+          "kind": "port",
+          "comp": "c_0eiwhy0",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_fzwm4c7",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_vf5g8q6": {
+        "id": "w_vf5g8q6",
+        "a": {
+          "kind": "port",
+          "comp": "c_0pxanu4",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_g3hei9e",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_6nyw6be": {
+        "id": "w_6nyw6be",
+        "a": {
+          "kind": "port",
+          "comp": "c_yr8ytkz",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_i3pyqpe",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_93udg8h": {
+        "id": "w_93udg8h",
+        "a": {
+          "kind": "port",
+          "comp": "c_9uj3y92",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_wt1hz8s",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_bn2941l": {
+        "id": "w_bn2941l",
+        "a": {
+          "kind": "port",
+          "comp": "c_14mfsi4",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_nh7lpjr",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_hzxppxt": {
+        "id": "w_hzxppxt",
+        "a": {
+          "kind": "port",
+          "comp": "c_8glj5eg",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_wqtrnlj",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      }
+    },
+    "junctions": {}
+  }
+}

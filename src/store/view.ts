@@ -21,12 +21,15 @@ interface ViewStore {
   split: number;
   /** Mostrar etiquetas (1A, 1V1…) en la vista 3D. */
   labels: boolean;
+  /** Panel de diagramas abierto. */
+  diagrams: boolean;
   setLayout(l: Layout): void;
   setRender(r: Render3D): void;
   setCompRender(id: string, r: Render3D | null): void;
   setCutOffset(v: number): void;
   setSplit(v: number): void;
   setLabels(v: boolean): void;
+  setDiagrams(v: boolean): void;
 }
 
 const KEY = 'fluidlab3d.view';
@@ -56,6 +59,7 @@ export const useView = create<ViewStore>((set, get) => {
     cutOffset: 0,
     split: saved.split ?? 0.5,
     labels: saved.labels ?? true,
+    diagrams: false,
     setLayout(layout) {
       set({ layout });
       persist();
@@ -80,6 +84,9 @@ export const useView = create<ViewStore>((set, get) => {
     setLabels(labels) {
       set({ labels });
       persist();
+    },
+    setDiagrams(diagrams) {
+      set({ diagrams });
     },
   };
 });

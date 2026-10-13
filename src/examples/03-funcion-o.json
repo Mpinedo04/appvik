@@ -1,0 +1,297 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Función lógica O (selectora)",
+  "description": "El cilindro sale si se pulsa cualquiera de los dos pulsadores (o los dos).",
+  "circuit": {
+    "components": {
+      "c_0xuuuzt": {
+        "id": "c_0xuuuzt",
+        "type": "pneu-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {}
+      },
+      "c_yvd9nr4": {
+        "id": "c_yvd9nr4",
+        "type": "pneu-valve-52-pilot",
+        "x": 270,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_rhvnrvt": {
+        "id": "c_rhvnrvt",
+        "type": "pneu-shuttle-or",
+        "x": 110,
+        "y": 300,
+        "rot": 0,
+        "flip": false,
+        "label": "1V2",
+        "params": {}
+      },
+      "c_yspzhov": {
+        "id": "c_yspzhov",
+        "type": "pneu-valve-32nc",
+        "x": 40,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "1S1",
+        "params": {}
+      },
+      "c_zjxt2va": {
+        "id": "c_zjxt2va",
+        "type": "pneu-valve-32nc",
+        "x": 180,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "1S2",
+        "params": {}
+      },
+      "c_5tya4c1": {
+        "id": "c_5tya4c1",
+        "type": "pneu-supply",
+        "x": 300,
+        "y": 540,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_bnujer7": {
+        "id": "w_bnujer7",
+        "a": {
+          "kind": "port",
+          "comp": "c_yvd9nr4",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0xuuuzt",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 280,
+            "y": 170
+          },
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_xlvetl1": {
+        "id": "w_xlvetl1",
+        "a": {
+          "kind": "port",
+          "comp": "c_yvd9nr4",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0xuuuzt",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      },
+      "w_s27u5s0": {
+        "id": "w_s27u5s0",
+        "a": {
+          "kind": "port",
+          "comp": "c_rhvnrvt",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_yvd9nr4",
+          "port": "14"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 110,
+            "y": 250
+          },
+          {
+            "x": 160,
+            "y": 250
+          },
+          {
+            "x": 160,
+            "y": 240
+          }
+        ]
+      },
+      "w_r9y048r": {
+        "id": "w_r9y048r",
+        "a": {
+          "kind": "port",
+          "comp": "c_yspzhov",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_rhvnrvt",
+          "port": "1a"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 60,
+            "y": 300
+          }
+        ]
+      },
+      "w_oznpeec": {
+        "id": "w_oznpeec",
+        "a": {
+          "kind": "port",
+          "comp": "c_zjxt2va",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_rhvnrvt",
+          "port": "1b"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 200,
+            "y": 330
+          },
+          {
+            "x": 160,
+            "y": 330
+          },
+          {
+            "x": 160,
+            "y": 300
+          }
+        ]
+      },
+      "w_qsks2y9": {
+        "id": "w_qsks2y9",
+        "a": {
+          "kind": "junction",
+          "id": "j_5b2vd1f"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_yvd9nr4",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_bhg7xb0": {
+        "id": "w_bhg7xb0",
+        "a": {
+          "kind": "junction",
+          "id": "j_5b2vd1f"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zjxt2va",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 300,
+            "y": 470
+          },
+          {
+            "x": 190,
+            "y": 470
+          }
+        ]
+      },
+      "w_34knpug": {
+        "id": "w_34knpug",
+        "a": {
+          "kind": "port",
+          "comp": "c_5tya4c1",
+          "port": "1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_kvjcu91"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_ypuz1pm": {
+        "id": "w_ypuz1pm",
+        "a": {
+          "kind": "junction",
+          "id": "j_kvjcu91"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_5b2vd1f"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_q9y8ldn": {
+        "id": "w_q9y8ldn",
+        "a": {
+          "kind": "junction",
+          "id": "j_kvjcu91"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_yspzhov",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 300,
+            "y": 480
+          },
+          {
+            "x": 50,
+            "y": 480
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_5b2vd1f": {
+        "id": "j_5b2vd1f",
+        "x": 300,
+        "y": 480,
+        "medium": "pneu"
+      },
+      "j_kvjcu91": {
+        "id": "j_kvjcu91",
+        "x": 300,
+        "y": 500,
+        "medium": "pneu"
+      }
+    }
+  }
+}

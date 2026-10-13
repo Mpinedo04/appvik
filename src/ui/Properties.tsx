@@ -217,6 +217,7 @@ export function Properties() {
                     onChange={(e) => setParam(def.key, e.target.checked)}
                   />
                 )}
+                {def.help && <small className="help">{def.help}</small>}
               </label>
             ))}
         </div>

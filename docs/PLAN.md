@@ -1,6 +1,6 @@
 # Plan de desarrollo de FluidLab 3D
 
-> **Estado:** fases 0, 1 y 2 terminadas. Siguiente: fase 3 (biblioteca neumática completa + diagramas).
+> **Estado:** fases 0 a 3 terminadas. Siguiente: fase 4 (electroneumática).
 
 ## Contexto
 El usuario quiere una aplicación con las funciones y la libertad de diseño de FluidSIM (editor libre de circuitos con símbolos ISO 1219 y simulación neumática, electroneumática e hidráulica), pero con una vista 3D sincronizada donde se vea por dentro cómo actúa cada componente: émbolos, correderas, muelles, flujo de aire o aceite, presiones…
@@ -116,7 +116,7 @@ Una única fuente de verdad: `Project` (topología + layout 2D) y `SimSnapshot` 
 - Rendimiento: geometrías compartidas e instancing, objetivo de 60 FPS con 50 componentes (medido con un circuito de prueba).
 - **Criterio de aceptación:** con el circuito de la fase 1, en vista de corte y cámara lenta 0,1× se ve cómo se desplaza la corredera, cómo pasa el aire de P a A, cómo se llena la cámara y cómo sale el vástago.
 
-### Fase 3: Biblioteca neumática completa + diagramas
+### Fase 3: Biblioteca neumática completa + diagramas ✅
 - **Válvulas de vías:** 2/2, 3/2 NA/NC, 4/2, 5/2 y 5/3 (centro cerrado, a escape y a presión). El accionamiento se configura por separado en cada lado: pulsador, palanca, pedal, rodillo, rodillo abatible, muelle, piloto neumático y servopilotado (el solenoide queda para la fase 4). El símbolo y el modelo 3D se componen a partir del cuerpo + los accionamientos.
 - **Lógica y bloqueo:** antirretorno, selectora (O), simultaneidad (Y), escape rápido.
 - **Caudal y presión:** estranguladora, estranguladora unidireccional, limitadora, reguladora y de secuencia.

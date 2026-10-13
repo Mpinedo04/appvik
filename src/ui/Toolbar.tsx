@@ -11,6 +11,7 @@ import {
   loadProject,
   newProject,
   openFile,
+  renumberAll,
   rotateSelection,
   saveFile,
 } from './actions';
@@ -26,6 +27,8 @@ const ICONS: Record<string, ReactNode> = {
   flip: <path d="M12 3v18M8 7l-5 5 5 5zM16 7l5 5-5 5z" />,
   trash: <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />,
   fit: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  tag: <path d="M3 12V4h8l10 10-8 8zM7.5 7.5h.01" />,
+  chart: <path d="M4 4v16h16M7 15l4-5 3 3 5-6" />,
   play: <path d="M7 4l13 8-13 8z" fill="currentColor" />,
   pause: <path d="M7 4h4v16H7zM13 4h4v16h-4z" fill="currentColor" />,
   stop: <path d="M6 6h12v12H6z" fill="currentColor" />,
@@ -84,6 +87,7 @@ export function Toolbar() {
   const t = useSim((s) => s.snapshot?.t ?? 0);
   const sim = useSim.getState();
   const editing = status === 'stopped';
+  const diagrams = useView((s) => s.diagrams);
 
   return (
     <header className="toolbar">
@@ -150,6 +154,12 @@ export function Toolbar() {
           disabled={!editing || !hasSel}
         />
         <Btn icon="fit" label="Ajustar a la ventana" onClick={() => canvasApi.fit()} />
+        <Btn
+          icon="tag"
+          label="Renumerar según la norma (1A, 1V1, 1S1…)"
+          onClick={renumberAll}
+          disabled={!editing}
+        />
       </div>
 
       <ViewSwitch />
@@ -187,6 +197,13 @@ export function Toolbar() {
             ))}
           </select>
         </label>
+        <Btn
+          icon="chart"
+          label="Diagramas espacio-tiempo y espacio-fase"
+          onClick={() => useView.getState().setDiagrams(!useView.getState().diagrams)}
+          active={diagrams}
+          testId="diagrams"
+        />
         <span className="sim-time" data-testid="sim-time">
           {editing ? 'Edición' : `t = ${t.toFixed(3)} s`}
         </span>

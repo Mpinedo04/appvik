@@ -43,7 +43,7 @@ select {
 
 .app {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   height: 100%;
 }
 
@@ -620,4 +620,69 @@ select {
   white-space: nowrap;
   transform: translate(-50%, -100%);
   pointer-events: none;
+}
+
+/* ---------- Diagramas ---------- */
+.diagrams {
+  height: 270px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  min-height: 0;
+}
+
+.diag-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.diag-head .spacer {
+  flex: 1;
+}
+
+.diag-seq {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.diag-body {
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-box {
+  position: absolute;
+  inset: 4px 8px 0 8px;
+}
+
+.phase-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: 6px 10px;
+}
+
+.diag-empty {
+  color: var(--muted);
+  padding: 16px;
+  margin: 0;
+}
+
+.chart-box .u-legend {
+  font-size: 11px;
+  text-align: left;
+}
+
+.chart-box .u-legend .u-series {
+  padding: 0 6px;
+}
+
+.field .help {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
 }

@@ -7,6 +7,7 @@ import {
   removeItems,
   rotateItems,
 } from '../core/model/edit';
+import { renumber } from '../core/model/labels';
 import type { Circuit, Project } from '../core/model/types';
 import { parseProject, toProject, useProject } from '../store/project';
 import { useSim } from '../store/sim';
@@ -64,6 +65,12 @@ export function paste() {
       ]),
     ),
   });
+}
+
+export function renumberAll() {
+  if (!editing()) return;
+  P().commit((d) => renumber(d as Circuit));
+  P().notify('Componentes renumerados según la norma (1A, 1V1, 1S1…).');
 }
 
 export function selectAll() {

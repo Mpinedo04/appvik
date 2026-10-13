@@ -1,0 +1,165 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Regulación de velocidad",
+  "description": "Estranguladoras antirretorno en el escape: el avance es lento (15 %) y el retroceso más rápido (40 %). Cambia la apertura en sus propiedades.",
+  "circuit": {
+    "components": {
+      "c_xftd58d": {
+        "id": "c_xftd58d",
+        "type": "pneu-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "mass": 2
+        }
+      },
+      "c_ostxi6v": {
+        "id": "c_ostxi6v",
+        "type": "pneu-throttle-oneway",
+        "x": 250,
+        "y": 200,
+        "rot": 0,
+        "flip": false,
+        "label": "1V2",
+        "params": {
+          "pct": 15
+        }
+      },
+      "c_i989298": {
+        "id": "c_i989298",
+        "type": "pneu-throttle-oneway",
+        "x": 330,
+        "y": 200,
+        "rot": 0,
+        "flip": false,
+        "label": "1V3",
+        "params": {
+          "pct": 40
+        }
+      },
+      "c_o09t93w": {
+        "id": "c_o09t93w",
+        "type": "pneu-valve-52",
+        "x": 270,
+        "y": 330,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "actLeft": "lever",
+          "actRight": "spring"
+        }
+      },
+      "c_cc57bds": {
+        "id": "c_cc57bds",
+        "type": "pneu-supply",
+        "x": 300,
+        "y": 460,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_j64h9kw": {
+        "id": "w_j64h9kw",
+        "a": {
+          "kind": "port",
+          "comp": "c_ostxi6v",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_xftd58d",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_xh2y539": {
+        "id": "w_xh2y539",
+        "a": {
+          "kind": "port",
+          "comp": "c_i989298",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_xftd58d",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_4aa97si": {
+        "id": "w_4aa97si",
+        "a": {
+          "kind": "port",
+          "comp": "c_o09t93w",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ostxi6v",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 280,
+            "y": 270
+          },
+          {
+            "x": 250,
+            "y": 270
+          }
+        ]
+      },
+      "w_p9w12bp": {
+        "id": "w_p9w12bp",
+        "a": {
+          "kind": "port",
+          "comp": "c_o09t93w",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_i989298",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 270
+          },
+          {
+            "x": 330,
+            "y": 270
+          }
+        ]
+      },
+      "w_goz0mow": {
+        "id": "w_goz0mow",
+        "a": {
+          "kind": "port",
+          "comp": "c_cc57bds",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_o09t93w",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      }
+    },
+    "junctions": {}
+  }
+}

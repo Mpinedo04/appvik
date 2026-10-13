@@ -67,7 +67,13 @@ export interface BuildCtx {
   /** Nodo de fluido al que pertenece un puerto del componente. */
   port(portId: string): number;
   /** Crea un nodo interno (volumen propio o presión fija). */
-  addNode(opts?: { volume?: number; fixedPressure?: number; name?: string }): number;
+  addNode(opts?: {
+    volume?: number;
+    fixedPressure?: number;
+    /** Presión absoluta inicial [Pa] (depósitos que empiezan llenos). */
+    initialPressure?: number;
+    name?: string;
+  }): number;
   /** Nodo de la atmósfera (presión fija P_ATM). */
   readonly atmosphere: number;
   /** Crea un orificio (restricción ISO 6358) entre dos nodos. Devuelve su índice. */

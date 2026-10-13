@@ -77,8 +77,7 @@ export function Library() {
           );
         })}
         <p className="lib-note">
-          Más componentes (válvulas lógicas, reguladoras, sensores, electroneumática e hidráulica)
-          llegarán en las próximas fases.
+          La electroneumática y la hidráulica llegarán en las próximas fases.
         </p>
       </div>
     </aside>

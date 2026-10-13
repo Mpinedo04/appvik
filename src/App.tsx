@@ -3,6 +3,7 @@ import { canvasApi } from './editor/canvasApi';
 import { EXAMPLES } from './examples';
 import { parseProject, useProject } from './store/project';
 import { restoreAutosave, startAutosave } from './ui/actions';
+import { Diagrams } from './ui/Diagrams';
 import { Library } from './ui/Library';
 import { Properties } from './ui/Properties';
 import { Stage } from './ui/Stage';
@@ -32,6 +33,7 @@ export function App() {
         <Stage />
         <Properties />
       </main>
+      <Diagrams />
       <StatusBar />
     </div>
   );

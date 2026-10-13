@@ -19,6 +19,8 @@ export interface FluidNode {
   dynVolume: number;
   mass: number;
   p: number;
+  /** Presión inicial [Pa] (si no, la atmosférica). */
+  p0?: number;
 }
 
 export interface Orifice {
@@ -57,7 +59,9 @@ export class FluidNetwork {
     this.atmosphere = this.addNode({ name: 'atmósfera', fixedPressure: P_ATM });
   }
 
-  addNode(opts: { name?: string; volume?: number; fixedPressure?: number } = {}): number {
+  addNode(
+    opts: { name?: string; volume?: number; fixedPressure?: number; initialPressure?: number } = {},
+  ): number {
     const fixed = opts.fixedPressure !== undefined;
     this.nodes.push({
       name: opts.name ?? `n${this.nodes.length}`,
@@ -67,6 +71,7 @@ export class FluidNetwork {
       dynVolume: 0,
       mass: 0,
       p: fixed ? (opts.fixedPressure as number) : P_ATM,
+      p0: opts.initialPressure,
     });
     return this.nodes.length - 1;
   }
@@ -89,7 +94,7 @@ export class FluidNetwork {
   /** Inicializa la masa de cada nodo a presión atmosférica con los volúmenes actuales. */
   initMasses(p0 = P_ATM) {
     this.nodes.forEach((n, i) => {
-      n.mass = n.fixed ? 0 : (p0 * this.volume(i)) / RT;
+      n.mass = n.fixed ? 0 : ((n.p0 ?? p0) * this.volume(i)) / RT;
     });
     this.updatePressures();
   }

@@ -1,0 +1,259 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Temporizador neumático",
+  "description": "Al accionar la palanca, el temporizador tarda unos 2 s en dar señal a la 5/2 y entonces sale el cilindro.",
+  "circuit": {
+    "components": {
+      "c_5rq784x": {
+        "id": "c_5rq784x",
+        "type": "pneu-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {}
+      },
+      "c_suyel2t": {
+        "id": "c_suyel2t",
+        "type": "pneu-valve-52-pilot",
+        "x": 270,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {}
+      },
+      "c_uz0tpdd": {
+        "id": "c_uz0tpdd",
+        "type": "pneu-timer",
+        "x": 190,
+        "y": 360,
+        "rot": 0,
+        "flip": false,
+        "label": "1V2",
+        "params": {
+          "delay": 2
+        }
+      },
+      "c_rfnig0q": {
+        "id": "c_rfnig0q",
+        "type": "pneu-valve-32nc",
+        "x": 40,
+        "y": 460,
+        "rot": 0,
+        "flip": false,
+        "label": "1S1",
+        "params": {
+          "actLeft": "lever"
+        }
+      },
+      "c_2023552": {
+        "id": "c_2023552",
+        "type": "pneu-supply",
+        "x": 300,
+        "y": 560,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_4hov41w": {
+        "id": "w_4hov41w",
+        "a": {
+          "kind": "port",
+          "comp": "c_suyel2t",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_5rq784x",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 280,
+            "y": 170
+          },
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_ve7ufl5": {
+        "id": "w_ve7ufl5",
+        "a": {
+          "kind": "port",
+          "comp": "c_suyel2t",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_5rq784x",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 320,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      },
+      "w_tkwttrg": {
+        "id": "w_tkwttrg",
+        "a": {
+          "kind": "port",
+          "comp": "c_uz0tpdd",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_suyel2t",
+          "port": "14"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 210,
+            "y": 280
+          },
+          {
+            "x": 160,
+            "y": 280
+          },
+          {
+            "x": 160,
+            "y": 240
+          }
+        ]
+      },
+      "w_6jdkvv9": {
+        "id": "w_6jdkvv9",
+        "a": {
+          "kind": "port",
+          "comp": "c_rfnig0q",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_uz0tpdd",
+          "port": "12"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 60,
+            "y": 360
+          }
+        ]
+      },
+      "w_zqdnssr": {
+        "id": "w_zqdnssr",
+        "a": {
+          "kind": "junction",
+          "id": "j_e75s51w"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_suyel2t",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_0o4qb7c": {
+        "id": "w_0o4qb7c",
+        "a": {
+          "kind": "junction",
+          "id": "j_e75s51w"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_uz0tpdd",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 300,
+            "y": 440
+          },
+          {
+            "x": 200,
+            "y": 440
+          }
+        ]
+      },
+      "w_hlbm1oi": {
+        "id": "w_hlbm1oi",
+        "a": {
+          "kind": "port",
+          "comp": "c_2023552",
+          "port": "1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_yz0jjft"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_3vmumqo": {
+        "id": "w_3vmumqo",
+        "a": {
+          "kind": "junction",
+          "id": "j_yz0jjft"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_e75s51w"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_9mpz8n8": {
+        "id": "w_9mpz8n8",
+        "a": {
+          "kind": "junction",
+          "id": "j_yz0jjft"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_rfnig0q",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 50,
+            "y": 520
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_e75s51w": {
+        "id": "j_e75s51w",
+        "x": 300,
+        "y": 470,
+        "medium": "pneu"
+      },
+      "j_yz0jjft": {
+        "id": "j_yz0jjft",
+        "x": 300,
+        "y": 520,
+        "medium": "pneu"
+      }
+    }
+  }
+}

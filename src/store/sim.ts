@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { num } from '../core/registry';
 import { Simulation, type SimSnapshot } from '../core/sim/engine';
+import { Recorder } from '../core/sim/recorder';
 import { useProject } from './project';
 
 export type SimStatus = 'stopped' | 'running' | 'paused';
@@ -27,11 +28,17 @@ interface SimStore {
 }
 
 let sim: Simulation | null = null;
+/** Última grabación (se conserva al parar para poder consultar los diagramas). */
+let recorder: Recorder | null = null;
 let raf = 0;
 let last = 0;
 
 export function currentSimulation() {
   return sim;
+}
+
+export function currentRecorder() {
+  return recorder;
 }
 
 export const useSim = create<SimStore>((set, get) => {
@@ -51,6 +58,8 @@ export const useSim = create<SimStore>((set, get) => {
     try {
       const circuit = useProject.getState().circuit;
       sim = new Simulation(circuit);
+      recorder = new Recorder(circuit);
+      sim.recorder = recorder;
       const supplies = Object.values(circuit.components).filter((c) => c.type === 'pneu-supply');
       const maxBar = Math.max(
         1,

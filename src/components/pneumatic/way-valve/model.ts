@@ -1,5 +1,12 @@
 import type { Params } from '../../../core/model/types';
-import { num, str, type ComponentModel, type ParamDef, type PortDef } from '../../../core/registry';
+import {
+  num,
+  str,
+  type CategoryId,
+  type ComponentModel,
+  type ParamDef,
+  type PortDef,
+} from '../../../core/registry';
 import { cm3, conductanceFromNominalFlow, paToBarGauge } from '../../../core/units';
 import {
   ACT_NAME,
@@ -33,8 +40,8 @@ interface Handles {
   supply: number | null;
 }
 
-/** Tiempo que tarda la corredera en recorrer una casilla [s]. */
-const SWITCH_TIME = 0.015;
+/** Tiempo que tarda la corredera en recorrer una casilla [s]: las válvulas pequeñas son más rápidas. */
+const switchTime = (cfg: WayValveConfig) => (cfg.boxW <= 40 ? 0.006 : 0.012);
 const PILOT_VOLUME = cm3(0.3);
 
 /** Lista plana de las vías de todas las casillas. */
@@ -70,7 +77,18 @@ export function pilotPorts(cfg: WayValveConfig, p: Params): PortDef[] {
   return out;
 }
 
-export function makeWayValveModel(cfg: WayValveConfig): ComponentModel<WayValveState, Handles> {
+/** Variante preconfigurada de una válvula (final de carrera, 5/2 pilotada, de secuencia…). */
+export interface ValvePreset {
+  category?: CategoryId;
+  autoLabel?: (n: number) => string;
+  /** Valores por defecto distintos de los genéricos. */
+  defaults?: Params;
+}
+
+export function makeWayValveModel(
+  cfg: WayValveConfig,
+  preset: ValvePreset = {},
+): ComponentModel<WayValveState, Handles> {
   const paths = allPaths(cfg);
   const n = cfg.positions.length;
   const params: ParamDef[] = [
@@ -93,6 +111,10 @@ export function makeWayValveModel(cfg: WayValveConfig): ComponentModel<WayValveS
   // En las de 3 posiciones los muelles centran la corredera además del accionamiento de cada lado.
   if (n >= 3)
     params.push({ key: 'springs', label: 'Centrado por muelles', type: 'boolean', default: true });
+  for (const d of params) {
+    const v = preset.defaults?.[d.key];
+    if (v !== undefined) (d as { default: unknown }).default = v;
+  }
   const springReturn = (p: Params) =>
     (n >= 3 && Boolean(p.springs)) ||
     str(p, 'actLeft') === 'spring' ||
@@ -100,10 +122,10 @@ export function makeWayValveModel(cfg: WayValveConfig): ComponentModel<WayValveS
 
   return {
     type: cfg.type,
-    category: 'directional',
+    category: preset.category ?? 'directional',
     name: cfg.name,
     description: cfg.description,
-    autoLabel: (k) => `1V${k}`,
+    autoLabel: preset.autoLabel ?? ((k) => `1V${k}`),
     params,
     ports: (p) => [
       ...cfg.ports.map((pc) => ({
@@ -172,8 +194,10 @@ export function makeWayValveModel(cfg: WayValveConfig): ComponentModel<WayValveS
       };
       s.leftOn = sideActive('left', s, p, io);
       s.rightOn = sideActive('right', s, p, io);
-      const target = targetBox(s.pos, n, cfg.rest, s.leftOn, s.rightOn, p);
-      const maxStep = dt / SWITCH_TIME;
+      if (s.leftOn && !s.rightOn) s.memory = 'left';
+      else if (s.rightOn && !s.leftOn) s.memory = 'right';
+      const target = targetBox(s.pos, n, cfg.rest, s.leftOn, s.rightOn, p, s.memory);
+      const maxStep = dt / switchTime(cfg);
       s.pos += Math.max(-maxStep, Math.min(maxStep, target - s.pos));
       h.orifices.forEach((o, i) => {
         const f = pathOpening(s.pos, o.box);
