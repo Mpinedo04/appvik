@@ -4,6 +4,7 @@ import { EXAMPLES } from './examples';
 import { parseProject, useProject } from './store/project';
 import { restoreAutosave, startAutosave } from './ui/actions';
 import { Diagrams } from './ui/Diagrams';
+import { Gallery } from './ui/Gallery';
 import { Library } from './ui/Library';
 import { Properties } from './ui/Properties';
 import { Stage } from './ui/Stage';
@@ -35,6 +36,7 @@ export function App() {
       </main>
       <Diagrams />
       <StatusBar />
+      <Gallery />
     </div>
   );
 }

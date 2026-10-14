@@ -186,7 +186,7 @@ const COIL_LABEL: Record<LadderRung['coil']['kind'], string> = {
   CTU: 'CTU',
 };
 
-function Rung({
+export function Rung({
   r,
   i,
   width,

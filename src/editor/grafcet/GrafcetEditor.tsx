@@ -261,143 +261,179 @@ export function GrafcetEditor() {
           onPointerUp={onUp}
           fontFamily={FONT}
         >
-          <defs>
-            <marker
-              id="gf-arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto"
-            >
-              <path d="M0,0 L10,5 L0,10 z" fill="#1b2230" />
-            </marker>
-          </defs>
-          {Object.values(g.links).map((l) => {
-            const path = linkPath(g, l.from, l.to);
-            if (!path) return null;
-            const on = active.has(l.from) || firable.has(l.from);
-            return (
-              <polyline
-                key={l.id}
-                points={path.pts.map((p) => p.join(',')).join(' ')}
-                fill="none"
-                stroke={on ? ACTIVE : '#1b2230'}
-                strokeWidth={1.6}
-                markerEnd={path.up ? 'url(#gf-arrow)' : undefined}
-              />
-            );
-          })}
-          {Object.values(g.transitions).map((t) => {
-            const err = exprError(t.cond);
-            const fire = firable.has(t.id);
-            return (
-              <g
-                key={t.id}
-                onPointerDown={(e) => onDown(e, t.id, 'trans')}
-                className="gf-el"
-                data-testid={`gf-trans-${t.id}`}
-              >
-                <rect x={t.x - 22} y={t.y - 8} width={44} height={16} fill="transparent" />
-                <line
-                  x1={t.x - 15}
-                  y1={t.y}
-                  x2={t.x + 15}
-                  y2={t.y}
-                  stroke={fire ? ACTIVE : '#1b2230'}
-                  strokeWidth={4}
-                />
-                {sel === t.id && (
-                  <rect
-                    x={t.x - 20}
-                    y={t.y - 7}
-                    width={40}
-                    height={14}
-                    fill="none"
-                    stroke="#2563eb"
-                    strokeDasharray="3 2"
-                  />
-                )}
-                <text x={t.x + 22} y={t.y + 4} fontSize={12} fill={err ? '#dc2626' : '#1b2230'}>
-                  {t.cond || '(vacía)'}
-                </text>
-              </g>
-            );
-          })}
-          {Object.values(g.steps).map((s) => {
-            const on = active.has(s.id);
-            return (
-              <g
-                key={s.id}
-                onPointerDown={(e) => onDown(e, s.id, 'step')}
-                className="gf-el"
-                data-testid={`gf-step-${s.n}`}
-                data-active={on ? 'on' : 'off'}
-              >
-                <rect
-                  x={s.x - S / 2}
-                  y={s.y - S / 2}
-                  width={S}
-                  height={S}
-                  fill={on ? '#dcfce7' : '#fff'}
-                  stroke={sel === s.id ? '#2563eb' : '#1b2230'}
-                  strokeWidth={sel === s.id ? 2.2 : 1.6}
-                />
-                {s.initial && (
-                  <rect
-                    x={s.x - S / 2 + 4}
-                    y={s.y - S / 2 + 4}
-                    width={S - 8}
-                    height={S - 8}
-                    fill="none"
-                    stroke="#1b2230"
-                    strokeWidth={1.2}
-                  />
-                )}
-                <text x={s.x} y={s.y + 5} fontSize={14} fontWeight={600} textAnchor="middle">
-                  {s.n}
-                </text>
-                {on && <circle cx={s.x + S / 2 - 7} cy={s.y + S / 2 - 7} r={4} fill={ACTIVE} />}
-                {s.actions.map((a, i) => {
-                  const y = s.y - S / 2 + i * 22;
-                  const w = Math.max(60, actionText(a).length * 7 + 14);
-                  return (
-                    <g key={i}>
-                      {i === 0 && (
-                        <line
-                          x1={s.x + S / 2}
-                          y1={s.y}
-                          x2={s.x + S / 2 + 16}
-                          y2={s.y}
-                          stroke="#1b2230"
-                          strokeWidth={1.4}
-                        />
-                      )}
-                      <rect
-                        x={s.x + S / 2 + 16}
-                        y={y + (s.actions.length === 1 ? 9 : 0)}
-                        width={w}
-                        height={22}
-                        fill={on ? '#fef9c3' : '#fff'}
-                        stroke="#1b2230"
-                        strokeWidth={1.2}
-                      />
-                      <text
-                        x={s.x + S / 2 + 23}
-                        y={y + (s.actions.length === 1 ? 9 : 0) + 15}
-                        fontSize={12}
-                      >
-                        {actionText(a)}
-                      </text>
-                    </g>
-                  );
-                })}
-              </g>
-            );
-          })}
+          <GrafcetDrawing g={g} active={active} firable={firable} sel={sel} onDown={onDown} />
         </svg>
       </div>
     </div>
   );
+}
+
+/** Dibujo del GRAFCET (sin interacción si no se pasa `onDown`): editor y exportación a PDF. */
+export function GrafcetDrawing({
+  g,
+  active = new Set(),
+  firable = new Set(),
+  sel = null,
+  onDown,
+}: {
+  g: Grafcet;
+  active?: Set<string>;
+  firable?: Set<string>;
+  sel?: string | null;
+  onDown?: (e: RPointerEvent, id: string, kind: 'step' | 'trans') => void;
+}) {
+  return (
+    <g fontFamily={FONT}>
+      <defs>
+        <marker
+          id="gf-arrow"
+          viewBox="0 0 10 10"
+          refX="9"
+          refY="5"
+          markerWidth="7"
+          markerHeight="7"
+          orient="auto"
+        >
+          <path d="M0,0 L10,5 L0,10 z" fill="#1b2230" />
+        </marker>
+      </defs>
+      {Object.values(g.links).map((l) => {
+        const path = linkPath(g, l.from, l.to);
+        if (!path) return null;
+        const on = active.has(l.from) || firable.has(l.from);
+        return (
+          <polyline
+            key={l.id}
+            points={path.pts.map((p) => p.join(',')).join(' ')}
+            fill="none"
+            stroke={on ? ACTIVE : '#1b2230'}
+            strokeWidth={1.6}
+            markerEnd={path.up ? 'url(#gf-arrow)' : undefined}
+          />
+        );
+      })}
+      {Object.values(g.transitions).map((t) => {
+        const err = exprError(t.cond);
+        const fire = firable.has(t.id);
+        return (
+          <g
+            key={t.id}
+            onPointerDown={onDown && ((e) => onDown(e, t.id, 'trans'))}
+            className="gf-el"
+            data-testid={`gf-trans-${t.id}`}
+          >
+            <rect x={t.x - 22} y={t.y - 8} width={44} height={16} fill="transparent" />
+            <line
+              x1={t.x - 15}
+              y1={t.y}
+              x2={t.x + 15}
+              y2={t.y}
+              stroke={fire ? ACTIVE : '#1b2230'}
+              strokeWidth={4}
+            />
+            {sel === t.id && (
+              <rect
+                x={t.x - 20}
+                y={t.y - 7}
+                width={40}
+                height={14}
+                fill="none"
+                stroke="#2563eb"
+                strokeDasharray="3 2"
+              />
+            )}
+            <text x={t.x + 22} y={t.y + 4} fontSize={12} fill={err ? '#dc2626' : '#1b2230'}>
+              {t.cond || '(vacía)'}
+            </text>
+          </g>
+        );
+      })}
+      {Object.values(g.steps).map((s) => {
+        const on = active.has(s.id);
+        return (
+          <g
+            key={s.id}
+            onPointerDown={onDown && ((e) => onDown(e, s.id, 'step'))}
+            className="gf-el"
+            data-testid={`gf-step-${s.n}`}
+            data-active={on ? 'on' : 'off'}
+          >
+            <rect
+              x={s.x - S / 2}
+              y={s.y - S / 2}
+              width={S}
+              height={S}
+              fill={on ? '#dcfce7' : '#fff'}
+              stroke={sel === s.id ? '#2563eb' : '#1b2230'}
+              strokeWidth={sel === s.id ? 2.2 : 1.6}
+            />
+            {s.initial && (
+              <rect
+                x={s.x - S / 2 + 4}
+                y={s.y - S / 2 + 4}
+                width={S - 8}
+                height={S - 8}
+                fill="none"
+                stroke="#1b2230"
+                strokeWidth={1.2}
+              />
+            )}
+            <text x={s.x} y={s.y + 5} fontSize={14} fontWeight={600} textAnchor="middle">
+              {s.n}
+            </text>
+            {on && <circle cx={s.x + S / 2 - 7} cy={s.y + S / 2 - 7} r={4} fill={ACTIVE} />}
+            {s.actions.map((a, i) => {
+              const y = s.y - S / 2 + i * 22;
+              const w = Math.max(60, actionText(a).length * 7 + 14);
+              return (
+                <g key={i}>
+                  {i === 0 && (
+                    <line
+                      x1={s.x + S / 2}
+                      y1={s.y}
+                      x2={s.x + S / 2 + 16}
+                      y2={s.y}
+                      stroke="#1b2230"
+                      strokeWidth={1.4}
+                    />
+                  )}
+                  <rect
+                    x={s.x + S / 2 + 16}
+                    y={y + (s.actions.length === 1 ? 9 : 0)}
+                    width={w}
+                    height={22}
+                    fill={on ? '#fef9c3' : '#fff'}
+                    stroke="#1b2230"
+                    strokeWidth={1.2}
+                  />
+                  <text
+                    x={s.x + S / 2 + 23}
+                    y={y + (s.actions.length === 1 ? 9 : 0) + 15}
+                    fontSize={12}
+                  >
+                    {actionText(a)}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
+/** Tamaño del dibujo de un GRAFCET. */
+export function grafcetBounds(g: Grafcet) {
+  const xs = [300];
+  const ys = [200];
+  for (const s of Object.values(g.steps)) {
+    xs.push(s.x + 260);
+    ys.push(s.y + 60);
+  }
+  for (const t of Object.values(g.transitions)) {
+    xs.push(t.x + 260);
+    ys.push(t.y + 40);
+  }
+  return { w: Math.max(...xs), h: Math.max(...ys) };
 }

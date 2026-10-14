@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loadExample } from './util';
 
 test('rendimiento de la vista 3D con 48 componentes', async ({ page }) => {
   await page.goto('/');
@@ -6,7 +7,7 @@ test('rendimiento de la vista 3D con 48 componentes', async ({ page }) => {
     localStorage.setItem('fluidlab3d.view', JSON.stringify({ layout: '3d' })),
   );
   await page.reload();
-  await page.locator('select[aria-label="Ejemplos"]').selectOption('99-prueba-rendimiento');
+  await loadExample(page, '99-prueba-rendimiento');
   await expect(page.getByTestId('scene3d').locator('canvas')).toBeVisible({ timeout: 15000 });
   await page.getByTestId('sim-start').click();
   const fps = await page.evaluate(async () => {

@@ -11,6 +11,7 @@ import { renumber } from '../core/model/labels';
 import type { Circuit, Project } from '../core/model/types';
 import { parseProject, toProject, useProject } from '../store/project';
 import { useSim } from '../store/sim';
+import { openTextFile, saveFile as saveFileTo, type FileKind } from '../platform/files';
 
 const P = () => useProject.getState();
 const editing = () => useSim.getState().status === 'stopped';
@@ -98,29 +99,21 @@ export function loadProject(p: Project) {
   requestAnimationFrame(() => canvasApi.fit());
 }
 
-export function openFile() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,.fluidlab.json,application/json';
-  input.onchange = async () => {
-    const f = input.files?.[0];
-    if (!f) return;
-    try {
-      loadProject(parseProject(await f.text()));
-      P().notify(`Abierto «${f.name}».`);
-    } catch (e) {
-      P().notify(`No se pudo abrir: ${(e as Error).message}`);
-    }
-  };
-  input.click();
-}
+const PROJECT_FILE: FileKind = {
+  label: 'Proyecto FluidLab',
+  ext: 'json',
+  mime: 'application/json',
+};
 
-function download(name: string, blob: Blob) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+export async function openFile() {
+  try {
+    const f = await openTextFile(PROJECT_FILE);
+    if (!f) return;
+    loadProject(parseProject(f.text));
+    P().notify(`Abierto «${f.name}».`);
+  } catch (e) {
+    P().notify(`No se pudo abrir: ${(e as Error).message}`);
+  }
 }
 
 const fileBase = () =>
@@ -128,12 +121,35 @@ const fileBase = () =>
     .name.trim()
     .replace(/[\\/:*?"<>|]+/g, '_') || 'circuito';
 
-export function saveFile() {
-  download(
-    `${fileBase()}.fluidlab.json`,
-    new Blob([JSON.stringify(toProject(), null, 2)], { type: 'application/json' }),
-  );
-  P().notify('Proyecto guardado.');
+export async function saveFile() {
+  try {
+    const ok = await saveFileTo(
+      `${fileBase()}.fluidlab.json`,
+      JSON.stringify(toProject(), null, 2),
+      PROJECT_FILE,
+    );
+    if (ok) P().notify('Proyecto guardado.');
+  } catch (e) {
+    P().notify(`No se pudo guardar: ${(e as Error).message}`);
+  }
+}
+
+/** PDF con el esquema, el GRAFCET / esquema de contactos y la lista de componentes. */
+export async function exportPdf() {
+  if (!Object.keys(P().circuit.components).length) return;
+  P().notify('Generando el PDF…');
+  try {
+    const { buildPdf } = await import('./pdf');
+    const bytes = await buildPdf(toProject());
+    const ok = await saveFileTo(`${fileBase()}.pdf`, bytes, {
+      label: 'Documento PDF',
+      ext: 'pdf',
+      mime: 'application/pdf',
+    });
+    if (ok) P().notify('PDF exportado.');
+  } catch (e) {
+    P().notify(`No se pudo exportar: ${(e as Error).message}`);
+  }
 }
 
 export async function exportPng() {
@@ -155,7 +171,14 @@ export async function exportPng() {
   canvas.width = w * scale;
   canvas.height = h * scale;
   canvas.getContext('2d')!.drawImage(img, 0, 0);
-  canvas.toBlob((b) => b && download(`${fileBase()}.png`, b), 'image/png');
+  canvas.toBlob(async (b) => {
+    if (!b) return;
+    await saveFileTo(`${fileBase()}.png`, new Uint8Array(await b.arrayBuffer()), {
+      label: 'Imagen PNG',
+      ext: 'png',
+      mime: 'image/png',
+    });
+  }, 'image/png');
 }
 
 // ---------- Autoguardado ----------

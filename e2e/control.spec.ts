@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loadExample } from './util';
 
 test('GRAFCET y contactos: los editores muestran la ejecución y se pueden crear', async ({
   page,
@@ -11,7 +12,7 @@ test('GRAFCET y contactos: los editores muestran la ejecución y se pueden crear
   await page.reload();
 
   // GRAFCET de mando directo: la etapa 0 está activa y al pulsar S1 evoluciona.
-  await page.locator('select:has(option:text("Ejemplos…"))').selectOption('15-grafcet-ciclo-AB-BA');
+  await loadExample(page, '15-grafcet-ciclo-AB-BA');
   await page.getByTestId('sheet-grafcet').click();
   await page.getByTestId('sim-start').click();
   await expect(page.getByTestId('gf-step-0')).toHaveAttribute('data-active', 'on');
@@ -31,7 +32,7 @@ test('GRAFCET y contactos: los editores muestran la ejecución y se pueden crear
 
   // Esquema de contactos del PLC.
   await page.getByTestId('sheet-circuit').click();
-  await page.locator('select:has(option:text("Ejemplos…"))').selectOption('16-plc-contactos');
+  await loadExample(page, '16-plc-contactos');
   await page.getByTestId('sheet-ladder').click();
   await expect(page.getByTestId('rung-0')).toBeVisible();
   await page.getByTestId('rung-0').click();

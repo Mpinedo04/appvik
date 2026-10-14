@@ -31,6 +31,8 @@ interface ViewStore {
   sheet: Sheet;
   /** Elemento seleccionado en el editor de GRAFCET (etapa/transición) o de contactos. */
   ctrlSel: string | null;
+  /** Galería de ejemplos abierta. */
+  gallery: boolean;
   setLayout(l: Layout): void;
   setRender(r: Render3D): void;
   setCompRender(id: string, r: Render3D | null): void;
@@ -41,6 +43,7 @@ interface ViewStore {
   setValveStyle(v: ValveStyle): void;
   setSheet(s: Sheet): void;
   setCtrlSel(id: string | null): void;
+  setGallery(v: boolean): void;
 }
 
 const KEY = 'fluidlab3d.view';
@@ -74,6 +77,7 @@ export const useView = create<ViewStore>((set, get) => {
     valveStyle: saved.valveStyle ?? 'real',
     sheet: 'circuit',
     ctrlSel: null,
+    gallery: false,
     setLayout(layout) {
       set({ layout });
       persist();
@@ -111,6 +115,9 @@ export const useView = create<ViewStore>((set, get) => {
     },
     setCtrlSel(ctrlSel) {
       set({ ctrlSel });
+    },
+    setGallery(gallery) {
+      set({ gallery });
     },
   };
 });

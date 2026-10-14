@@ -4,6 +4,12 @@ Simulador de circuitos neumáticos, electroneumáticos e hidráulicos con editor
 
 > Proyecto independiente, inspirado en los simuladores didácticos de neumática. No usa marcas, logotipos ni recursos de terceros.
 
+## Descargar la aplicación de escritorio (Windows)
+
+En la sección **Releases** del repositorio está el instalador para Windows 10/11 (`.msi` o `-setup.exe`). Es la misma aplicación que la versión web, en su propia ventana y con los diálogos de Windows para abrir, guardar y exportar.
+
+Para generar una versión nueva: sube una etiqueta `vX.Y.Z` (o lanza «Escritorio (Windows)» a mano en la pestaña *Actions*). El flujo de GitHub Actions compila el instalador con Tauri y lo deja en un borrador de Release, listo para publicarlo. No hace falta instalar Rust en el PC.
+
 ## Requisitos
 
 - Node.js 20 o superior (probado con Node 24)
@@ -38,6 +44,8 @@ npm run dev          # abre http://localhost:5173
 - **Electroneumática:** el esquema eléctrico se dibuja en el mismo lienzo con los componentes de las categorías *Eléctricos*, *Relés, contadores y bobinas* y *Sensores eléctricos*, unidos con cables (arrastrando de borne a borne). Las ramas van de **+24 V** a **0 V**. Como en los simuladores clásicos, **la etiqueta es el enlace**: los contactos con la etiqueta `K1` los mueve la bobina `K1`; la bobina `Y1` acciona el lado de la válvula cuyo accionamiento *Electroimán* tiene `Y1`; los sensores y finales de carrera eléctricos con la etiqueta `1B1` se activan en la marca `1B1@…` del cilindro. Durante la simulación los cables con +24 V se ven en rojo y los de 0 V en azul, las bobinas activadas se rellenan y las lámparas se encienden; un cortocircuito se avisa en la barra de estado. Los pulsadores, interruptores y la seta de emergencia se accionan con clic (en 2D o en 3D).
 - **GRAFCET y PLC:** las pestañas **GRAFCET** y **Contactos** de la barra superior abren sus editores. En el GRAFCET se añaden etapas y transiciones, se unen con «Unir» y se editan sus acciones (N, S, R, D, L, contar) y receptividades (`S1 · 1B1`, `t/X2/2s`, `↑S1`…) en el panel derecho. En el esquema de contactos cada segmento tiene una condición (serie = `·`, paralelo = `+`, NC = `!`) y una bobina (salida, S, R, TON, TOF, CTU). Sin PLC, el programa manda directamente sobre las señales del circuito (marcas de los cilindros, pulsadores, bobinas Y), como en FluidSIM; con el componente **PLC** (8 entradas I0.x y 8 salidas Q0.x a 24 V) lo ejecuta el autómata. Durante la simulación se ven las etapas activas y los contactos que conducen.
 - **Renumerar:** botón 🏷 de la barra: etiqueta la parte neumática según la norma (`1A`, `1V1`, `1S1`, `0Z1`…). Las etiquetas de los componentes eléctricos no se tocan, porque son sus enlaces.
+- **Ejemplos:** botón *Ejemplos…* de la barra: galería con 17 circuitos explicados, agrupados en neumática, electroneumática, hidráulica y GRAFCET/PLC.
+- **Exportar:** imagen PNG del esquema o **PDF** (botón PDF): esquema en vectorial con cajetín, GRAFCET y esquema de contactos si los hay, y lista de componentes con sus parámetros.
 - Los proyectos se guardan como `.fluidlab.json`; además hay autoguardado en el navegador.
 
 ## Componentes
@@ -99,4 +107,4 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 - [x] **Fase 2:** vista 3D sincronizada (2D / 3D / dividida) con modos normal, rayos X y corte, partículas de flujo por tuberías y conductos internos, cámara con enfoque, accionamiento desde el 3D; 60 FPS con 48 componentes. Además: válvulas de N posiciones (2/2, 4/2, 5/3) y accionamientos por lado (rodillo, rodillo abatible, pilotaje, servopilotado…).
 - [x] **Fase 3:** biblioteca neumática completa (tabla de arriba) con símbolo 2D, modelo 3D, explicación y test de cada componente; finales de carrera vinculados a marcas del cilindro; etiquetado automático; diagramas espacio-tiempo y espacio-fase (PNG/CSV); 7 ejemplos, entre ellos el ciclo A+ B+ B− A−.
 - [x] **Fase 4:** electroneumática: red eléctrica de 24 V acoplada al motor neumático, 15 componentes eléctricos (pulsadores, interruptor, seta, lámpara, relés normal y temporizado, contactos, contador, bobina de electroválvula, finales de carrera, sensores de proximidad, presostato) con símbolo IEC, modelo 3D (bobinas que brillan, contactos y armaduras que se mueven) y explicación; electroimanes en todas las válvulas de vías; cables coloreados en 2D y 3D; ejemplos `08`–`10`. Además, las válvulas 3D muestran su **corredera real**.
-- [ ] **Fase 5** (en curso): ✅ hidráulica (13 componentes, válvulas 4/2 y 4/3, ejemplos `11`–`14`: la prensa sube exactamente hasta el tarado de la limitadora); ✅ GRAFCET (editor, reglas de evolución, divergencias O/Y, acciones N/S/R/D/L y contadores) y PLC programable con GRAFCET o contactos (ejemplos `15`–`17`); pendiente: galería de ejemplos, exportación a PDF y versión de escritorio (Tauri).
+- [x] **Fase 5:** hidráulica (13 componentes, válvulas 4/2 y 4/3, ejemplos `11`–`14`: la prensa sube exactamente hasta el tarado de la limitadora); GRAFCET (editor, reglas de evolución, divergencias O/Y, acciones N/S/R/D/L y contadores) y PLC programable con GRAFCET o contactos (ejemplos `15`–`17`); galería de 17 ejemplos; exportación a PDF; aplicación de escritorio para Windows con Tauri, compilada en GitHub Actions.

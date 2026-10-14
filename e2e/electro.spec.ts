@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loadExample } from './util';
 
 test('electroneumática: al pulsar S1 en el lienzo el relé se enclava y la lámpara se enciende', async ({
   page,
@@ -9,9 +10,7 @@ test('electroneumática: al pulsar S1 en el lienzo el relé se enclava y la lám
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page
-    .locator('select:has(option:text("Ejemplos…"))')
-    .selectOption('08-enclavamiento-marcha-paro');
+  await loadExample(page, '08-enclavamiento-marcha-paro');
   await page.getByTestId('layout-2d').click();
   await page.getByTestId('sim-start').click();
 

@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
 import { canvasApi } from '../editor/canvasApi';
-import { EXAMPLES } from '../examples';
-import { parseProject, useProject } from '../store/project';
+import { useProject } from '../store/project';
 import { SPEEDS, useSim } from '../store/sim';
 import { useView, type Layout, type Sheet } from '../store/view';
 import {
   deleteSelection,
+  exportPdf,
   exportPng,
   flipSelection,
-  loadProject,
   newProject,
   openFile,
   renumberAll,
@@ -29,6 +28,9 @@ const ICONS: Record<string, ReactNode> = {
   fit: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   tag: <path d="M3 12V4h8l10 10-8 8zM7.5 7.5h.01" />,
   chart: <path d="M4 4v16h16M7 15l4-5 3 3 5-6" />,
+  pdf: (
+    <path d="M6 3h8l4 4v14H6zM14 3v4h4M8.5 16v-4h1.5a1.2 1.2 0 0 1 0 2.4H8.5M12.5 16v-4h1a2 2 0 0 1 0 4zM16.5 16v-4h2M16.5 14h1.5" />
+  ),
   play: <path d="M7 4l13 8-13 8z" fill="currentColor" />,
   pause: <path d="M7 4h4v16H7zM13 4h4v16h-4z" fill="currentColor" />,
   stop: <path d="M6 6h12v12H6z" fill="currentColor" />,
@@ -114,22 +116,20 @@ export function Toolbar() {
         <Btn icon="open" label="Abrir…" onClick={openFile} />
         <Btn icon="save" label="Guardar (Ctrl+S)" onClick={saveFile} />
         <Btn icon="image" label="Exportar imagen PNG" onClick={exportPng} />
-        <select
+        <Btn
+          icon="pdf"
+          label="Exportar a PDF (esquema, programa y lista de componentes)"
+          onClick={exportPdf}
+          testId="export-pdf"
+        />
+        <button
           className="tb-select"
-          aria-label="Ejemplos"
-          value=""
-          onChange={(e) => {
-            const ex = EXAMPLES.find((x) => x.id === e.target.value);
-            if (ex) loadProject(parseProject(ex.json));
-          }}
+          onClick={() => useView.getState().setGallery(true)}
+          data-testid="gallery-open"
+          title="Galería de ejemplos"
         >
-          <option value="">Ejemplos…</option>
-          {EXAMPLES.map((ex) => (
-            <option key={ex.id} value={ex.id} title={ex.description}>
-              {ex.name}
-            </option>
-          ))}
-        </select>
+          Ejemplos…
+        </button>
       </div>
 
       <div className="tb-group" aria-label="Edición">

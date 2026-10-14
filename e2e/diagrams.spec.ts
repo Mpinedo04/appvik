@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { loadExample } from './util';
 
 test('ciclo A+ B+ B− A−: el diagrama espacio-fase muestra la secuencia', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('select[aria-label="Ejemplos"]').selectOption('07-ciclo-AB-BA');
+  await loadExample(page, '07-ciclo-AB-BA');
   await page.getByTestId('diagrams').click();
   await page.getByTestId('sim-start').click();
   await page.evaluate(() => {

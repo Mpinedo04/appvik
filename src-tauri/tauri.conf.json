@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FluidLab 3D",
+  "version": "0.5.0",
+  "identifier": "io.github.mpinedo04.fluidlab3d",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "FluidLab 3D",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 960,
+        "minHeight": 600,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "category": "Education",
+    "shortDescription": "Simulador de neumática, electroneumática e hidráulica en 2D y 3D",
+    "longDescription": "Editor libre de circuitos con símbolos ISO 1219 / IEC 60617, simulación neumática, electroneumática e hidráulica, GRAFCET y PLC, y una vista 3D en la que se ve por dentro cómo funciona cada componente.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": { "languages": ["Spanish"], "displayLanguageSelector": false },
+      "wix": { "language": "es-ES" }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+# Instalador de Windows (Tauri). Se ejecuta al subir una etiqueta v* (p. ej. v0.5.0) o a mano
+# desde la pestaña Actions, y deja el .msi y el .exe en un borrador de Release.
+name: Escritorio (Windows)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: 'src-tauri -> target'
+
+      - name: Dependencias
+        run: npm ci
+
+      - name: Iconos
+        run: npx --yes @tauri-apps/cli@^2 icon src-tauri/app-icon.png
+
+      - name: Compilar y publicar el instalador
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: npx --yes @tauri-apps/cli@^2
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
+          releaseName: 'FluidLab 3D ${{ github.ref_type == ''tag'' && github.ref_name || ''v__VERSION__'' }}'
+          releaseBody: |
+            Instalador de FluidLab 3D para Windows 10/11.
+            Descarga el `.msi` o el `-setup.exe` de «Assets» y ejecútalo.
+          releaseDraft: true
+          prerelease: false

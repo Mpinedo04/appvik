@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loadExample } from './util';
 
 test('hidráulica: la prensa llega al tarado de la limitadora y el 3D no da errores', async ({
   page,
@@ -9,7 +10,7 @@ test('hidráulica: la prensa llega al tarado de la limitadora y el 3D no da erro
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.locator('select:has(option:text("Ejemplos…"))').selectOption('11-prensa-hidraulica');
+  await loadExample(page, '11-prensa-hidraulica');
   await page.getByTestId('layout-split').click();
   await expect(page.getByTestId('scene3d').locator('canvas')).toBeVisible({ timeout: 15000 });
   await page.getByTestId('render-cut').click();
