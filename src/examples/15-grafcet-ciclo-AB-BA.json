@@ -1,0 +1,369 @@
+{
+  "format": "fluidlab-3d",
+  "version": 2,
+  "name": "GRAFCET: ciclo A+ B+ B− A−",
+  "description": "El mismo ciclo del ejemplo 07, mandado por un GRAFCET (pestaña GRAFCET): las transiciones leen las marcas de los cilindros y las etapas activan las bobinas. Pulsa S1 y mira cómo avanza la etapa activa.",
+  "circuit": {
+    "components": {
+      "c_zbl9n4l": {
+        "id": "c_zbl9n4l",
+        "type": "pneu-cyl-double",
+        "x": 150,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "marks": "1B1@0; 1B2@100"
+        }
+      },
+      "c_01kmysd": {
+        "id": "c_01kmysd",
+        "type": "pneu-valve-52-sol2",
+        "x": 120,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "solLeft": "Y1",
+          "solRight": "Y2",
+          "qn": 60
+        }
+      },
+      "c_txi5nm6": {
+        "id": "c_txi5nm6",
+        "type": "pneu-supply",
+        "x": 150,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_8prdq1c": {
+        "id": "c_8prdq1c",
+        "type": "pneu-cyl-double",
+        "x": 420,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "2A",
+        "params": {
+          "marks": "2B1@0; 2B2@100"
+        }
+      },
+      "c_strbfde": {
+        "id": "c_strbfde",
+        "type": "pneu-valve-52-sol2",
+        "x": 390,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "2V1",
+        "params": {
+          "solLeft": "Y3",
+          "solRight": "Y4",
+          "qn": 60
+        }
+      },
+      "c_hv2qpov": {
+        "id": "c_hv2qpov",
+        "type": "pneu-supply",
+        "x": 420,
+        "y": 380,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {}
+      },
+      "c_qu9l17s": {
+        "id": "c_qu9l17s",
+        "type": "elec-button-no",
+        "x": 640,
+        "y": 120,
+        "rot": 0,
+        "flip": false,
+        "label": "S1",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_ixumy11": {
+        "id": "w_ixumy11",
+        "a": {
+          "kind": "port",
+          "comp": "c_01kmysd",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zbl9n4l",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 130,
+            "y": 170
+          },
+          {
+            "x": 100,
+            "y": 170
+          }
+        ]
+      },
+      "w_7wfrurb": {
+        "id": "w_7wfrurb",
+        "a": {
+          "kind": "port",
+          "comp": "c_01kmysd",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zbl9n4l",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 170,
+            "y": 170
+          },
+          {
+            "x": 180,
+            "y": 170
+          }
+        ]
+      },
+      "w_glfs8z8": {
+        "id": "w_glfs8z8",
+        "a": {
+          "kind": "port",
+          "comp": "c_txi5nm6",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_01kmysd",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      },
+      "w_irgrsg8": {
+        "id": "w_irgrsg8",
+        "a": {
+          "kind": "port",
+          "comp": "c_strbfde",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_8prdq1c",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 400,
+            "y": 170
+          },
+          {
+            "x": 370,
+            "y": 170
+          }
+        ]
+      },
+      "w_u0adxaz": {
+        "id": "w_u0adxaz",
+        "a": {
+          "kind": "port",
+          "comp": "c_strbfde",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_8prdq1c",
+          "port": "2"
+        },
+        "medium": "pneu",
+        "points": [
+          {
+            "x": 440,
+            "y": 170
+          },
+          {
+            "x": 450,
+            "y": 170
+          }
+        ]
+      },
+      "w_gy7fl5s": {
+        "id": "w_gy7fl5s",
+        "a": {
+          "kind": "port",
+          "comp": "c_hv2qpov",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_strbfde",
+          "port": "1"
+        },
+        "medium": "pneu",
+        "points": []
+      }
+    },
+    "junctions": {},
+    "grafcet": {
+      "steps": {
+        "X0": {
+          "id": "X0",
+          "n": 0,
+          "x": 200,
+          "y": 60,
+          "initial": true,
+          "actions": []
+        },
+        "X1": {
+          "id": "X1",
+          "n": 1,
+          "x": 200,
+          "y": 180,
+          "initial": false,
+          "actions": [
+            {
+              "kind": "N",
+              "target": "Y1"
+            }
+          ]
+        },
+        "X2": {
+          "id": "X2",
+          "n": 2,
+          "x": 200,
+          "y": 300,
+          "initial": false,
+          "actions": [
+            {
+              "kind": "N",
+              "target": "Y3"
+            }
+          ]
+        },
+        "X3": {
+          "id": "X3",
+          "n": 3,
+          "x": 200,
+          "y": 420,
+          "initial": false,
+          "actions": [
+            {
+              "kind": "N",
+              "target": "Y4"
+            }
+          ]
+        },
+        "X4": {
+          "id": "X4",
+          "n": 4,
+          "x": 200,
+          "y": 540,
+          "initial": false,
+          "actions": [
+            {
+              "kind": "N",
+              "target": "Y2"
+            }
+          ]
+        }
+      },
+      "transitions": {
+        "T1": {
+          "id": "T1",
+          "x": 200,
+          "y": 120,
+          "cond": "↑S1 · 1B1 · 2B1"
+        },
+        "T2": {
+          "id": "T2",
+          "x": 200,
+          "y": 240,
+          "cond": "1B2"
+        },
+        "T3": {
+          "id": "T3",
+          "x": 200,
+          "y": 360,
+          "cond": "2B2"
+        },
+        "T4": {
+          "id": "T4",
+          "x": 200,
+          "y": 480,
+          "cond": "2B1"
+        },
+        "T5": {
+          "id": "T5",
+          "x": 200,
+          "y": 600,
+          "cond": "1B1"
+        }
+      },
+      "links": {
+        "L1": {
+          "id": "L1",
+          "from": "X0",
+          "to": "T1"
+        },
+        "L2": {
+          "id": "L2",
+          "from": "T1",
+          "to": "X1"
+        },
+        "L3": {
+          "id": "L3",
+          "from": "X1",
+          "to": "T2"
+        },
+        "L4": {
+          "id": "L4",
+          "from": "T2",
+          "to": "X2"
+        },
+        "L5": {
+          "id": "L5",
+          "from": "X2",
+          "to": "T3"
+        },
+        "L6": {
+          "id": "L6",
+          "from": "T3",
+          "to": "X3"
+        },
+        "L7": {
+          "id": "L7",
+          "from": "X3",
+          "to": "T4"
+        },
+        "L8": {
+          "id": "L8",
+          "from": "T4",
+          "to": "X4"
+        },
+        "L9": {
+          "id": "L9",
+          "from": "X4",
+          "to": "T5"
+        },
+        "L10": {
+          "id": "L10",
+          "from": "T5",
+          "to": "X0"
+        }
+      }
+    }
+  }
+}

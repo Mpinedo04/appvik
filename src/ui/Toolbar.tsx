@@ -3,7 +3,7 @@ import { canvasApi } from '../editor/canvasApi';
 import { EXAMPLES } from '../examples';
 import { parseProject, useProject } from '../store/project';
 import { SPEEDS, useSim } from '../store/sim';
-import { useView, type Layout } from '../store/view';
+import { useView, type Layout, type Sheet } from '../store/view';
 import {
   deleteSelection,
   exportPng,
@@ -162,6 +162,7 @@ export function Toolbar() {
         />
       </div>
 
+      <SheetSwitch />
       <ViewSwitch />
 
       <div className="tb-group sim-group" aria-label="Simulación">
@@ -218,8 +219,37 @@ const LAYOUTS: { id: Layout; label: string; title: string }[] = [
   { id: '3d', label: '3D', title: 'Vista 3D (ver por dentro)' },
 ];
 
+const SHEETS: { id: Sheet; label: string; title: string }[] = [
+  { id: 'circuit', label: 'Esquema', title: 'Esquema neumático, hidráulico y eléctrico' },
+  { id: 'grafcet', label: 'GRAFCET', title: 'Programa GRAFCET (mando directo o del PLC)' },
+  { id: 'ladder', label: 'Contactos', title: 'Esquema de contactos (Ladder) del PLC' },
+];
+
+function SheetSwitch() {
+  const sheet = useView((s) => s.sheet);
+  return (
+    <div className="tb-group" aria-label="Hoja">
+      <div className="seg dark" role="group">
+        {SHEETS.map((s) => (
+          <button
+            key={s.id}
+            className={sheet === s.id ? 'on' : ''}
+            title={s.title}
+            onClick={() => useView.getState().setSheet(s.id)}
+            data-testid={`sheet-${s.id}`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ViewSwitch() {
   const layout = useView((s) => s.layout);
+  const sheet = useView((s) => s.sheet);
+  if (sheet !== 'circuit') return null;
   return (
     <div className="tb-group" aria-label="Vista">
       <div className="seg dark" role="group">

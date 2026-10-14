@@ -7,11 +7,14 @@ import {
   cycleABAB,
   cycleABBA,
   EXAMPLE_DEFS,
+  grafcetABBA,
   hydElectro,
   hydLoadHolding,
   hydPress,
   hydSpeed,
   latchStartStop,
+  plcGrafcetCounter,
+  plcLadder,
   timedReturn,
 } from './builders';
 
@@ -219,5 +222,68 @@ describe('ejemplos', () => {
     sim.userAction(comp(c, 'S2'), 'press');
     sim.advance(4);
     expect(sim.state(cyl).pos).toBeLessThan(0.05);
+  });
+
+  const click = (sim: Simulation, id: string) => {
+    sim.userAction(id, 'press');
+    sim.advance(0.1);
+    sim.userAction(id, 'release');
+  };
+
+  it('15 GRAFCET de mando directo: la secuencia es A+ B+ B− A−', () => {
+    const c = grafcetABBA();
+    expect(validate(c)).toEqual([]);
+    const sim = new Simulation(c);
+    const rec = new Recorder(c);
+    sim.recorder = rec;
+    sim.advance(0.3);
+    expect(sim.snapshot().control.grafcet?.active).toEqual(['X0']);
+    click(sim, comp(c, 'S1'));
+    sim.advance(4);
+    expect(phaseDiagram(rec.data()).steps.map((s) => s.moves.join(' '))).toEqual([
+      '1A+',
+      '2A+',
+      '2A−',
+      '1A−',
+    ]);
+    expect(sim.snapshot().control.grafcet?.active).toEqual(['X0']);
+  });
+
+  it('16 PLC con contactos: ciclo continuo con espera de 2 s y paro', () => {
+    const c = plcLadder();
+    const sim = new Simulation(c);
+    const cyl = comp(c, '1A');
+    sim.advance(0.2);
+    click(sim, comp(c, 'S1'));
+    sim.advance(1);
+    expect(sim.state(cyl).pos).toBeGreaterThan(0.99);
+    expect(sim.state(comp(c, 'H1')).on).toBe(true);
+    sim.advance(1.5); // todavía esperando (2 s)
+    expect(sim.state(cyl).pos).toBeGreaterThan(0.99);
+    sim.advance(1);
+    // Ha vuelto y está saliendo otra vez (ciclo continuo).
+    const rec: number[] = [];
+    for (let i = 0; i < 20; i++) {
+      sim.advance(0.05);
+      rec.push(sim.state(cyl).pos);
+    }
+    expect(Math.min(...rec)).toBeLessThan(0.5);
+    click(sim, comp(c, 'S0'));
+    sim.advance(4);
+    expect(sim.state(cyl).pos).toBeLessThan(0.01);
+    expect(sim.state(comp(c, 'H1')).on).toBe(false);
+  });
+
+  it('17 PLC con GRAFCET y contador: tres ciclos y para', () => {
+    const c = plcGrafcetCounter();
+    const sim = new Simulation(c);
+    const rec = new Recorder(c);
+    sim.recorder = rec;
+    sim.advance(0.3);
+    click(sim, comp(c, 'S1'));
+    sim.advance(6);
+    const moves = phaseDiagram(rec.data()).steps.map((s) => s.moves.join(' '));
+    expect(moves).toEqual(['1A+', '1A−', '1A+', '1A−', '1A+', '1A−']);
+    expect(sim.snapshot().control.grafcet?.active).toEqual(['X0']);
   });
 });

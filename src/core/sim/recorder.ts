@@ -79,7 +79,14 @@ export class Recorder {
       });
       this.values.push([]);
       // Nº de casillas: lo deduce la posición de reposo de la primera muestra (1 en 2 y 3 posiciones).
-      this.boxes.push(c.type.includes('-53-') ? 3 : 2);
+      this.boxes.push(c.type.includes('-53-') || c.type.includes('-43-') ? 3 : 2);
+    }
+    // Etapas del GRAFCET (activa = 1).
+    const steps = Object.values(circuit.grafcet?.steps ?? {}).sort((a, b) => a.n - b.n);
+    for (const st of steps) {
+      this.series.push({ id: `grafcet:${st.id}`, label: `X${st.n}`, kind: 'electric', unit: '' });
+      this.values.push([]);
+      this.boxes.push(2);
     }
   }
 

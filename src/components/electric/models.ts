@@ -195,6 +195,8 @@ function contactModel(spec: ContactSpec): ComponentModel<ContactState, ContactHa
       else s.actuated = spec.actuated!(ctx, s, h, p);
       if (h.no >= 0) ctx.setContact(h.no, s.actuated);
       if (h.nc >= 0) ctx.setContact(h.nc, !s.actuated);
+      // Los mandos manuales publican su etiqueta: el GRAFCET o el PLC pueden leer «S1».
+      if (manual && s.actuated) ctx.setSignal(h.label, 1);
     },
     onUserAction(s, _p, action) {
       if (spec.actuator === 'button') s.pressed = action === 'press';

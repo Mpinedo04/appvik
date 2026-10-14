@@ -76,7 +76,6 @@ export function Library() {
             </section>
           );
         })}
-        <p className="lib-note">La hidráulica llegará en la fase 5.</p>
       </div>
     </aside>
   );

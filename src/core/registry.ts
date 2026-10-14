@@ -3,7 +3,15 @@
  * Cada componente se define en su propia carpeta de `src/components` y se registra aquí;
  * su parte visual (símbolo 2D, modelo 3D) se registra aparte en `src/components/views.ts`.
  */
-import type { Dir, Medium, ParamValue, Params } from './model/types';
+import type { GrafcetState } from './control/grafcet';
+import type { LadderState } from './control/ladder';
+import type { Dir, Grafcet, Ladder, Medium, ParamValue, Params } from './model/types';
+
+/** Estado de los programas de mando para mostrarlo en los editores. */
+export interface ControlStates {
+  grafcet?: GrafcetState;
+  ladder?: LadderState;
+}
 
 export type CategoryId =
   | 'supply'
@@ -17,7 +25,8 @@ export type CategoryId =
   | 'relays'
   | 'electric-sensors'
   | 'hydraulic'
-  | 'hyd-valves';
+  | 'hyd-valves'
+  | 'control';
 
 export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'supply', name: 'Alimentación' },
@@ -32,6 +41,7 @@ export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'electric-sensors', name: 'Sensores eléctricos' },
   { id: 'hydraulic', name: 'Hidráulica: alimentación y actuadores' },
   { id: 'hyd-valves', name: 'Hidráulica: válvulas' },
+  { id: 'control', name: 'Autómata programable (PLC)' },
 ];
 
 export interface PortDef {
@@ -110,6 +120,9 @@ export interface BuildCtx {
   addLoad(a: number, b: number): number;
   /** Une un nodo al potencial de +24 V o de 0 V. */
   addRail(node: number, kind: '+24' | '0'): void;
+  /** Programa de mando del proyecto (GRAFCET o contactos), si lo hay. */
+  program(kind: 'grafcet'): Grafcet | undefined;
+  program(kind: 'ladder'): Ladder | undefined;
 }
 
 /** Contexto disponible en cada paso de integración. */
@@ -137,6 +150,10 @@ export interface StepCtx {
   setContact(contact: number, closed: boolean): void;
   /** ¿Recibió la carga 24 V en la última resolución de la red eléctrica? */
   energized(load: number): boolean;
+  /** Nivel de un nodo eléctrico: +1 = +24 V, −1 = 0 V, 0 = sin tensión. */
+  eLevel(node: number): number;
+  /** Publica el estado de un programa de mando para los editores. */
+  publishControl(state: ControlStates): void;
 }
 
 export type UserAction = 'press' | 'release';

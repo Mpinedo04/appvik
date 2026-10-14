@@ -20,6 +20,9 @@ import {
 import { ElectricNetwork } from './electric/network';
 import { FluidNetwork } from './fluid/network';
 import type { Recorder } from './recorder';
+import { GrafcetRuntime, type ControlIO } from '../control/grafcet';
+import { LadderRuntime } from '../control/ladder';
+import type { ControlStates } from '../registry';
 
 /** Copia del estado con un nivel de profundidad (los estados son planos o casi planos). */
 function cloneState(s: any): any {
@@ -30,6 +33,8 @@ function cloneState(s: any): any {
   }
   return out;
 }
+
+type BuildCtxProgram = import('../registry').BuildCtx['program'];
 
 /** Paso de integración por defecto [s]. */
 export const DEFAULT_DT = 1e-4;
@@ -57,6 +62,8 @@ export interface SimSnapshot {
   portFlow: Record<string, number>;
   /** Señales publicadas por los componentes (finales de carrera, etc.). */
   signals: Record<string, number>;
+  /** Estado del GRAFCET y del esquema de contactos (mando directo o PLC). */
+  control: ControlStates;
   /** Red eléctrica: nivel de cada cable y derivación (+1 = +24 V, −1 = 0 V, 0 = sin tensión). */
   elec: {
     connLevel: Record<string, number>;
@@ -89,6 +96,10 @@ export class Simulation {
   /** Señales legibles en este paso (las publicadas en el paso anterior). */
   private signals = new Map<string, number>();
   private nextSignals = new Map<string, number>();
+  /** Programas que mandan directamente sobre las señales (sin PLC). */
+  private grafcet: GrafcetRuntime | null = null;
+  private ladder: LadderRuntime | null = null;
+  private controlStates: ControlStates = {};
 
   constructor(circuit: Circuit, opts: { dt?: number } = {}) {
     this.dt = opts.dt ?? DEFAULT_DT;
@@ -139,6 +150,8 @@ export class Simulation {
           addContact: (a, b) => enet.addContact(a, b),
           addLoad: (a, b) => enet.addLoad(a, b),
           addRail: (n, kind) => enet.addRail(n, kind),
+          program: ((kind: 'grafcet' | 'ladder') =>
+            kind === 'grafcet' ? circuit.grafcet : circuit.ladder) as BuildCtxProgram,
         },
         params,
       );
@@ -168,7 +181,18 @@ export class Simulation {
       },
       setContact: (i, closed) => enet.setContact(i, closed),
       energized: (i) => enet.energized[i] ?? false,
+      eLevel: (n) => enet.level[n] ?? 0,
+      publishControl: (st) => Object.assign(this.controlStates, st),
     };
+
+    // Mando directo (como en FluidSIM): el GRAFCET y los contactos leen y escriben las señales
+    // del circuito, salvo que un PLC los use como programa.
+    const plcUses = (kind: string) =>
+      this.instances.some((it) => it.inst.type === 'ctrl-plc' && it.params.program === kind);
+    if (circuit.grafcet && Object.keys(circuit.grafcet.steps).length && !plcUses('grafcet'))
+      this.grafcet = new GrafcetRuntime(circuit.grafcet);
+    if (circuit.ladder?.rungs.length && !plcUses('ladder'))
+      this.ladder = new LadderRuntime(circuit.ladder);
 
     // Paso de inicialización (dt = 0) para fijar volúmenes y aperturas iniciales.
     net.beginStep();
@@ -190,13 +214,28 @@ export class Simulation {
     (this.ctx as { t: number }).t = this.t;
     net.beginStep();
     for (const it of this.instances) it.model.update(this.ctx, it.state, it.handles, it.params, dt);
+    this.runControl(dt);
     // Las señales y la red eléctrica se leen en el paso siguiente (0,1 ms después): así el orden
     // de los componentes no importa y las autorretenciones se mantienen sin bucles.
     this.swapSignals();
     this.enet.solve();
     net.integrate(dt);
     this.t += dt;
-    this.recorder?.maybeSample(this.t, (id) => this.byId.get(id)?.state);
+    this.recorder?.maybeSample(this.t, (id) =>
+      id.startsWith('grafcet:')
+        ? { on: !!this.controlStates.grafcet?.active.includes(id.slice(8)) }
+        : this.byId.get(id)?.state,
+    );
+  }
+
+  private runControl(dt: number) {
+    if (!this.grafcet && !this.ladder) return;
+    const io: ControlIO = {
+      read: (n) => this.ctx.signal(n) > 0,
+      write: (n) => this.ctx.setSignal(n, 1),
+    };
+    if (this.grafcet) this.controlStates.grafcet = this.grafcet.cycle(this.t, io);
+    if (this.ladder) this.controlStates.ladder = this.ladder.cycle(dt, io);
   }
 
   /** Avanza `seconds` de tiempo simulado. */
@@ -253,6 +292,13 @@ export class Simulation {
       orificeFlow: this.net.orifices.map((o) => o.mdot),
       portFlow: this.portFlows(),
       signals: Object.fromEntries(this.signals),
+      control: {
+        grafcet: this.controlStates.grafcet && {
+          ...this.controlStates.grafcet,
+          active: [...this.controlStates.grafcet.active],
+        },
+        ladder: this.controlStates.ladder && { ...this.controlStates.ladder },
+      },
       elec: {
         connLevel: levels(this.enets.connNode),
         junctionLevel: levels(this.enets.junctionNode),

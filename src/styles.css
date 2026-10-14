@@ -686,3 +686,135 @@ select {
   font-size: 11px;
   line-height: 1.35;
 }
+
+/* ---------- Editores de GRAFCET y contactos ---------- */
+.ctrl-editor {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #fbfcfd;
+  min-height: 0;
+}
+
+.ctrl-editor.empty {
+  grid-template-rows: 1fr;
+  place-items: center;
+}
+
+.ctrl-empty {
+  max-width: 460px;
+  padding: 24px;
+  line-height: 1.5;
+}
+
+.ctrl-empty h2 {
+  margin: 0 0 8px;
+}
+
+.ctrl-tools {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+
+.ctrl-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+.ctrl-scroll {
+  overflow: auto;
+  min-height: 0;
+  padding: 8px;
+}
+
+.gf-el {
+  cursor: pointer;
+}
+
+.rung {
+  border: 1px solid transparent;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #fff;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.rung.sel {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.btn.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 56px 28px;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.action-row input,
+.action-row select {
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.row-btns {
+  display: flex;
+  gap: 6px;
+  margin: 6px 0 12px;
+}
+
+.field.chk {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.props-body h3 {
+  font-size: 13px;
+  margin: 14px 0 6px;
+}
+
+.props-body .error {
+  color: #dc2626;
+  font-size: 12px;
+  margin: -4px 0 8px;
+}
+
+.props-body code {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 3px;
+}
+
+.desc.signals {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  word-break: break-word;
+}

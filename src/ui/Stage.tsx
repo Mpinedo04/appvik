@@ -1,5 +1,7 @@
 import { lazy, Suspense, useRef } from 'react';
 import { Canvas } from '../editor/Canvas';
+import { GrafcetEditor } from '../editor/grafcet/GrafcetEditor';
+import { LadderEditor } from '../editor/ladder/LadderEditor';
 import { useView } from '../store/view';
 
 // La vista 3D (Three.js) se descarga sólo cuando se abre por primera vez.
@@ -9,6 +11,7 @@ const Scene3D = lazy(() => import('../view3d/Scene3D'));
 export function Stage() {
   const layout = useView((s) => s.layout);
   const split = useView((s) => s.split);
+  const sheet = useView((s) => s.sheet);
   const ref = useRef<HTMLDivElement>(null);
 
   const startDrag = (e: React.PointerEvent) => {
@@ -26,6 +29,19 @@ export function Stage() {
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   };
+
+  if (sheet === 'grafcet')
+    return (
+      <div className="stage">
+        <GrafcetEditor />
+      </div>
+    );
+  if (sheet === 'ladder')
+    return (
+      <div className="stage">
+        <LadderEditor />
+      </div>
+    );
 
   return (
     <div

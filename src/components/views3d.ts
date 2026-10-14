@@ -3,6 +3,7 @@
  * abrir la vista 3D (el editor 2D arranca sin él).
  */
 import { createElement, type FC } from 'react';
+import { Plc3D } from './control/Model3D';
 import {
   Accumulator3D,
   HydCylinder3D,
@@ -91,6 +92,7 @@ const models = new Map<string, FC<Model3DProps>>([
   ['pneu-gauge', Gauge3D],
   ['pneu-flowmeter', Flowmeter3D],
   ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, wayValve3D(cfg)] as [string, FC<Model3DProps>]),
+  ['ctrl-plc', Plc3D],
   // Hidráulicos
   ['hyd-power-unit', PowerUnit3D],
   ['hyd-pump', Pump3D],

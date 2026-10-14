@@ -4,7 +4,7 @@
  */
 import { CircuitBuilder } from '../core/model/builder';
 import { getModel, resolveParams } from '../core/registry';
-import type { Circuit } from '../core/model/types';
+import type { Circuit, Grafcet, GrafcetAction, LadderRung } from '../core/model/types';
 
 export interface ExampleDef {
   file: string;
@@ -427,6 +427,207 @@ export function hydElectro() {
   return b.renumber().circuit;
 }
 
+/* ───────────── GRAFCET y PLC ───────────── */
+
+/** GRAFCET por código: etapas, transiciones y enlaces con ids legibles. */
+class GrafcetBuilder {
+  readonly g: Grafcet = { steps: {}, transitions: {}, links: {} };
+  private k = 0;
+  step(n: number, x: number, y: number, actions: GrafcetAction[] = [], initial = false) {
+    const id = `X${n}`;
+    this.g.steps[id] = { id, n, x, y, initial, actions };
+    return id;
+  }
+  trans(x: number, y: number, cond: string, from: string[], to: string[]) {
+    const id = `T${++this.k}`;
+    this.g.transitions[id] = { id, x, y, cond };
+    for (const f of from) this.link(f, id);
+    for (const t of to) this.link(id, t);
+    return id;
+  }
+  private link(from: string, to: string) {
+    const id = `L${Object.keys(this.g.links).length + 1}`;
+    this.g.links[id] = { id, from, to };
+  }
+}
+
+/** Secuencia lineal de etapas que vuelve a la etapa 0. */
+function linearGrafcet(steps: GrafcetAction[][], conds: string[]) {
+  const gb = new GrafcetBuilder();
+  const ids = steps.map((a, i) => gb.step(i, 200, 60 + i * 120, a, i === 0));
+  ids.forEach((id, i) => gb.trans(200, 120 + i * 120, conds[i], [id], [ids[(i + 1) % ids.length]]));
+  return gb.g;
+}
+
+/**
+ * PLC con sus entradas (contactos alimentados desde +24 V, uno por entrada) y sus salidas
+ * (cargas que vuelven a 0 V), todo cableado.
+ */
+function plcStage(
+  b: CircuitBuilder,
+  x: number,
+  y: number,
+  program: 'ladder' | 'grafcet',
+  inputs: PathItem[],
+  outputs: PathItem[],
+) {
+  const plc = b.add('ctrl-plc', x, y, { program });
+  b.connect(b.add('elec-24v', x - 160, y - 160), '1', plc, 'L+');
+  b.connect(plc, 'M', b.add('elec-0v', x - 160, y + 160), '1');
+  inputs.forEach((it, i) => {
+    const cx = x - 60 + i * 70;
+    const c = b.add(it.type, cx, y - 120, it.params ?? {}, { label: it.label });
+    const [top, bottom] = terminals(b, c);
+    b.connect(b.add('elec-24v', cx, y - 200), '1', c, top);
+    b.connect(c, bottom, plc, `I0.${i}`);
+  });
+  outputs.forEach((it, i) => {
+    const cx = x - 60 + i * 70;
+    const c = b.add(it.type, cx, y + 120, it.params ?? {}, { label: it.label });
+    const [top, bottom] = terminals(b, c);
+    b.connect(plc, `Q0.${i}`, c, top);
+    b.connect(c, bottom, b.add('elec-0v', cx, y + 200), '1');
+  });
+  return plc;
+}
+
+/**
+ * 15 · GRAFCET de mando directo del ciclo A+ B+ B− A− (como el 07, pero sin rodillos
+ * neumáticos): las receptividades leen las marcas de los cilindros y el pulsador S1, y las
+ * acciones activan las bobinas de las electroválvulas.
+ */
+export function grafcetABBA() {
+  const b = new CircuitBuilder();
+  powerStage(
+    b,
+    150,
+    'pneu-valve-52-sol2',
+    { marks: '1B1@0; 1B2@100' },
+    { solLeft: 'Y1', solRight: 'Y2', qn: 60 },
+  );
+  powerStage(
+    b,
+    420,
+    'pneu-valve-52-sol2',
+    { marks: '2B1@0; 2B2@100' },
+    { solLeft: 'Y3', solRight: 'Y4', qn: 60 },
+  );
+  b.add('elec-button-no', 640, 120, {}, { label: 'S1' });
+  b.circuit.grafcet = linearGrafcet(
+    [
+      [],
+      [{ kind: 'N', target: 'Y1' }],
+      [{ kind: 'N', target: 'Y3' }],
+      [{ kind: 'N', target: 'Y4' }],
+      [{ kind: 'N', target: 'Y2' }],
+    ],
+    ['↑S1 · 1B1 · 2B1', '1B2', '2B2', '2B1', '1B1'],
+  );
+  return b.renumber().circuit;
+}
+
+const rung = (id: string, cond: string, coil: LadderRung['coil'], comment: string): LadderRung => ({
+  id,
+  cond,
+  coil,
+  comment,
+});
+
+/**
+ * 16 · PLC con esquema de contactos: marcha (S1) / paro (S0, NC) con autorretención en M0.0;
+ * el cilindro sale (Q0.0 → Y1), espera 2 s en el final (1B2 → TON T1), vuelve hasta 1B1 (la
+ * marca M0.1 recuerda que está volviendo) y repite mientras esté en marcha. H1: «en marcha».
+ */
+export function plcLadder() {
+  const b = new CircuitBuilder();
+  powerStage(b, 180, 'pneu-valve-52-sol', { marks: '1B1@0; 1B2@100' }, { solLeft: 'Y1' });
+  plcStage(
+    b,
+    620,
+    300,
+    'ladder',
+    [
+      { type: 'elec-button-no', label: 'S1' },
+      { type: 'elec-button-nc', label: 'S0' },
+      { type: 'elec-proximity', label: '1B2' },
+      { type: 'elec-proximity', label: '1B1' },
+    ],
+    [
+      { type: 'elec-solenoid', label: 'Y1' },
+      { type: 'elec-lamp', label: 'H1', params: { color: 'green' } },
+    ],
+  );
+  b.circuit.ladder = {
+    rungs: [
+      rung(
+        'R1',
+        '(I0.0 + M0.0) · I0.1',
+        { kind: 'coil', target: 'M0.0' },
+        'Marcha / paro con autorretención',
+      ),
+      rung(
+        'R2',
+        'I0.2',
+        { kind: 'TON', target: 'T1', preset: 2 },
+        'Espera de 2 s en el final de carrera (1B2)',
+      ),
+      rung(
+        'R3',
+        'T1',
+        { kind: 'set', target: 'M0.1' },
+        'Terminada la espera: memoriza «volviendo»',
+      ),
+      rung('R4', 'I0.3', { kind: 'reset', target: 'M0.1' }, 'Al llegar atrás (1B1) se borra'),
+      rung('R5', 'M0.0 · !M0.1', { kind: 'coil', target: 'Q0.0' }, 'Salida del cilindro (Y1)'),
+      rung('R6', 'M0.0', { kind: 'coil', target: 'Q0.1' }, 'Piloto «en marcha» (H1)'),
+    ],
+  };
+  return b.renumber().circuit;
+}
+
+/**
+ * 17 · PLC con GRAFCET y contador: al pulsar S1 el cilindro hace 3 ciclos A+ A− y se para.
+ * La etapa 2 cuenta los ciclos (CU C1) y la divergencia en O elige entre repetir o terminar.
+ */
+export function plcGrafcetCounter() {
+  const b = new CircuitBuilder();
+  powerStage(
+    b,
+    180,
+    'pneu-valve-52-sol2',
+    { marks: '1B1@0; 1B2@100' },
+    { solLeft: 'Y1', solRight: 'Y2' },
+  );
+  plcStage(
+    b,
+    620,
+    300,
+    'grafcet',
+    [
+      { type: 'elec-button-no', label: 'S1' },
+      { type: 'elec-proximity', label: '1B1' },
+      { type: 'elec-proximity', label: '1B2' },
+    ],
+    [
+      { type: 'elec-solenoid', label: 'Y1' },
+      { type: 'elec-solenoid', label: 'Y2' },
+    ],
+  );
+  const gb = new GrafcetBuilder();
+  const x0 = gb.step(0, 200, 60, [{ kind: 'CR', target: 'C1' }], true);
+  const x1 = gb.step(1, 200, 180, [{ kind: 'N', target: 'Q0.0' }]);
+  const x2 = gb.step(2, 200, 300, [
+    { kind: 'N', target: 'Q0.1' },
+    { kind: 'CU', target: 'C1', time: 3 },
+  ]);
+  gb.trans(200, 120, '↑I0.0 · I0.1', [x0], [x1]);
+  gb.trans(200, 240, 'I0.2', [x1], [x2]);
+  gb.trans(140, 360, 'I0.1 · !C1', [x2], [x1]);
+  gb.trans(260, 360, 'I0.1 · C1', [x2], [x0]);
+  b.circuit.grafcet = gb.g;
+  return b.renumber().circuit;
+}
+
 /** 99 · Prueba de rendimiento: 12 mandos directos (48 componentes). */
 function stress() {
   const b = new CircuitBuilder();
@@ -544,6 +745,27 @@ export const EXAMPLE_DEFS: ExampleDef[] = [
     description:
       '4/3 de centro cerrado con electroimanes Y1/Y2. Mantén S1 para sacar el cilindro (se para solo en 1S2) y S2 para meterlo (se para en 1S1).',
     build: hydElectro,
+  },
+  {
+    file: '15-grafcet-ciclo-AB-BA.json',
+    name: 'GRAFCET: ciclo A+ B+ B− A−',
+    description:
+      'El mismo ciclo del ejemplo 07, mandado por un GRAFCET (pestaña GRAFCET): las transiciones leen las marcas de los cilindros y las etapas activan las bobinas. Pulsa S1 y mira cómo avanza la etapa activa.',
+    build: grafcetABBA,
+  },
+  {
+    file: '16-plc-contactos.json',
+    name: 'PLC con esquema de contactos',
+    description:
+      'Marcha/paro con autorretención, cilindro en ciclo continuo con 2 s de espera en el final (temporizador TON). Mira el programa en la pestaña Contactos.',
+    build: plcLadder,
+  },
+  {
+    file: '17-plc-grafcet-contador.json',
+    name: 'PLC con GRAFCET y contador',
+    description:
+      'Al pulsar S1 el cilindro hace 3 ciclos y se para: el GRAFCET del PLC cuenta los ciclos y una divergencia en O decide si repetir o terminar.',
+    build: plcGrafcetCounter,
   },
   {
     file: '99-prueba-rendimiento.json',

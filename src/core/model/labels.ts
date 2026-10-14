@@ -23,7 +23,7 @@ const SUPPLY_TYPES = new Set([
 const HYD_ACTUATORS = new Set(['hyd-cyl-double', 'hyd-cyl-single', 'hyd-motor']);
 const INSTRUMENT_CATS = new Set(['instruments']);
 /** Los componentes eléctricos llevan como etiqueta su enlace (K1, Y1, 1B1…): no se renumeran. */
-const ELECTRIC_CATS = new Set(['electric', 'relays', 'electric-sensors']);
+const ELECTRIC_CATS = new Set(['electric', 'relays', 'electric-sensors', 'control']);
 
 function isRollerValve(circuit: Circuit, id: string) {
   const c = circuit.components[id];

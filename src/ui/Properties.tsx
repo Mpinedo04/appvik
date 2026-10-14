@@ -7,6 +7,8 @@ import { TUBE_INNER_DIAMETER_MM, TUBE_MM_PER_UNIT } from '../core/sim/compiler';
 import { useProject } from '../store/project';
 import { currentSimulation, useSim } from '../store/sim';
 import { RENDER_LABELS, useView, type Render3D } from '../store/view';
+import { GrafcetProps } from '../editor/grafcet/GrafcetProps';
+import { LadderProps } from '../editor/ladder/LadderProps';
 
 function NumberField({
   def,
@@ -102,6 +104,13 @@ function Explain({ compId }: { compId: string }) {
 }
 
 export function Properties() {
+  const sheet = useView((s) => s.sheet);
+  if (sheet === 'grafcet') return <GrafcetProps />;
+  if (sheet === 'ladder') return <LadderProps />;
+  return <CircuitProperties />;
+}
+
+function CircuitProperties() {
   const circuit = useProject((s) => s.circuit);
   const selection = useProject((s) => s.selection);
   const name = useProject((s) => s.name);

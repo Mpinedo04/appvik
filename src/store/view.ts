@@ -5,6 +5,8 @@ export type Layout = '2d' | '3d' | 'split';
 export type Render3D = 'normal' | 'xray' | 'cut';
 /** Cómo se dibujan las válvulas de vías en 3D: corredera real o cámaras del símbolo ISO. */
 export type ValveStyle = 'real' | 'iso';
+/** Hoja visible: el esquema (2D/3D), el GRAFCET o el esquema de contactos. */
+export type Sheet = 'circuit' | 'grafcet' | 'ladder';
 
 export const RENDER_LABELS: Record<Render3D, string> = {
   normal: 'Normal',
@@ -26,6 +28,9 @@ interface ViewStore {
   /** Panel de diagramas abierto. */
   diagrams: boolean;
   valveStyle: ValveStyle;
+  sheet: Sheet;
+  /** Elemento seleccionado en el editor de GRAFCET (etapa/transición) o de contactos. */
+  ctrlSel: string | null;
   setLayout(l: Layout): void;
   setRender(r: Render3D): void;
   setCompRender(id: string, r: Render3D | null): void;
@@ -34,6 +39,8 @@ interface ViewStore {
   setLabels(v: boolean): void;
   setDiagrams(v: boolean): void;
   setValveStyle(v: ValveStyle): void;
+  setSheet(s: Sheet): void;
+  setCtrlSel(id: string | null): void;
 }
 
 const KEY = 'fluidlab3d.view';
@@ -65,6 +72,8 @@ export const useView = create<ViewStore>((set, get) => {
     labels: saved.labels ?? true,
     diagrams: false,
     valveStyle: saved.valveStyle ?? 'real',
+    sheet: 'circuit',
+    ctrlSel: null,
     setLayout(layout) {
       set({ layout });
       persist();
@@ -96,6 +105,12 @@ export const useView = create<ViewStore>((set, get) => {
     setValveStyle(valveStyle) {
       set({ valveStyle });
       persist();
+    },
+    setSheet(sheet) {
+      set({ sheet, ctrlSel: null });
+    },
+    setCtrlSel(ctrlSel) {
+      set({ ctrlSel });
     },
   };
 });
