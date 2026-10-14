@@ -2,7 +2,7 @@ import { num } from '../../../core/registry';
 import { INK, PAPER, SW, pressureColor, type SymbolProps } from '../../symbols';
 
 /** ISO 1219: manómetro (círculo con aguja). En simulación la aguja indica la presión. */
-export function GaugeSymbol({ params, state, maxBar }: SymbolProps) {
+export function GaugeSymbol({ params, state, maxBar, medium }: SymbolProps) {
   const range = num(params, 'range');
   const bar: number = state?.bar ?? 0;
   // Escala de -135° (0 bar) a +135° (fondo de escala).
@@ -34,12 +34,12 @@ export function GaugeSymbol({ params, state, maxBar }: SymbolProps) {
         y1={-ny * 0.3}
         x2={nx}
         y2={ny}
-        stroke={state ? pressureColor(bar, maxBar) : INK}
+        stroke={state ? pressureColor(bar, maxBar, medium) : INK}
         strokeWidth={SW}
       />
       <polygon
         points={`${nx},${ny} ${nx - Math.cos(rad) * 5 - Math.sin(rad) * 2.5},${ny - Math.sin(rad) * 5 + Math.cos(rad) * 2.5} ${nx - Math.cos(rad) * 5 + Math.sin(rad) * 2.5},${ny - Math.sin(rad) * 5 - Math.cos(rad) * 2.5}`}
-        fill={state ? pressureColor(bar, maxBar) : INK}
+        fill={state ? pressureColor(bar, maxBar, medium) : INK}
       />
       <circle cx={0} cy={0} r={1.6} fill={INK} />
       {state && (

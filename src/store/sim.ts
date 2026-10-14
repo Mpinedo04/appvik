@@ -17,6 +17,8 @@ interface SimStore {
   snapshot: SimSnapshot | null;
   /** Presión máxima de la instalación (escala de colores). */
   maxBar: number;
+  /** Ídem para la parte hidráulica (mayor tarado de grupos y limitadoras). */
+  maxHydBar: number;
   error: string | null;
   start(): void;
   pause(): void;
@@ -65,7 +67,14 @@ export const useSim = create<SimStore>((set, get) => {
         1,
         ...supplies.map((c) => (c.params.pressure === undefined ? 6 : num(c.params, 'pressure'))),
       );
-      set({ maxBar, error: null });
+      const reliefs = Object.values(circuit.components).filter((c) =>
+        ['hyd-power-unit', 'hyd-relief'].includes(c.type),
+      );
+      const maxHydBar = Math.max(
+        10,
+        ...reliefs.map((c) => (c.params.pset === undefined ? 60 : num(c.params, 'pset'))),
+      );
+      set({ maxBar, maxHydBar, error: null });
       return true;
     } catch (e) {
       set({ error: (e as Error).message });
@@ -78,6 +87,7 @@ export const useSim = create<SimStore>((set, get) => {
     speed: 1,
     snapshot: null,
     maxBar: 6,
+    maxHydBar: 100,
     error: null,
     start() {
       if (get().status === 'running' || !ensureSim()) return;
@@ -120,3 +130,9 @@ export const useSim = create<SimStore>((set, get) => {
     },
   };
 });
+
+/** Escala de presión de los colores según el fluido. */
+export const maxBarFor = (medium: 'pneu' | 'hyd' = 'pneu') => {
+  const s = useSim.getState();
+  return medium === 'hyd' ? s.maxHydBar : s.maxBar;
+};

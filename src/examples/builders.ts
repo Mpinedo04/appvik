@@ -308,6 +308,125 @@ export function timedReturn() {
   return b.renumber().circuit;
 }
 
+/* ───────────── Hidráulica ───────────── */
+
+/**
+ * Grupo hidráulico + 4/3 + cilindro, con el retorno de la válvula al grupo y, opcionalmente,
+ * una limitadora externa y un manómetro en la línea P.
+ */
+function hydStage(
+  b: CircuitBuilder,
+  valveType: string,
+  valveParams: Record<string, string | number | boolean>,
+  cylParams: Record<string, string | number>,
+  opts: { relief?: number; gauge?: boolean } = {},
+) {
+  const cyl = b.add('hyd-cyl-double', 300, 100, cylParams);
+  const valve = b.add(valveType, 240, 240, valveParams);
+  const pu = b.add('hyd-power-unit', 260, 420, { flow: 8, pset: 100 });
+  const feed = b.connect(pu, 'P', valve, 'P');
+  b.connect(valve, 'T', pu, 'T');
+  if (opts.relief) {
+    const relief = b.add('hyd-relief', 190, 330, { pset: opts.relief }, { flip: true });
+    b.tee(feed, 250, 330, relief, 'P');
+    b.connect(relief, 'T', b.add('hyd-tank', 190, 400), '1');
+  }
+  if (opts.gauge) {
+    const gauge = b.add('hyd-gauge', 330, 290, { range: 100 });
+    b.teeAt(250, 350, gauge, '1');
+  }
+  return { cyl, valve, pu, feed };
+}
+
+/**
+ * 11 · Prensa hidráulica: 4/3 en tándem con palancas y limitadora tarada a 50 bar. Al llegar
+ * el cilindro al tope, la presión sube hasta el tarado y la limitadora devuelve la bomba al
+ * depósito; en el centro, la bomba descarga sin presión.
+ */
+export function hydPress() {
+  const b = new CircuitBuilder();
+  const { cyl, valve } = hydStage(
+    b,
+    'hyd-valve-43-tandem',
+    { actLeft: 'lever', actRight: 'lever' },
+    { mass: 20 },
+    { relief: 50, gauge: true },
+  );
+  b.connect(valve, 'A', cyl, 'A');
+  b.connect(valve, 'B', cyl, 'B');
+  return b.renumber().circuit;
+}
+
+/**
+ * 12 · Regulación de velocidad con reguladora compensada en la entrada (A): la velocidad de
+ * salida es la misma con cualquier carga (cámbiala en las propiedades del cilindro).
+ */
+export function hydSpeed() {
+  const b = new CircuitBuilder();
+  const { cyl, valve } = hydStage(
+    b,
+    'hyd-valve-43-closed',
+    { actLeft: 'lever', actRight: 'lever' },
+    { mass: 20, load: 2000 },
+    { relief: 80, gauge: true },
+  );
+  const fc = b.add('hyd-flow-control', 200, 170, { qset: 3 });
+  b.connect(valve, 'A', fc, '1');
+  b.connect(fc, '2', cyl, 'A');
+  b.connect(valve, 'B', cyl, 'B');
+  return b.renumber().circuit;
+}
+
+/**
+ * 13 · Carga sostenida: con la 4/3 de centro flotante el cilindro bajaría por su carga, pero el
+ * antirretorno desbloqueable lo sostiene; sólo baja cuando llega presión por B (pilotaje X).
+ */
+export function hydLoadHolding() {
+  const b = new CircuitBuilder();
+  const { cyl, valve } = hydStage(
+    b,
+    'hyd-valve-43-float',
+    { actLeft: 'lever', actRight: 'lever' },
+    { mass: 20, load: 2000 },
+    { relief: 80 },
+  );
+  const pc = b.add('hyd-pilot-check', 200, 170);
+  b.connect(valve, 'A', pc, '1');
+  b.connect(pc, '2', cyl, 'A');
+  const lineB = b.connect(valve, 'B', cyl, 'B');
+  b.teeAt(270, 180, pc, 'X');
+  void lineB;
+  return b.renumber().circuit;
+}
+
+/**
+ * 14 · Electrohidráulica: 4/3 de centro cerrado con electroimanes. Mientras se pulsa S1 el
+ * cilindro sale (Y1) hasta el final de carrera 1S2; con S2 entra (Y2) hasta 1S1.
+ */
+export function hydElectro() {
+  const b = new CircuitBuilder();
+  const { cyl, valve } = hydStage(
+    b,
+    'hyd-valve-43-closed',
+    { actLeft: 'solenoid', actRight: 'solenoid', solLeft: 'Y1', solRight: 'Y2' },
+    { mass: 20, marks: '1S1@0; 1S2@200' },
+    { relief: 60 },
+  );
+  b.connect(valve, 'A', cyl, 'A');
+  b.connect(valve, 'B', cyl, 'B');
+  currentPath(b, 560, 20, [
+    { type: 'elec-button-no', label: 'S1' },
+    { type: 'elec-limit', label: '1S2', params: { kind: 'nc' } },
+    { type: 'elec-solenoid', label: 'Y1' },
+  ]);
+  currentPath(b, 660, 20, [
+    { type: 'elec-button-no', label: 'S2' },
+    { type: 'elec-limit', label: '1S1', params: { kind: 'nc' } },
+    { type: 'elec-solenoid', label: 'Y2' },
+  ]);
+  return b.renumber().circuit;
+}
+
 /** 99 · Prueba de rendimiento: 12 mandos directos (48 componentes). */
 function stress() {
   const b = new CircuitBuilder();
@@ -397,6 +516,34 @@ export const EXAMPLE_DEFS: ExampleDef[] = [
     description:
       'Pulsa S1: el cilindro sale y, al llegar al final (1B2), el relé temporizado KT1 espera 2 s antes de dar la orden de retorno (Y2).',
     build: timedReturn,
+  },
+  {
+    file: '11-prensa-hidraulica.json',
+    name: 'Prensa hidráulica',
+    description:
+      'Grupo hidráulico, 4/3 en tándem con palancas y limitadora a 50 bar. Mueve la palanca izquierda: el cilindro sale y, al llegar al tope, la presión sube hasta 50 bar y el aceite vuelve por la limitadora. En el centro la bomba descarga sin presión.',
+    build: hydPress,
+  },
+  {
+    file: '12-regulacion-velocidad-hidraulica.json',
+    name: 'Regulación de velocidad hidráulica',
+    description:
+      'Reguladora de caudal compensada a la entrada del cilindro: sale a la misma velocidad (3 l/min) tenga la carga que tenga. Prueba a cambiar la carga del cilindro.',
+    build: hydSpeed,
+  },
+  {
+    file: '13-carga-sostenida.json',
+    name: 'Carga sostenida con antirretorno desbloqueable',
+    description:
+      'El cilindro soporta una carga de 2000 N. Con la válvula en el centro (flotante) no baja porque el antirretorno desbloqueable lo sujeta; baja sólo al mandar presión por B.',
+    build: hydLoadHolding,
+  },
+  {
+    file: '14-electrohidraulica.json',
+    name: 'Electrohidráulica',
+    description:
+      '4/3 de centro cerrado con electroimanes Y1/Y2. Mantén S1 para sacar el cilindro (se para solo en 1S2) y S2 para meterlo (se para en 1S1).',
+    build: hydElectro,
   },
   {
     file: '99-prueba-rendimiento.json',

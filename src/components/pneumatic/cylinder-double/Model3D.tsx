@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import type * as THREE from 'three';
 import { num } from '../../../core/registry';
-import { useSim } from '../../../store/sim';
+import { maxBarFor } from '../../../store/sim';
 import { setPressureColor } from '../../../view3d/colors';
 import { box, cylX, oringX, pipeX } from '../../../view3d/geom';
 import { AXIS_Y } from '../../../view3d/layout';
@@ -32,7 +32,9 @@ export function CylinderRod3D({
   mode,
   params,
   single,
-}: Model3DProps & { single?: boolean }) {
+  noSpring,
+  medium,
+}: Model3DProps & { single?: boolean; noSpring?: boolean }) {
   const piston = useRef<THREE.Group>(null);
   const capCh = useRef<THREE.Mesh>(null);
   const rodCh = useRef<THREE.Mesh>(null);
@@ -48,7 +50,7 @@ export function CylinderRod3D({
     const pos = s?.pos ?? startPos;
     const px = P_MIN + (P_MAX - P_MIN) * pos;
     if (piston.current) piston.current.position.x = px;
-    const maxBar = useSim.getState().maxBar;
+    const maxBar = maxBarFor(medium);
     const inner0 = X0 + 4;
     const inner1 = X1 - 4;
     const capLen = Math.max(0.01, px - PISTON_W / 2 - inner0);
@@ -57,13 +59,13 @@ export function CylinderRod3D({
       capCh.current.scale.x = capLen;
       capCh.current.position.x = inner0 + capLen / 2;
       capCh.current.visible = !!s && mode !== 'normal';
-      setPressureColor(capMat.color, s?.pCap ?? 0, maxBar);
+      setPressureColor(capMat.color, s?.pCap ?? 0, maxBar, medium);
     }
     if (rodCh.current) {
       rodCh.current.scale.x = rodLen;
       rodCh.current.position.x = inner1 - rodLen / 2;
       rodCh.current.visible = !single && !!s && mode !== 'normal';
-      setPressureColor(rodMat.color, s?.pRod ?? 0, maxBar);
+      setPressureColor(rodMat.color, s?.pRod ?? 0, maxBar, medium);
     }
     setSpring(spring.current, px + PISTON_W / 2, rodLen);
     for (const [label, mat] of camMats.current) {
@@ -118,7 +120,7 @@ export function CylinderRod3D({
         material={rodMat}
         position={[0, AXIS_Y, 0]}
       />
-      {single && <Spring ref={spring} x0={0} length={1} radius={7} />}
+      {single && !noSpring && <Spring ref={spring} x0={0} length={1} radius={7} />}
 
       <group ref={piston} position={[P_MIN, 0, 0]}>
         <Part geom={cylX(R_IN - 0.3, PISTON_W)} mat="aluminium" position={[0, AXIS_Y, 0]} />

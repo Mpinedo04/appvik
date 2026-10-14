@@ -1,0 +1,241 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Prensa hidráulica",
+  "description": "Grupo hidráulico, 4/3 en tándem con palancas y limitadora a 50 bar. Mueve la palanca izquierda: el cilindro sale y, al llegar al tope, la presión sube hasta 50 bar y el aceite vuelve por la limitadora. En el centro la bomba descarga sin presión.",
+  "circuit": {
+    "components": {
+      "c_jroqmnz": {
+        "id": "c_jroqmnz",
+        "type": "hyd-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "mass": 20
+        }
+      },
+      "c_sguye3d": {
+        "id": "c_sguye3d",
+        "type": "hyd-valve-43-tandem",
+        "x": 240,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "actLeft": "lever",
+          "actRight": "lever"
+        }
+      },
+      "c_pgjz57r": {
+        "id": "c_pgjz57r",
+        "type": "hyd-power-unit",
+        "x": 260,
+        "y": 420,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {
+          "flow": 8,
+          "pset": 100
+        }
+      },
+      "c_odfqsl9": {
+        "id": "c_odfqsl9",
+        "type": "hyd-relief",
+        "x": 190,
+        "y": 330,
+        "rot": 0,
+        "flip": true,
+        "label": "1V2",
+        "params": {
+          "pset": 50
+        }
+      },
+      "c_ddhk4ki": {
+        "id": "c_ddhk4ki",
+        "type": "hyd-tank",
+        "x": 190,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_w9ctn4j": {
+        "id": "c_w9ctn4j",
+        "type": "hyd-gauge",
+        "x": 330,
+        "y": 290,
+        "rot": 0,
+        "flip": false,
+        "label": "P1",
+        "params": {
+          "range": 100
+        }
+      }
+    },
+    "connections": {
+      "w_nbiwpll": {
+        "id": "w_nbiwpll",
+        "a": {
+          "kind": "port",
+          "comp": "c_sguye3d",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_pgjz57r",
+          "port": "T"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_jez01tf": {
+        "id": "w_jez01tf",
+        "a": {
+          "kind": "junction",
+          "id": "j_1lgykjl"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_sguye3d",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_aeljcnv": {
+        "id": "w_aeljcnv",
+        "a": {
+          "kind": "junction",
+          "id": "j_1lgykjl"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_odfqsl9",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_zfurc3m": {
+        "id": "w_zfurc3m",
+        "a": {
+          "kind": "port",
+          "comp": "c_odfqsl9",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ddhk4ki",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_92g3t4v": {
+        "id": "w_92g3t4v",
+        "a": {
+          "kind": "port",
+          "comp": "c_pgjz57r",
+          "port": "P"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_jxp9eft"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_dlwj8pa": {
+        "id": "w_dlwj8pa",
+        "a": {
+          "kind": "junction",
+          "id": "j_jxp9eft"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_1lgykjl"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_rh6l3ev": {
+        "id": "w_rh6l3ev",
+        "a": {
+          "kind": "junction",
+          "id": "j_jxp9eft"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_w9ctn4j",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 330,
+            "y": 350
+          }
+        ]
+      },
+      "w_zhitv78": {
+        "id": "w_zhitv78",
+        "a": {
+          "kind": "port",
+          "comp": "c_sguye3d",
+          "port": "A"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_jroqmnz",
+          "port": "A"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_9k3go7r": {
+        "id": "w_9k3go7r",
+        "a": {
+          "kind": "port",
+          "comp": "c_sguye3d",
+          "port": "B"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_jroqmnz",
+          "port": "B"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 270,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_1lgykjl": {
+        "id": "j_1lgykjl",
+        "x": 250,
+        "y": 330,
+        "medium": "hyd"
+      },
+      "j_jxp9eft": {
+        "id": "j_jxp9eft",
+        "x": 250,
+        "y": 350,
+        "medium": "hyd"
+      }
+    }
+  }
+}

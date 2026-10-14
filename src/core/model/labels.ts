@@ -11,7 +11,16 @@
 import { getModel, resolveParams } from '../registry';
 import { endpointKey, type Circuit } from './types';
 
-const SUPPLY_TYPES = new Set(['pneu-supply', 'pneu-compressor', 'pneu-frl', 'pneu-tank']);
+const SUPPLY_TYPES = new Set([
+  'pneu-supply',
+  'pneu-compressor',
+  'pneu-frl',
+  'pneu-tank',
+  'hyd-power-unit',
+  'hyd-pump',
+  'hyd-tank',
+]);
+const HYD_ACTUATORS = new Set(['hyd-cyl-double', 'hyd-cyl-single', 'hyd-motor']);
 const INSTRUMENT_CATS = new Set(['instruments']);
 /** Los componentes eléctricos llevan como etiqueta su enlace (K1, Y1, 1B1…): no se renumeran. */
 const ELECTRIC_CATS = new Set(['electric', 'relays', 'electric-sensors']);
@@ -33,8 +42,8 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
     return r;
   };
   for (const w of Object.values(circuit.connections)) {
-    // Sólo la red neumática: los cables eléctricos no forman parte de las cadenas de mando.
-    if (w.medium !== 'pneu') continue;
+    // Sólo tuberías: los cables eléctricos no forman parte de las cadenas de mando.
+    if (w.medium === 'elec') continue;
     const a = find(endpointKey(w.a));
     const b = find(endpointKey(w.b));
     if (a !== b) parent.set(a, b);
@@ -43,7 +52,7 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
   for (const c of Object.values(circuit.components)) {
     const m = getModel(c.type);
     for (const p of m.ports(resolveParams(m, c.params))) {
-      if (p.medium !== 'pneu') continue;
+      if (p.medium === 'elec') continue;
       const net = find(endpointKey({ kind: 'port', comp: c.id, port: p.id }));
       if (!byNet.has(net)) byNet.set(net, new Set());
       byNet.get(net)!.add(c.id);
@@ -58,7 +67,13 @@ export function adjacency(circuit: Circuit): Map<string, Set<string>> {
 
 /** Calcula las etiquetas nuevas (no modifica el circuito). */
 export function computeLabels(circuit: Circuit): Record<string, string> {
-  const cat = (id: string) => getModel(circuit.components[id].type).category;
+  // Las válvulas de vías y los actuadores hidráulicos cuentan como los neumáticos.
+  const cat = (id: string) => {
+    const type = circuit.components[id].type;
+    if (HYD_ACTUATORS.has(type)) return 'actuators';
+    if (type.startsWith('hyd-valve-')) return 'directional';
+    return getModel(type).category;
+  };
   const comps = Object.values(circuit.components).filter((c) => !ELECTRIC_CATS.has(cat(c.id)));
   const adj = adjacency(circuit);
   const labels: Record<string, string> = {};

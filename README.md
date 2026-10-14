@@ -1,6 +1,6 @@
 # FluidLab 3D
 
-Simulador de circuitos neumáticos y electroneumáticos (y, en la fase 5, hidráulicos) con editor libre de símbolos ISO 1219 / IEC 60617 y una vista 3D en la que se ve por dentro cómo funciona cada componente.
+Simulador de circuitos neumáticos, electroneumáticos e hidráulicos con editor libre de símbolos ISO 1219 / IEC 60617 y una vista 3D en la que se ve por dentro cómo funciona cada componente.
 
 > Proyecto independiente, inspirado en los simuladores didácticos de neumática. No usa marcas, logotipos ni recursos de terceros.
 
@@ -53,8 +53,10 @@ npm run dev          # abre http://localhost:5173
 | Eléctricos | Alimentación +24 V y 0 V, pulsador NA, pulsador NC, interruptor, seta de emergencia, lámpara |
 | Relés y bobinas | Relé, relé temporizado (a la conexión / a la desconexión), contacto de relé (NA, NC, conmutado), contador con puesta a cero, bobina de electroválvula |
 | Sensores eléctricos | Final de carrera eléctrico, sensor de proximidad (magnético, inductivo, capacitivo, óptico), presostato |
+| Hidráulica: alimentación y actuadores | Grupo hidráulico (motor + bomba + depósito + limitadora), bomba, depósito, acumulador de vejiga, cilindro hidráulico de doble y de simple efecto, motor hidráulico, manómetro hidráulico |
+| Hidráulica: válvulas | 4/2 y 4/3 (centro cerrado, en tándem, flotante y en H) con cualquier accionamiento (palanca, electroimán, pilotaje…), limitadora de presión, filtro, antirretorno, antirretorno desbloqueable, estranguladora, reguladora de caudal compensada |
 
-Ejemplos incluidos: mando directo, mando indirecto, funciones O e Y, regulación de velocidad, temporizador, ciclo A+ B+ B− A−, enclavamiento marcha/paro con relé, ciclo A+ B+ A− B− electroneumático con sensores (ciclo único o continuo), retorno temporizado con relé y una prueba de rendimiento.
+Ejemplos incluidos: mando directo, mando indirecto, funciones O e Y, regulación de velocidad, temporizador, ciclo A+ B+ B− A−, enclavamiento marcha/paro con relé, ciclo A+ B+ A− B− electroneumático con sensores (ciclo único o continuo), retorno temporizado con relé, prensa hidráulica, regulación de velocidad hidráulica, carga sostenida con antirretorno desbloqueable, electrohidráulica y una prueba de rendimiento.
 
 ## Arquitectura
 
@@ -81,6 +83,7 @@ src/
 - **Restricciones ISO 6358** (conductancia sónica C, relación crítica b) con régimen sónico y subsónico. Las válvulas abren/cierran sus vías según la posición continua de la corredera (con recubrimiento positivo).
 - **Émbolos** con masa, carga, fricción estática, de Coulomb y viscosa, y topes de final de carrera.
 - **Integración** de paso fijo (0,1 ms) con limitador de equilibrio por orificio: estable con volúmenes pequeños.
+- **Hidráulica** en la misma red: nodos de aceite con compresibilidad (β = 1,2·10⁹ Pa) y cavitación, orificios turbulentos q = K·√Δp (laminares cerca de Δp = 0), bombas como fuentes de caudal y acumuladores con gas precargado. Como el aceite es tan rígido, se integra de forma implícita (Gauss-Seidel sobre las presiones al final del paso) y el émbolo se acopla al aceite con su rigidez A²·β/V de forma semi-implícita: estable con el mismo paso de 0,1 ms.
 - **Red eléctrica de 24 V** resuelta por conectividad: los cables y los contactos cerrados unen nodos; una bobina o lámpara está activada si un borne llega a +24 V y el otro a 0 V. Se resuelve sólo cuando cambia algún contacto y se lee en el paso siguiente (0,1 ms después), así las autorretenciones funcionan sin bucles. Simplificación didáctica: no se calculan corrientes, así que dos cargas en serie no se encienden.
 
 Para añadir un componente: crea su carpeta en `src/components/…` con `model.ts` (puertos, parámetros, `build`, `update`, `explain`) y `Symbol2D.tsx`, y regístralo en `components/models.ts` y `components/views.ts`.
@@ -94,4 +97,4 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 - [x] **Fase 2:** vista 3D sincronizada (2D / 3D / dividida) con modos normal, rayos X y corte, partículas de flujo por tuberías y conductos internos, cámara con enfoque, accionamiento desde el 3D; 60 FPS con 48 componentes. Además: válvulas de N posiciones (2/2, 4/2, 5/3) y accionamientos por lado (rodillo, rodillo abatible, pilotaje, servopilotado…).
 - [x] **Fase 3:** biblioteca neumática completa (tabla de arriba) con símbolo 2D, modelo 3D, explicación y test de cada componente; finales de carrera vinculados a marcas del cilindro; etiquetado automático; diagramas espacio-tiempo y espacio-fase (PNG/CSV); 7 ejemplos, entre ellos el ciclo A+ B+ B− A−.
 - [x] **Fase 4:** electroneumática: red eléctrica de 24 V acoplada al motor neumático, 15 componentes eléctricos (pulsadores, interruptor, seta, lámpara, relés normal y temporizado, contactos, contador, bobina de electroválvula, finales de carrera, sensores de proximidad, presostato) con símbolo IEC, modelo 3D (bobinas que brillan, contactos y armaduras que se mueven) y explicación; electroimanes en todas las válvulas de vías; cables coloreados en 2D y 3D; ejemplos `08`–`10`. Además, las válvulas 3D muestran su **corredera real**.
-- [ ] Fase 5: hidráulica, GRAFCET/PLC, galería de ejemplos y versión de escritorio.
+- [ ] **Fase 5** (en curso): ✅ hidráulica (13 componentes, válvulas 4/2 y 4/3, ejemplos `11`–`14`: la prensa sube exactamente hasta el tarado de la limitadora); pendiente: GRAFCET y PLC (GRAFCET y contactos), galería de ejemplos, exportación a PDF y versión de escritorio (Tauri).

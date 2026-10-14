@@ -1,0 +1,277 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Carga sostenida con antirretorno desbloqueable",
+  "description": "El cilindro soporta una carga de 2000 N. Con la válvula en el centro (flotante) no baja porque el antirretorno desbloqueable lo sujeta; baja sólo al mandar presión por B.",
+  "circuit": {
+    "components": {
+      "c_ekuevtj": {
+        "id": "c_ekuevtj",
+        "type": "hyd-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "mass": 20,
+          "load": 2000
+        }
+      },
+      "c_b32vmbt": {
+        "id": "c_b32vmbt",
+        "type": "hyd-valve-43-float",
+        "x": 240,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "actLeft": "lever",
+          "actRight": "lever"
+        }
+      },
+      "c_e9me8h3": {
+        "id": "c_e9me8h3",
+        "type": "hyd-power-unit",
+        "x": 260,
+        "y": 420,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {
+          "flow": 8,
+          "pset": 100
+        }
+      },
+      "c_ykpbpol": {
+        "id": "c_ykpbpol",
+        "type": "hyd-relief",
+        "x": 190,
+        "y": 330,
+        "rot": 0,
+        "flip": true,
+        "label": "1V3",
+        "params": {
+          "pset": 80
+        }
+      },
+      "c_gvna70l": {
+        "id": "c_gvna70l",
+        "type": "hyd-tank",
+        "x": 190,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_udau8t3": {
+        "id": "c_udau8t3",
+        "type": "hyd-pilot-check",
+        "x": 200,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "1V2",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_v1qeekj": {
+        "id": "w_v1qeekj",
+        "a": {
+          "kind": "port",
+          "comp": "c_b32vmbt",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_e9me8h3",
+          "port": "T"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_nv8ipb5": {
+        "id": "w_nv8ipb5",
+        "a": {
+          "kind": "port",
+          "comp": "c_e9me8h3",
+          "port": "P"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_yktryzf"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_dbhia49": {
+        "id": "w_dbhia49",
+        "a": {
+          "kind": "junction",
+          "id": "j_yktryzf"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_b32vmbt",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_r1nf20d": {
+        "id": "w_r1nf20d",
+        "a": {
+          "kind": "junction",
+          "id": "j_yktryzf"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ykpbpol",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_0dw797r": {
+        "id": "w_0dw797r",
+        "a": {
+          "kind": "port",
+          "comp": "c_ykpbpol",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gvna70l",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_c94zbqy": {
+        "id": "w_c94zbqy",
+        "a": {
+          "kind": "port",
+          "comp": "c_b32vmbt",
+          "port": "A"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_udau8t3",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 250,
+            "y": 180
+          },
+          {
+            "x": 150,
+            "y": 180
+          },
+          {
+            "x": 150,
+            "y": 170
+          }
+        ]
+      },
+      "w_4a4f7jr": {
+        "id": "w_4a4f7jr",
+        "a": {
+          "kind": "port",
+          "comp": "c_udau8t3",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ekuevtj",
+          "port": "A"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_skic2xb": {
+        "id": "w_skic2xb",
+        "a": {
+          "kind": "port",
+          "comp": "c_b32vmbt",
+          "port": "B"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_mm0qezv"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_tb0da9a": {
+        "id": "w_tb0da9a",
+        "a": {
+          "kind": "junction",
+          "id": "j_mm0qezv"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ekuevtj",
+          "port": "B"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 270,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      },
+      "w_3gczs9a": {
+        "id": "w_3gczs9a",
+        "a": {
+          "kind": "junction",
+          "id": "j_mm0qezv"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_udau8t3",
+          "port": "X"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 270,
+            "y": 220
+          },
+          {
+            "x": 200,
+            "y": 220
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_yktryzf": {
+        "id": "j_yktryzf",
+        "x": 250,
+        "y": 330,
+        "medium": "hyd"
+      },
+      "j_mm0qezv": {
+        "id": "j_mm0qezv",
+        "x": 270,
+        "y": 180,
+        "medium": "hyd"
+      }
+    }
+  }
+}

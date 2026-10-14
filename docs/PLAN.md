@@ -1,6 +1,6 @@
 # Plan de desarrollo de FluidLab 3D
 
-> **Estado:** fases 0 a 4 terminadas. Siguiente: fase 5 (hidráulica, GRAFCET/PLC, ejemplos y escritorio).
+> **Estado:** fases 0 a 4 terminadas. Fase 5: hidráulica ✅; siguen GRAFCET/PLC, galería, PDF y escritorio.
 
 ## Contexto
 El usuario quiere una aplicación con las funciones y la libertad de diseño de FluidSIM (editor libre de circuitos con símbolos ISO 1219 y simulación neumática, electroneumática e hidráulica), pero con una vista 3D sincronizada donde se vea por dentro cómo actúa cada componente: émbolos, correderas, muelles, flujo de aire o aceite, presiones…

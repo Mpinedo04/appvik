@@ -76,7 +76,12 @@ export function ComponentNode({
       userData={{ compId: c.id }}
     >
       {Model ? (
-        <Model params={params} compId={c.id} mode={mode} />
+        <Model
+          params={params}
+          compId={c.id}
+          mode={mode}
+          medium={m.ports(params).some((p) => p.medium === 'hyd') ? 'hyd' : 'pneu'}
+        />
       ) : (
         <mesh
           geometry={box(bb.x1 - bb.x0, 10, bb.y1 - bb.y0)}

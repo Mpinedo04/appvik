@@ -36,9 +36,12 @@ export interface WayValveConfig {
    * Corredera real (ver spool.ts): orden de las ranuras a lo largo del taladro (un puerto puede
    * repetirse si tiene dos ranuras unidas por dentro), resaltes en reposo en medios pasos y
    * carrera por casilla. Está precalculada con `solveSpool` y la comprueba spool.test.ts; si
-   * falta, se calcula al cargar.
+   * falta, se calcula al cargar. `null`: la corredera real necesita un taladro interior (4/3 en
+   * tándem o en H) y la válvula se dibuja en 3D con el esquema ISO.
    */
-  spool?: { bore: string[]; lands: number[]; stroke: number };
+  spool?: { bore: string[]; lands: number[]; stroke: number } | null;
+  /** Fluido: aire (por defecto) o aceite. */
+  medium?: 'pneu' | 'hyd';
 }
 
 export const BOX_H = 40;
@@ -252,3 +255,101 @@ export function pathOpening(pos: number, box: number): number {
 export function spoolShift(cfg: WayValveConfig, pos: number) {
   return (cfg.rest - pos) * cfg.boxW;
 }
+
+/* ───────────── Válvulas hidráulicas (P presión, T tanque, A y B utilización) ───────────── */
+
+const H4_PORTS: ValvePortCfg[] = [
+  { id: 'A', side: 'top', col: -10, role: 'utilización' },
+  { id: 'B', side: 'top', col: 10, role: 'utilización' },
+  { id: 'P', side: 'bottom', col: -10, role: 'presión' },
+  { id: 'T', side: 'bottom', col: 10, exhaust: false, role: 'tanque' },
+];
+const H4_LEFT: ValvePositionCfg = {
+  paths: [
+    ['P', 'A'],
+    ['B', 'T'],
+  ],
+  blocked: [],
+};
+const H4_RIGHT: ValvePositionCfg = {
+  paths: [
+    ['P', 'B'],
+    ['A', 'T'],
+  ],
+  blocked: [],
+};
+
+export const HVALVE_42: WayValveConfig = {
+  type: 'hyd-valve-42',
+  name: 'Válvula hidráulica 4/2',
+  short: '4/2 hidr.',
+  description:
+    '4 vías y 2 posiciones: en una posición manda el aceite a A y descarga B al tanque; en la otra, al revés.',
+  boxW: 40,
+  ports: H4_PORTS,
+  positions: [H4_LEFT, H4_RIGHT],
+  rest: 1,
+  pilots: { left: 'X', right: 'Y' },
+  medium: 'hyd',
+  spool: { bore: ['T', 'A', 'P', 'B', 'T'], lands: [-2, 3, 8], stroke: 2 },
+};
+
+function hvalve43(kind: 'closed' | 'tandem' | 'float' | 'open'): WayValveConfig {
+  const center: ValvePositionCfg = {
+    closed: { paths: [], blocked: ['P', 'T', 'A', 'B'] },
+    tandem: { paths: [['P', 'T']], blocked: ['A', 'B'] },
+    float: {
+      paths: [
+        ['A', 'T'],
+        ['B', 'T'],
+      ],
+      blocked: ['P'],
+    },
+    open: {
+      paths: [
+        ['P', 'T'],
+        ['A', 'T'],
+        ['B', 'T'],
+      ],
+      blocked: [],
+    },
+  }[kind] as ValvePositionCfg;
+  const spool = {
+    closed: { bore: ['T', 'A', 'P', 'B', 'T'], lands: [-3, 2, 6, 11], stroke: 3 },
+    float: { bore: ['T', 'A', 'P', 'B', 'T'], lands: [-1, 4, 9], stroke: 1 },
+    tandem: null,
+    open: null,
+  }[kind];
+  const names = {
+    closed: 'centro cerrado',
+    tandem: 'centro en tándem',
+    float: 'centro flotante',
+    open: 'centro abierto (H)',
+  };
+  const what = {
+    closed:
+      'En el centro bloquea todo: el cilindro queda inmovilizado y la bomba descarga por la limitadora.',
+    tandem:
+      'En el centro bloquea A y B (el cilindro queda inmovilizado) y une P con T: la bomba descarga al tanque sin presión.',
+    float: 'En el centro une A y B con el tanque: el cilindro queda libre; P está bloqueado.',
+    open: 'En el centro une todas las vías con el tanque: el cilindro queda libre y la bomba descarga sin presión.',
+  };
+  return {
+    type: `hyd-valve-43-${kind}`,
+    name: `Válvula hidráulica 4/3 ${names[kind]}`,
+    short: `4/3 ${kind === 'closed' ? 'cerr.' : kind === 'tandem' ? 'tándem' : kind === 'float' ? 'flot.' : 'H'}`,
+    description: `4 vías y 3 posiciones, centrada por muelles. ${what[kind]}`,
+    boxW: 40,
+    ports: H4_PORTS,
+    positions: [H4_LEFT, center, H4_RIGHT],
+    rest: 1,
+    pilots: { left: 'X', right: 'Y' },
+    medium: 'hyd',
+    spool,
+  };
+}
+
+export const HVALVE_43_CLOSED = hvalve43('closed');
+export const HVALVE_43_TANDEM = hvalve43('tandem');
+export const HVALVE_43_FLOAT = hvalve43('float');
+export const HVALVE_43_OPEN = hvalve43('open');

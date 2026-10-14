@@ -1,10 +1,11 @@
 /**
  * Compilador: Circuit → red física.
- * Une los puertos conectados (tuberías y derivaciones) en nodos de fluido y calcula el
- * volumen de cada nodo a partir de la longitud de las tuberías.
+ * Une los puertos conectados (tuberías y derivaciones) en nodos de fluido —de aire para la
+ * neumática y de aceite para la hidráulica— y calcula el volumen de cada nodo a partir de la
+ * longitud de las tuberías. Los cables eléctricos forman la red eléctrica aparte.
  */
 import { connectionPolyline, polylineLength } from '../model/geometry';
-import { endpointKey, type Circuit } from '../model/types';
+import { endpointKey, type Circuit, type Medium } from '../model/types';
 import { getModel, resolveParams, type PortDef } from '../registry';
 import { circleArea, cm3, mm } from '../units';
 import type { FluidNetwork } from './fluid/network';
@@ -17,6 +18,14 @@ export const TUBE_INNER_DIAMETER_MM = 4;
 const PORT_DEAD_VOLUME = cm3(0.5);
 /** Conductancia de un puerto abierto a la atmósfera (prácticamente sin restricción). */
 export const OPEN_PORT_C = 5e-8;
+/** Diámetro interior de las tuberías hidráulicas. */
+export const HYD_TUBE_INNER_DIAMETER_MM = 8;
+/** Coeficiente de fuga de un puerto hidráulico abierto (el aceite se derrama). */
+const OPEN_PORT_K = 5e-6;
+/** Volumen muerto de cada puerto hidráulico. */
+const HYD_PORT_DEAD_VOLUME = cm3(2);
+
+const FLUID: Medium[] = ['pneu', 'hyd'];
 
 class UnionFind {
   private parent = new Map<string, string>();
@@ -56,7 +65,7 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
   const uf = new UnionFind();
   const connected = new Set<string>();
   for (const conn of Object.values(circuit.connections)) {
-    if (conn.medium !== 'pneu') continue;
+    if (!FLUID.includes(conn.medium)) continue;
     const ka = endpointKey(conn.a);
     const kb = endpointKey(conn.b);
     uf.union(ka, kb);
@@ -65,11 +74,11 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
   }
 
   const rootNode = new Map<string, number>();
-  const nodeFor = (key: string) => {
+  const nodeFor = (key: string, medium: Medium) => {
     const r = uf.find(key);
     let n = rootNode.get(r);
     if (n === undefined) {
-      n = net.addNode({ name: r });
+      n = net.addNode({ name: r, kind: medium === 'hyd' ? 'oil' : 'gas' });
       rootNode.set(r, n);
     }
     return n;
@@ -85,29 +94,37 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
   for (const c of Object.values(circuit.components)) {
     const m = getModel(c.type);
     for (const p of m.ports(resolveParams(m, c.params))) {
-      if (p.medium !== 'pneu') continue;
+      if (!FLUID.includes(p.medium)) continue;
+      const hyd = p.medium === 'hyd';
       const key = endpointKey({ kind: 'port', comp: c.id, port: p.id });
-      const n = nodeFor(key);
-      net.nodes[n].baseVolume += PORT_DEAD_VOLUME;
+      const n = nodeFor(key, p.medium);
+      net.nodes[n].baseVolume += hyd ? HYD_PORT_DEAD_VOLUME : PORT_DEAD_VOLUME;
       result.portNode.set(portKey(c.id, p.id), n);
       if (!connected.has(key)) {
         result.openPorts.push({ comp: c.id, port: p });
-        net.addOrifice(n, net.atmosphere, OPEN_PORT_C, 0.3, `abierto ${c.label}:${p.id}`);
+        net.addOrifice(
+          n,
+          net.atmosphere,
+          hyd ? OPEN_PORT_K : OPEN_PORT_C,
+          0.3,
+          `abierto ${c.label}:${p.id}`,
+          hyd ? 'oil' : 'gas',
+        );
       }
     }
   }
 
-  const tubeArea = circleArea(mm(TUBE_INNER_DIAMETER_MM));
   for (const conn of Object.values(circuit.connections)) {
-    if (conn.medium !== 'pneu') continue;
-    const n = nodeFor(endpointKey(conn.a));
+    if (!FLUID.includes(conn.medium)) continue;
+    const n = nodeFor(endpointKey(conn.a), conn.medium);
     result.connNode.set(conn.id, n);
     const length = mm(polylineLength(connectionPolyline(circuit, conn.id)) * TUBE_MM_PER_UNIT);
-    net.nodes[n].baseVolume += length * tubeArea;
+    const d = conn.medium === 'hyd' ? HYD_TUBE_INNER_DIAMETER_MM : TUBE_INNER_DIAMETER_MM;
+    net.nodes[n].baseVolume += length * circleArea(mm(d));
   }
   for (const j of Object.values(circuit.junctions)) {
-    if (j.medium !== 'pneu') continue;
-    result.junctionNode.set(j.id, nodeFor(endpointKey({ kind: 'junction', id: j.id })));
+    if (!FLUID.includes(j.medium)) continue;
+    result.junctionNode.set(j.id, nodeFor(endpointKey({ kind: 'junction', id: j.id }), j.medium));
   }
   return result;
 }

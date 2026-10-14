@@ -4,6 +4,19 @@
  */
 import { createElement, type FC } from 'react';
 import {
+  Accumulator3D,
+  HydCylinder3D,
+  HydCylinderSingle3D,
+  HydFilter3D,
+  HydMotor3D,
+  HydRelief3D,
+  HydTank3D,
+  HydThrottle3D,
+  makeHydCheck3D,
+  PowerUnit3D,
+  Pump3D,
+} from './hydraulic/models3d';
+import {
   Counter3D,
   Lamp3D,
   makeContact3D,
@@ -45,8 +58,9 @@ const variant =
 
 /** Válvula de vías: corredera real o esquema ISO según la preferencia de la vista. */
 function wayValve3D(cfg: WayValveConfig): FC<Model3DProps> {
-  const Real = makeWayValve3D(cfg);
   const Iso = makeWayValveIso3D(cfg);
+  // Las 4/3 en tándem o en H tienen la corredera con taladro interior: sólo esquema ISO.
+  const Real = cfg.spool === null ? Iso : makeWayValve3D(cfg);
   return function WayValve(p) {
     const style = useView((s) => s.valveStyle);
     return createElement(style === 'iso' ? Iso : Real, p);
@@ -77,6 +91,21 @@ const models = new Map<string, FC<Model3DProps>>([
   ['pneu-gauge', Gauge3D],
   ['pneu-flowmeter', Flowmeter3D],
   ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, wayValve3D(cfg)] as [string, FC<Model3DProps>]),
+  // Hidráulicos
+  ['hyd-power-unit', PowerUnit3D],
+  ['hyd-pump', Pump3D],
+  ['hyd-tank', HydTank3D],
+  ['hyd-accumulator', Accumulator3D],
+  ['hyd-cyl-double', HydCylinder3D],
+  ['hyd-cyl-single', HydCylinderSingle3D],
+  ['hyd-motor', HydMotor3D],
+  ['hyd-relief', HydRelief3D],
+  ['hyd-filter', HydFilter3D],
+  ['hyd-check', makeHydCheck3D(false)],
+  ['hyd-pilot-check', makeHydCheck3D(true)],
+  ['hyd-throttle', HydThrottle3D],
+  ['hyd-flow-control', HydThrottle3D],
+  ['hyd-gauge', Gauge3D],
   // Eléctricos
   ['elec-24v', makeRail3D('+24')],
   ['elec-0v', makeRail3D('0')],

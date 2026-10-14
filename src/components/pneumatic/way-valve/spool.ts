@@ -203,12 +203,22 @@ const cache = new WeakMap<WayValveConfig, SpoolSolution>();
 export function solveSpool(cfg: WayValveConfig): SpoolSolution {
   const hit = cache.get(cfg);
   if (hit) return hit;
+  if (cfg.spool === null)
+    throw new Error(`${cfg.type}: la corredera real no es de resaltes simples`);
   if (cfg.spool) {
     const sol = { ...cfg.spool, pitch: PITCH, stationX: stationXs(cfg, cfg.spool.bore) };
     cache.set(cfg, sol);
     return sol;
   }
-  const orders = permutations(cfg.ports.map((p) => p.id))
+  // Con un solo tanque, una 4 vías hidráulica necesita dos ranuras de T unidas por dentro.
+  const hints: string[][] =
+    cfg.ports.length === 4 && cfg.ports.some((p) => p.id === 'T')
+      ? [
+          ['T', 'A', 'P', 'B', 'T'],
+          ['T', 'B', 'P', 'A', 'T'],
+        ]
+      : [];
+  const orders = [...hints, ...permutations(cfg.ports.map((p) => p.id))]
     .filter((b) => channelsClear(cfg, b))
     .sort((a, b) => misalignment(cfg, a) - misalignment(cfg, b));
   // Se prefiere que el accionamiento izquierdo empuje la corredera hacia la derecha (carrera

@@ -5,6 +5,7 @@ import { boxGroups, expectedGroups, solveSpool, spoolLands } from './spool';
 
 describe('corredera real', () => {
   for (const { cfg } of ALL_WAY_VALVES) {
+    if (cfg.spool === null) continue;
     it(`${cfg.type}: cada casilla comunica exactamente sus vías`, () => {
       expect(cfg.spool, 'corredera precalculada').toBeDefined();
       const sol = solveSpool(cfg);

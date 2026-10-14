@@ -77,8 +77,10 @@ export function CylinderSymbol({
   params,
   state,
   maxBar,
+  medium,
   single,
-}: SymbolProps & { single?: boolean }) {
+  noSpring,
+}: SymbolProps & { single?: boolean; noSpring?: boolean }) {
   const pos: number = state?.pos ?? Number(params.startPos ?? 0) / 100;
   const c = PISTON_MIN + PISTON_TRAVEL * pos;
   const { x0, x1, y0, y1 } = CYL_BODY;
@@ -113,7 +115,7 @@ export function CylinderSymbol({
             y={y0 + 1}
             width={Math.max(0, c - 2 - x0 - 1)}
             height={y1 - y0 - 2}
-            fill={pressureColor(state.pCap, maxBar)}
+            fill={pressureColor(state.pCap, maxBar, medium)}
             opacity={0.35}
           />
           {!single && (
@@ -122,7 +124,7 @@ export function CylinderSymbol({
               y={y0 + 1}
               width={Math.max(0, x1 - 1 - c - 2)}
               height={y1 - y0 - 2}
-              fill={pressureColor(state.pRod, maxBar)}
+              fill={pressureColor(state.pRod, maxBar, medium)}
               opacity={0.35}
             />
           )}
@@ -130,7 +132,7 @@ export function CylinderSymbol({
       )}
       {single && (
         <>
-          <polyline points={springPts()} fill="none" stroke={INK} strokeWidth={1} />
+          {!noSpring && <polyline points={springPts()} fill="none" stroke={INK} strokeWidth={1} />}
           {/* Respiradero de la cámara del muelle */}
           <line x1={30} y1={y0} x2={30} y2={y0 - 6} stroke={INK} strokeWidth={1} />
           <polygon

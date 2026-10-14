@@ -160,6 +160,8 @@ export function updateCyl(
   dt: number,
   aCap: number,
   aRod: number,
+  /** Volumen muerto de cada cámara (mayor en los cilindros hidráulicos). */
+  deadVolume = DEAD_VOLUME,
 ) {
   const stroke = mm(num(p, 'stroke'));
   const pCap = ctx.p(h.cap.chamber);
@@ -178,6 +180,8 @@ export function updateCyl(
       },
       s.force - Number(p.load ?? 0),
       dt,
+      // Rigidez del fluido encerrado (decisiva con aceite; despreciable con aire).
+      aCap * aCap * ctx.dpdV(h.cap.chamber) + (aCap - aRod) ** 2 * ctx.dpdV(h.rod.chamber),
     );
   }
   s.pos = stroke > 0 ? s.x / stroke : 0;
@@ -197,8 +201,8 @@ export function updateCyl(
   s.cushionCap = setMain(h.cap, s.x < lc);
   s.cushionRod = setMain(h.rod, s.x > stroke - lc);
 
-  ctx.addVolume(h.cap.chamber, DEAD_VOLUME + aCap * s.x);
-  ctx.addVolume(h.rod.chamber, DEAD_VOLUME + (aCap - aRod) * (stroke - s.x));
+  ctx.addVolume(h.cap.chamber, deadVolume + aCap * s.x);
+  ctx.addVolume(h.rod.chamber, deadVolume + (aCap - aRod) * (stroke - s.x));
   s.activeMarks = publishMarks(ctx, h.marks, s.x * 1000, s.v);
 }
 
@@ -213,11 +217,12 @@ export function explainCyl(
     minus: string;
     endPlus: string;
     endMinus: string;
+    force?: string;
   },
 ): string[] {
   const lines = [
     `${names.cap}: ${s.pCap.toFixed(2)} bar · ${names.rod}: ${s.pRod.toFixed(2)} bar.`,
-    `Fuerza neumática neta: ${s.force.toFixed(0)} N${num(p, 'load') ? ` (carga: ${num(p, 'load')} N)` : ''}.`,
+    `${names.force ?? 'Fuerza neumática neta'}: ${s.force.toFixed(0)} N${num(p, 'load') ? ` (carga: ${num(p, 'load')} N)` : ''}.`,
   ];
   if (s.v > 0.002) lines.push(`${names.plus} a ${(s.v * 1000).toFixed(0)} mm/s.`);
   else if (s.v < -0.002) lines.push(`${names.minus} a ${(-s.v * 1000).toFixed(0)} mm/s.`);

@@ -16,7 +16,8 @@ export type CategoryId =
   | 'electric'
   | 'relays'
   | 'electric-sensors'
-  | 'hydraulic';
+  | 'hydraulic'
+  | 'hyd-valves';
 
 export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'supply', name: 'Alimentación' },
@@ -29,7 +30,8 @@ export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'electric', name: 'Eléctricos: alimentación y mando' },
   { id: 'relays', name: 'Relés, contadores y bobinas' },
   { id: 'electric-sensors', name: 'Sensores eléctricos' },
-  { id: 'hydraulic', name: 'Hidráulica' },
+  { id: 'hydraulic', name: 'Hidráulica: alimentación y actuadores' },
+  { id: 'hyd-valves', name: 'Hidráulica: válvulas' },
 ];
 
 export interface PortDef {
@@ -77,11 +79,25 @@ export interface BuildCtx {
     /** Presión absoluta inicial [Pa] (depósitos que empiezan llenos). */
     initialPressure?: number;
     name?: string;
+    /** Fluido del nodo (aire por defecto). */
+    kind?: 'gas' | 'oil' | 'accumulator';
+    /** Acumulador: volumen de gas [m³] y presión de precarga absoluta [Pa]. */
+    gasVolume?: number;
+    precharge?: number;
   }): number;
   /** Nodo de la atmósfera (presión fija P_ATM). */
   readonly atmosphere: number;
-  /** Crea un orificio (restricción ISO 6358) entre dos nodos. Devuelve su índice. */
-  addOrifice(a: number, b: number, opts: { C: number; b?: number; name?: string }): number;
+  /**
+   * Crea un orificio entre dos nodos y devuelve su índice. Aire: conductancia ISO 6358 `C`
+   * (y relación crítica `b`). Aceite: coeficiente `K` (q = K·√Δp, ver oilKFromNominalFlow).
+   */
+  addOrifice(
+    a: number,
+    b: number,
+    opts: { C: number; b?: number; name?: string } | { K: number; name?: string },
+  ): number;
+  /** Fuente de caudal de a → b (bombas); su caudal se fija en cada paso con setSource. */
+  addSource(a: number, b: number): number;
   /** Añade volumen muerto fijo a un nodo [m³]. */
   addBaseVolume(node: number, volume: number): void;
   /** Etiqueta del componente (en los eléctricos es el enlace: K1, Y1, 1B1…). */
@@ -107,6 +123,12 @@ export interface StepCtx {
   addVolume(node: number, volume: number): void;
   /** Caudal másico del último paso por un orificio [kg/s] (positivo de a→b). */
   massFlow(orifice: number): number;
+  /** Fija el caudal másico de una fuente [kg/s]. */
+  setSource(source: number, mdot: number): void;
+  /** Rigidez de un nodo frente a un cambio de volumen, −dp/dV [Pa/m³]. */
+  dpdV(node: number): number;
+  /** Aceite almacenado en un nodo acumulador [m³]. */
+  storedOil(node: number): number;
   /** Lee una señal publicada en el paso anterior (0 si no existe). */
   signal(name: string): number;
   /** Publica una señal para el paso siguiente (finales de carrera, sensores…). */

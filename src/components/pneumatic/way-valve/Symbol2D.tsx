@@ -17,7 +17,7 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
     side === 'top' ? -H / 2 + inset : H / 2 - inset;
   const ext = boxesExtent(cfg);
 
-  return function WayValveSymbol({ params, state, maxBar }: SymbolProps) {
+  return function WayValveSymbol({ params, state, maxBar, medium }: SymbolProps) {
     const s = state as WayValveState | undefined;
     const pos = s?.pos ?? cfg.rest;
     const shift = spoolShift(cfg, pos);
@@ -37,7 +37,7 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
             const pf = cfg.ports.find((p) => p.id === from)!;
             const pt = cfg.ports.find((p) => p.id === to)!;
             const color = live
-              ? pressureColor(Math.max(s!.portBar[from] ?? 0, s!.portBar[to] ?? 0), maxBar)
+              ? pressureColor(Math.max(s!.portBar[from] ?? 0, s!.portBar[to] ?? 0), maxBar, medium)
               : INK;
             return (
               <Arrow

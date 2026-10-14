@@ -1,6 +1,7 @@
 /** Registro de la parte lógica de todos los componentes. Importar una vez al arrancar. */
 import { registerModel } from '../core/registry';
 import { ELECTRIC_MODELS } from './electric/models';
+import { HYDRAULIC_MODELS, hydGaugeModel } from './hydraulic/models';
 import { compressorModel } from './pneumatic/compressor/model';
 import { cylinderDoubleModel } from './pneumatic/cylinder-double/model';
 import { cylinderRodlessModel } from './pneumatic/cylinder-rodless/model';
@@ -28,6 +29,11 @@ import { supplyModel } from './pneumatic/supply/model';
 import { tankModel } from './pneumatic/tank/model';
 import { timerModel } from './pneumatic/timer/model';
 import {
+  HVALVE_42,
+  HVALVE_43_CLOSED,
+  HVALVE_43_FLOAT,
+  HVALVE_43_OPEN,
+  HVALVE_43_TANDEM,
   VALVE_22NC,
   VALVE_32NC,
   VALVE_32NO,
@@ -52,7 +58,23 @@ export const WAY_VALVES = [
 ];
 
 /** Todas las configuraciones de válvula de vías con su preajuste (genéricas + preconfiguradas). */
-export const ALL_WAY_VALVES = [...WAY_VALVES.map((cfg) => ({ cfg, preset: {} })), ...VALVE_PRESETS];
+/** Válvulas de vías hidráulicas (mismo modelo, con aceite). */
+export const HYD_WAY_VALVES = [
+  HVALVE_42,
+  HVALVE_43_CLOSED,
+  HVALVE_43_TANDEM,
+  HVALVE_43_FLOAT,
+  HVALVE_43_OPEN,
+];
+
+export const ALL_WAY_VALVES = [
+  ...WAY_VALVES.map((cfg) => ({ cfg, preset: {} })),
+  ...VALVE_PRESETS,
+  ...HYD_WAY_VALVES.map((cfg) => ({
+    cfg,
+    preset: { category: 'hyd-valves' as const, autoLabel: (n: number) => `1V${n}` },
+  })),
+];
 
 let done = false;
 export function registerAllModels() {
@@ -60,6 +82,9 @@ export function registerAllModels() {
   done = true;
   // Eléctricos
   for (const m of ELECTRIC_MODELS) registerModel(m);
+  // Hidráulicos (las válvulas de vías hidráulicas van con las demás válvulas de vías)
+  for (const m of HYDRAULIC_MODELS) registerModel(m);
+  registerModel(hydGaugeModel);
   // Alimentación
   registerModel(supplyModel);
   registerModel(compressorModel);

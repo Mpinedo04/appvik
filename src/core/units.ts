@@ -35,3 +35,23 @@ export function conductanceFromNominalFlow(qnLmin: number, b = 0.3): number {
 export const circleArea = (d: number) => (Math.PI * d * d) / 4;
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/* ───────────── Aceite hidráulico ───────────── */
+
+/** Densidad del aceite mineral HLP 46 [kg/m³]. */
+export const RHO_OIL = 870;
+/** Módulo de compresibilidad efectivo del aceite (con algo de aire disuelto) [Pa]. */
+export const BETA_OIL = 1.2e9;
+/** Presión mínima del aceite (cavitación) [Pa absolutos]. */
+export const P_CAVITATION = 2e4;
+/** Salto de presión de referencia para el caudal nominal de los elementos hidráulicos [Pa]. */
+export const DP_NOMINAL_OIL = 5e5;
+
+/**
+ * Coeficiente de caudal K [m³/(s·√Pa)] de un orificio hidráulico (q = K·√Δp) a partir de su
+ * caudal nominal [l/min] con un salto de 5 bar.
+ */
+export const oilKFromNominalFlow = (qnLmin: number) => qnLmin / 60_000 / Math.sqrt(DP_NOMINAL_OIL);
+
+/** m³/s → l/min */
+export const toLmin = (q: number) => q * 60_000;

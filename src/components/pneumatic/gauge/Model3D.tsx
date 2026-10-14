@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { num } from '../../../core/registry';
-import { useSim } from '../../../store/sim';
+import { maxBarFor } from '../../../store/sim';
 import { setPressureColor } from '../../../view3d/colors';
 import { box, cylY, cylZ } from '../../../view3d/geom';
 import { AXIS_Y } from '../../../view3d/layout';
@@ -51,7 +51,7 @@ function dialTexture(range: number): THREE.CanvasTexture {
 }
 
 /** Manómetro de esfera: aguja que gira y tubo de Bourdon visible en rayos X o en corte. */
-export function Gauge3D({ compId, mode, params }: Model3DProps) {
+export function Gauge3D({ compId, mode, params, medium }: Model3DProps) {
   const range = num(params, 'range');
   const needle = useRef<THREE.Group>(null);
   const bourdon = useRef<THREE.Mesh>(null);
@@ -75,7 +75,7 @@ export function Gauge3D({ compId, mode, params }: Model3DProps) {
     if (needle.current) needle.current.rotation.y = -((-135 + 270 * frac) * Math.PI) / 180;
     // El tubo de Bourdon se «desenrolla» un poco con la presión.
     if (bourdon.current) bourdon.current.rotation.y = -0.25 * frac;
-    setPressureColor(tubeMat.color, bar, useSim.getState().maxBar);
+    setPressureColor(tubeMat.color, bar, maxBarFor(medium), medium);
   });
 
   const bourdonGeom = useMemo(

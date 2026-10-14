@@ -9,7 +9,7 @@
 import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { str } from '../../../core/registry';
-import { useSim } from '../../../store/sim';
+import { maxBarFor } from '../../../store/sim';
 import { setPressureColor } from '../../../view3d/colors';
 import { box, cylX, cylZ, polylineTube, PolylineSampler, sphere } from '../../../view3d/geom';
 import { AXIS_Y } from '../../../view3d/layout';
@@ -99,7 +99,7 @@ export function makeWayValveIso3D(cfg: WayValveConfig) {
       if (carriage.current) carriage.current.position.x = shift;
       if (!!s?.leftOn !== engaged.l || !!s?.rightOn !== engaged.r)
         setEngaged({ l: !!s?.leftOn, r: !!s?.rightOn });
-      const maxBar = useSim.getState().maxBar;
+      const maxBar = maxBarFor(cfg.medium);
       const leftEnd = ext.left + shift;
       const rightEnd = ext.right + shift;
       setSpring(springL.current, anchorL, leftEnd - anchorL);
@@ -111,18 +111,18 @@ export function makeWayValveIso3D(cfg: WayValveConfig) {
       };
       pilotPos(pilotL.current, ext.left - 20, leftEnd);
       pilotPos(pilotR.current, rightEnd, ext.right + 20);
-      setPressureColor(pilotMatL.color, s?.portBar[cfg.pilots.left] ?? 0, maxBar);
-      setPressureColor(pilotMatR.color, s?.portBar[cfg.pilots.right] ?? 0, maxBar);
+      setPressureColor(pilotMatL.color, s?.portBar[cfg.pilots.left] ?? 0, maxBar, cfg.medium);
+      setPressureColor(pilotMatR.color, s?.portBar[cfg.pilots.right] ?? 0, maxBar, cfg.medium);
 
       cfg.ports.forEach((pc, i) =>
-        setPressureColor(portMats[i].color, s?.portBar[pc.id] ?? 0, maxBar),
+        setPressureColor(portMats[i].color, s?.portBar[pc.id] ?? 0, maxBar, cfg.medium),
       );
       channels.forEach((ch, i) => {
         const path = paths[ch.g];
         const live = s ? Math.max(s.portBar[path.from] ?? 0, s.portBar[path.to] ?? 0) : 0;
         // Sólo la cámara que está bajo los racores lleva aire; las demás quedan a 0 bar.
         const open = s ? s.openings[ch.g] : 0;
-        setPressureColor(chanMats[i].color, open > 0.02 ? live : 0, maxBar);
+        setPressureColor(chanMats[i].color, open > 0.02 ? live : 0, maxBar, cfg.medium);
       });
 
       // Partículas por los conductos abiertos.
@@ -139,7 +139,7 @@ export function makeWayValveIso3D(cfg: WayValveConfig) {
         const bar = s
           ? Math.max(s.portBar[paths[ch.g].from] ?? 0, s.portBar[paths[ch.g].to] ?? 0)
           : 0;
-        setPressureColor(tmp.c, bar, maxBar).offsetHSL(0, 0, 0.18);
+        setPressureColor(tmp.c, bar, maxBar, cfg.medium).offsetHSL(0, 0, 0.18);
         for (let k = 0; k < PARTICLES_PER_PATH; k++, idx++) {
           if (!visible) {
             tmp.m.makeScale(0, 0, 0);

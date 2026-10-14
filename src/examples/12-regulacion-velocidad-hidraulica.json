@@ -1,0 +1,287 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Regulación de velocidad hidráulica",
+  "description": "Reguladora de caudal compensada a la entrada del cilindro: sale a la misma velocidad (3 l/min) tenga la carga que tenga. Prueba a cambiar la carga del cilindro.",
+  "circuit": {
+    "components": {
+      "c_sz59ood": {
+        "id": "c_sz59ood",
+        "type": "hyd-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "mass": 20,
+          "load": 2000
+        }
+      },
+      "c_quumb9d": {
+        "id": "c_quumb9d",
+        "type": "hyd-valve-43-closed",
+        "x": 240,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "actLeft": "lever",
+          "actRight": "lever"
+        }
+      },
+      "c_eqw0muw": {
+        "id": "c_eqw0muw",
+        "type": "hyd-power-unit",
+        "x": 260,
+        "y": 420,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {
+          "flow": 8,
+          "pset": 100
+        }
+      },
+      "c_qnr5mmt": {
+        "id": "c_qnr5mmt",
+        "type": "hyd-relief",
+        "x": 190,
+        "y": 330,
+        "rot": 0,
+        "flip": true,
+        "label": "1V3",
+        "params": {
+          "pset": 80
+        }
+      },
+      "c_0aa0f3j": {
+        "id": "c_0aa0f3j",
+        "type": "hyd-tank",
+        "x": 190,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_r3oekta": {
+        "id": "c_r3oekta",
+        "type": "hyd-gauge",
+        "x": 330,
+        "y": 290,
+        "rot": 0,
+        "flip": false,
+        "label": "P1",
+        "params": {
+          "range": 100
+        }
+      },
+      "c_t67zs34": {
+        "id": "c_t67zs34",
+        "type": "hyd-flow-control",
+        "x": 200,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "1V2",
+        "params": {
+          "qset": 3
+        }
+      }
+    },
+    "connections": {
+      "w_rwm55vm": {
+        "id": "w_rwm55vm",
+        "a": {
+          "kind": "port",
+          "comp": "c_quumb9d",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_eqw0muw",
+          "port": "T"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_afqgdu5": {
+        "id": "w_afqgdu5",
+        "a": {
+          "kind": "junction",
+          "id": "j_ipytyfp"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_quumb9d",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_p327tor": {
+        "id": "w_p327tor",
+        "a": {
+          "kind": "junction",
+          "id": "j_ipytyfp"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_qnr5mmt",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_r0opovr": {
+        "id": "w_r0opovr",
+        "a": {
+          "kind": "port",
+          "comp": "c_qnr5mmt",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0aa0f3j",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_dmumre3": {
+        "id": "w_dmumre3",
+        "a": {
+          "kind": "port",
+          "comp": "c_eqw0muw",
+          "port": "P"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_z3ihpi1"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_tu52rgm": {
+        "id": "w_tu52rgm",
+        "a": {
+          "kind": "junction",
+          "id": "j_z3ihpi1"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_ipytyfp"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_6nxhu1v": {
+        "id": "w_6nxhu1v",
+        "a": {
+          "kind": "junction",
+          "id": "j_z3ihpi1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_r3oekta",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 330,
+            "y": 350
+          }
+        ]
+      },
+      "w_aj4yqac": {
+        "id": "w_aj4yqac",
+        "a": {
+          "kind": "port",
+          "comp": "c_quumb9d",
+          "port": "A"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_t67zs34",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 250,
+            "y": 180
+          },
+          {
+            "x": 150,
+            "y": 180
+          },
+          {
+            "x": 150,
+            "y": 170
+          }
+        ]
+      },
+      "w_kxcvm8u": {
+        "id": "w_kxcvm8u",
+        "a": {
+          "kind": "port",
+          "comp": "c_t67zs34",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_sz59ood",
+          "port": "A"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 250,
+            "y": 170
+          }
+        ]
+      },
+      "w_gr708lg": {
+        "id": "w_gr708lg",
+        "a": {
+          "kind": "port",
+          "comp": "c_quumb9d",
+          "port": "B"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_sz59ood",
+          "port": "B"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 270,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      }
+    },
+    "junctions": {
+      "j_ipytyfp": {
+        "id": "j_ipytyfp",
+        "x": 250,
+        "y": 330,
+        "medium": "hyd"
+      },
+      "j_z3ihpi1": {
+        "id": "j_z3ihpi1",
+        "x": 250,
+        "y": 350,
+        "medium": "hyd"
+      }
+    }
+  }
+}

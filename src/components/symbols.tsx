@@ -7,12 +7,22 @@ export const INK = '#1b2230';
 export const SW = 1.6;
 export const PAPER = '#ffffff';
 
-/** Color según la presión: azul (0 bar, escape) → rojo (presión de trabajo). */
-export function pressureColor(bar: number, maxBar = 6): string {
+/**
+ * Color según la presión. Aire: azul (0 bar, escape) → rojo (presión de trabajo).
+ * Aceite: ámbar (sin presión) → rojo oscuro (presión máxima).
+ */
+export function pressureColor(bar: number, maxBar = 6, medium: 'pneu' | 'hyd' = 'pneu'): string {
+  if (medium === 'hyd') return oilColor(bar, maxBar);
   const t = Math.max(0, Math.min(1, bar / maxBar));
   if (t < 0.02) return '#2f6fde';
   const hue = 220 - 220 * t;
   return `hsl(${hue.toFixed(0)} 80% ${(48 - 4 * t).toFixed(0)}%)`;
+}
+
+/** Escala del aceite: ámbar → rojo oscuro. */
+export function oilColor(bar: number, maxBar = 100): string {
+  const t = Math.max(0, Math.min(1, bar / maxBar));
+  return `hsl(${(42 - 42 * t).toFixed(0)} ${(85 - 10 * t).toFixed(0)}% ${(50 - 14 * t).toFixed(0)}%)`;
 }
 
 /** Color de un cable eléctrico según su nivel: +24 V rojo, 0 V azul, sin tensión negro. */
@@ -26,6 +36,8 @@ export interface SymbolProps {
   state?: any;
   /** Estado de la simulación de otros componentes no es necesario: cada símbolo se basta con el suyo. */
   maxBar?: number;
+  /** Fluido del componente (para la escala de colores). */
+  medium?: 'pneu' | 'hyd';
 }
 
 export interface ComponentView {

@@ -7,7 +7,12 @@ import {
   type ParamDef,
   type PortDef,
 } from '../../../core/registry';
-import { cm3, conductanceFromNominalFlow, paToBarGauge } from '../../../core/units';
+import {
+  cm3,
+  conductanceFromNominalFlow,
+  oilKFromNominalFlow,
+  paToBarGauge,
+} from '../../../core/units';
 import {
   ACT_NAME,
   actuationParams,
@@ -56,10 +61,11 @@ export const hasPilot = (p: Params, side: 'left' | 'right') =>
 export function pilotPorts(cfg: WayValveConfig, p: Params): PortDef[] {
   const { left, right } = boxesExtent(cfg);
   const out: PortDef[] = [];
+  const medium = cfg.medium ?? 'pneu';
   if (hasPilot(p, 'left'))
     out.push({
       id: cfg.pilots.left,
-      medium: 'pneu',
+      medium,
       x: left - 30,
       y: 0,
       dir: 'left',
@@ -68,7 +74,7 @@ export function pilotPorts(cfg: WayValveConfig, p: Params): PortDef[] {
   if (hasPilot(p, 'right'))
     out.push({
       id: cfg.pilots.right,
-      medium: 'pneu',
+      medium,
       x: right + 30,
       y: 0,
       dir: 'right',
@@ -91,6 +97,7 @@ export function makeWayValveModel(
 ): ComponentModel<WayValveState, Handles> {
   const paths = allPaths(cfg);
   const n = cfg.positions.length;
+  const hyd = cfg.medium === 'hyd';
   const params: ParamDef[] = [
     ...actuationParams(
       n >= 3
@@ -99,13 +106,13 @@ export function makeWayValveModel(
     ),
     {
       key: 'qn',
-      label: 'Caudal nominal',
+      label: hyd ? 'Caudal nominal (a 5 bar)' : 'Caudal nominal',
       unit: 'l/min',
       type: 'number',
-      default: 300,
-      min: 10,
+      default: hyd ? 40 : 300,
+      min: hyd ? 1 : 10,
       max: 5000,
-      step: 10,
+      step: hyd ? 1 : 10,
     },
   ];
   // En las de 3 posiciones los muelles centran la corredera además del accionamiento de cada lado.
@@ -130,7 +137,7 @@ export function makeWayValveModel(
     ports: (p) => [
       ...cfg.ports.map((pc) => ({
         id: pc.id,
-        medium: 'pneu' as const,
+        medium: cfg.medium ?? ('pneu' as const),
         ...valvePortPos(cfg, pc),
         dir: pc.side === 'top' ? ('up' as const) : ('down' as const),
         label: `${pc.id} (${pc.role})`,
@@ -156,7 +163,9 @@ export function makeWayValveModel(
       portBar: Object.fromEntries(cfg.ports.map((pc) => [pc.id, 0])),
     }),
     build(b, p) {
-      const C = conductanceFromNominalFlow(num(p, 'qn'));
+      const flow = hyd
+        ? { K: oilKFromNominalFlow(num(p, 'qn')) }
+        : { C: conductanceFromNominalFlow(num(p, 'qn')) };
       const pilot = (side: 'left' | 'right') => {
         if (!hasPilot(p, side)) return null;
         const node = b.port(side === 'left' ? cfg.pilots.left : cfg.pilots.right);
@@ -167,7 +176,7 @@ export function makeWayValveModel(
         orifices: paths.map((path) => ({
           ...path,
           index: b.addOrifice(b.port(path.from), b.port(path.to), {
-            C,
+            ...flow,
             name: `${cfg.short} ${path.from}→${path.to}`,
           }),
         })),
@@ -177,7 +186,9 @@ export function makeWayValveModel(
         })),
         pilotLeft: pilot('left'),
         pilotRight: pilot('right'),
-        supply: cfg.ports.some((pc) => pc.id === '1') ? b.port('1') : null,
+        supply: cfg.ports.some((pc) => pc.id === (hyd ? 'P' : '1'))
+          ? b.port(hyd ? 'P' : '1')
+          : null,
       };
     },
     update(ctx, s, h, p, dt) {

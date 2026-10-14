@@ -1,0 +1,418 @@
+{
+  "format": "fluidlab-3d",
+  "version": 1,
+  "name": "Electrohidráulica",
+  "description": "4/3 de centro cerrado con electroimanes Y1/Y2. Mantén S1 para sacar el cilindro (se para solo en 1S2) y S2 para meterlo (se para en 1S1).",
+  "circuit": {
+    "components": {
+      "c_kjmdzwl": {
+        "id": "c_kjmdzwl",
+        "type": "hyd-cyl-double",
+        "x": 300,
+        "y": 100,
+        "rot": 0,
+        "flip": false,
+        "label": "1A",
+        "params": {
+          "mass": 20,
+          "marks": "1S1@0; 1S2@200"
+        }
+      },
+      "c_vyrlzou": {
+        "id": "c_vyrlzou",
+        "type": "hyd-valve-43-closed",
+        "x": 240,
+        "y": 240,
+        "rot": 0,
+        "flip": false,
+        "label": "1V1",
+        "params": {
+          "actLeft": "solenoid",
+          "actRight": "solenoid",
+          "solLeft": "Y1",
+          "solRight": "Y2"
+        }
+      },
+      "c_0v1yaav": {
+        "id": "c_0v1yaav",
+        "type": "hyd-power-unit",
+        "x": 260,
+        "y": 420,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z2",
+        "params": {
+          "flow": 8,
+          "pset": 100
+        }
+      },
+      "c_fl7drsz": {
+        "id": "c_fl7drsz",
+        "type": "hyd-relief",
+        "x": 190,
+        "y": 330,
+        "rot": 0,
+        "flip": true,
+        "label": "1V2",
+        "params": {
+          "pset": 60
+        }
+      },
+      "c_bulz7gx": {
+        "id": "c_bulz7gx",
+        "type": "hyd-tank",
+        "x": 190,
+        "y": 400,
+        "rot": 0,
+        "flip": false,
+        "label": "0Z1",
+        "params": {}
+      },
+      "c_3pvvjuo": {
+        "id": "c_3pvvjuo",
+        "type": "elec-24v",
+        "x": 560,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_lpunwg5": {
+        "id": "c_lpunwg5",
+        "type": "elec-button-no",
+        "x": 560,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S1",
+        "params": {}
+      },
+      "c_0ydxg3r": {
+        "id": "c_0ydxg3r",
+        "type": "elec-limit",
+        "x": 560,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "1S2",
+        "params": {
+          "kind": "nc"
+        }
+      },
+      "c_rokhkui": {
+        "id": "c_rokhkui",
+        "type": "elec-solenoid",
+        "x": 560,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "Y1",
+        "params": {}
+      },
+      "c_zxsw2fl": {
+        "id": "c_zxsw2fl",
+        "type": "elec-0v",
+        "x": 560,
+        "y": 320,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      },
+      "c_faxv9x8": {
+        "id": "c_faxv9x8",
+        "type": "elec-24v",
+        "x": 660,
+        "y": 20,
+        "rot": 0,
+        "flip": false,
+        "label": "+24V",
+        "params": {}
+      },
+      "c_uqorebp": {
+        "id": "c_uqorebp",
+        "type": "elec-button-no",
+        "x": 660,
+        "y": 90,
+        "rot": 0,
+        "flip": false,
+        "label": "S2",
+        "params": {}
+      },
+      "c_4tys248": {
+        "id": "c_4tys248",
+        "type": "elec-limit",
+        "x": 660,
+        "y": 170,
+        "rot": 0,
+        "flip": false,
+        "label": "1S1",
+        "params": {
+          "kind": "nc"
+        }
+      },
+      "c_gu7n4cp": {
+        "id": "c_gu7n4cp",
+        "type": "elec-solenoid",
+        "x": 660,
+        "y": 250,
+        "rot": 0,
+        "flip": false,
+        "label": "Y2",
+        "params": {}
+      },
+      "c_ya89lxb": {
+        "id": "c_ya89lxb",
+        "type": "elec-0v",
+        "x": 660,
+        "y": 320,
+        "rot": 0,
+        "flip": false,
+        "label": "0V",
+        "params": {}
+      }
+    },
+    "connections": {
+      "w_q07pysa": {
+        "id": "w_q07pysa",
+        "a": {
+          "kind": "port",
+          "comp": "c_vyrlzou",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0v1yaav",
+          "port": "T"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_p6py2ox": {
+        "id": "w_p6py2ox",
+        "a": {
+          "kind": "port",
+          "comp": "c_0v1yaav",
+          "port": "P"
+        },
+        "b": {
+          "kind": "junction",
+          "id": "j_nlibfui"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_pa24sft": {
+        "id": "w_pa24sft",
+        "a": {
+          "kind": "junction",
+          "id": "j_nlibfui"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_vyrlzou",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_3id9ott": {
+        "id": "w_3id9ott",
+        "a": {
+          "kind": "junction",
+          "id": "j_nlibfui"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_fl7drsz",
+          "port": "P"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_cimeay5": {
+        "id": "w_cimeay5",
+        "a": {
+          "kind": "port",
+          "comp": "c_fl7drsz",
+          "port": "T"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_bulz7gx",
+          "port": "1"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_m5sm9te": {
+        "id": "w_m5sm9te",
+        "a": {
+          "kind": "port",
+          "comp": "c_vyrlzou",
+          "port": "A"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_kjmdzwl",
+          "port": "A"
+        },
+        "medium": "hyd",
+        "points": []
+      },
+      "w_qco372q": {
+        "id": "w_qco372q",
+        "a": {
+          "kind": "port",
+          "comp": "c_vyrlzou",
+          "port": "B"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_kjmdzwl",
+          "port": "B"
+        },
+        "medium": "hyd",
+        "points": [
+          {
+            "x": 270,
+            "y": 170
+          },
+          {
+            "x": 330,
+            "y": 170
+          }
+        ]
+      },
+      "w_go0dn7y": {
+        "id": "w_go0dn7y",
+        "a": {
+          "kind": "port",
+          "comp": "c_3pvvjuo",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_lpunwg5",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_l4czmcw": {
+        "id": "w_l4czmcw",
+        "a": {
+          "kind": "port",
+          "comp": "c_lpunwg5",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_0ydxg3r",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_d497x7e": {
+        "id": "w_d497x7e",
+        "a": {
+          "kind": "port",
+          "comp": "c_0ydxg3r",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_rokhkui",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_69k50n3": {
+        "id": "w_69k50n3",
+        "a": {
+          "kind": "port",
+          "comp": "c_rokhkui",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_zxsw2fl",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_6iizxnb": {
+        "id": "w_6iizxnb",
+        "a": {
+          "kind": "port",
+          "comp": "c_faxv9x8",
+          "port": "1"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_uqorebp",
+          "port": "3"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_bizrhbh": {
+        "id": "w_bizrhbh",
+        "a": {
+          "kind": "port",
+          "comp": "c_uqorebp",
+          "port": "4"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_4tys248",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_0o2tmfi": {
+        "id": "w_0o2tmfi",
+        "a": {
+          "kind": "port",
+          "comp": "c_4tys248",
+          "port": "2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_gu7n4cp",
+          "port": "A1"
+        },
+        "medium": "elec",
+        "points": []
+      },
+      "w_oifaxoh": {
+        "id": "w_oifaxoh",
+        "a": {
+          "kind": "port",
+          "comp": "c_gu7n4cp",
+          "port": "A2"
+        },
+        "b": {
+          "kind": "port",
+          "comp": "c_ya89lxb",
+          "port": "1"
+        },
+        "medium": "elec",
+        "points": []
+      }
+    },
+    "junctions": {
+      "j_nlibfui": {
+        "id": "j_nlibfui",
+        "x": 250,
+        "y": 330,
+        "medium": "hyd"
+      }
+    }
+  }
+}

@@ -12,6 +12,21 @@ import {
   SolenoidSymbol,
   Zero0Symbol,
 } from './electric/symbols2d';
+import {
+  AccumulatorSymbol,
+  CheckSymbol as HydCheckSymbol,
+  FilterSymbol,
+  FlowControlSymbol,
+  HydCylinderSingleSymbol,
+  HydCylinderSymbol,
+  HydMotorSymbol,
+  PilotCheckSymbol,
+  PowerUnitSymbol,
+  PumpSymbol,
+  ReliefSymbol as HydReliefSymbol,
+  TankSymbol as HydTankSymbol,
+  ThrottleSymbol as HydThrottleSymbol,
+} from './hydraulic/symbols2d';
 import { GripperSymbol, MotorSymbol, RodlessSymbol, RotarySymbol } from './pneumatic/actuators2d';
 import { CylinderDoubleSymbol, CylinderSingleSymbol } from './pneumatic/cylinder-double/Symbol2D';
 import { SilencerSymbol } from './pneumatic/exhaust/Symbol2D';
@@ -74,6 +89,21 @@ const views = new Map<string, ComponentView>([
   ['elec-counter', { Symbol2D: CounterSymbol }],
   ['elec-solenoid', { Symbol2D: SolenoidSymbol }],
   ['elec-lamp', { Symbol2D: LampSymbol }],
+  // Hidráulicos
+  ['hyd-power-unit', { Symbol2D: PowerUnitSymbol }],
+  ['hyd-pump', { Symbol2D: PumpSymbol }],
+  ['hyd-tank', { Symbol2D: HydTankSymbol }],
+  ['hyd-accumulator', { Symbol2D: AccumulatorSymbol }],
+  ['hyd-cyl-double', { Symbol2D: HydCylinderSymbol }],
+  ['hyd-cyl-single', { Symbol2D: HydCylinderSingleSymbol }],
+  ['hyd-motor', { Symbol2D: HydMotorSymbol }],
+  ['hyd-relief', { Symbol2D: HydReliefSymbol }],
+  ['hyd-filter', { Symbol2D: FilterSymbol }],
+  ['hyd-check', { Symbol2D: HydCheckSymbol }],
+  ['hyd-pilot-check', { Symbol2D: PilotCheckSymbol }],
+  ['hyd-throttle', { Symbol2D: HydThrottleSymbol }],
+  ['hyd-flow-control', { Symbol2D: FlowControlSymbol }],
+  ['hyd-gauge', { Symbol2D: GaugeSymbol }],
   ...ALL_WAY_VALVES.map(
     ({ cfg }) => [cfg.type, { Symbol2D: makeWayValveSymbol(cfg) }] as [string, ComponentView],
   ),

@@ -116,13 +116,17 @@ export class Simulation {
           addNode: (o) => net.addNode(o),
           atmosphere: net.atmosphere,
           addOrifice: (a, b, o) => {
-            const index = net.addOrifice(a, b, o.C, o.b ?? 0.3, o.name ?? `${inst.label}`);
+            const index =
+              'K' in o
+                ? net.addOrifice(a, b, o.K, 0, o.name ?? `${inst.label}`, 'oil')
+                : net.addOrifice(a, b, o.C, o.b ?? 0.3, o.name ?? `${inst.label}`);
             const ka = nodePort.get(a);
             const kb = nodePort.get(b);
             if (ka) this.taps.push({ key: ka, orifice: index, sign: 1 });
             if (kb) this.taps.push({ key: kb, orifice: index, sign: -1 });
             return index;
           },
+          addSource: (a, b) => net.addSource(a, b, inst.label),
           addBaseVolume: (n, v) => {
             net.nodes[n].baseVolume += v;
           },
@@ -153,6 +157,11 @@ export class Simulation {
         net.nodes[n].dynVolume += v;
       },
       massFlow: (o) => net.orifices[o].mdot,
+      setSource: (i, mdot) => {
+        net.sources[i].mdot = mdot;
+      },
+      dpdV: (n) => net.dpdV(n),
+      storedOil: (n) => net.storedOil(n),
       signal: (name) => this.signals.get(name) ?? 0,
       setSignal: (name, v) => {
         this.nextSignals.set(name, typeof v === 'boolean' ? (v ? 1 : 0) : v);

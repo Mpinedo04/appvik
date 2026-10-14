@@ -3,7 +3,17 @@ import { registerAllModels } from '../components/models';
 import { validate } from '../core/model/edit';
 import { Simulation } from '../core/sim/engine';
 import { phaseDiagram, Recorder } from '../core/sim/recorder';
-import { cycleABAB, cycleABBA, EXAMPLE_DEFS, latchStartStop, timedReturn } from './builders';
+import {
+  cycleABAB,
+  cycleABBA,
+  EXAMPLE_DEFS,
+  hydElectro,
+  hydLoadHolding,
+  hydPress,
+  hydSpeed,
+  latchStartStop,
+  timedReturn,
+} from './builders';
 
 beforeAll(registerAllModels);
 
@@ -141,5 +151,73 @@ describe('ejemplos', () => {
     }
     expect(tBack - tOut).toBeGreaterThan(1.9);
     expect(tBack - tOut).toBeLessThan(2.1);
+  });
+
+  const comp = (c: ReturnType<typeof hydPress>, label: string) =>
+    Object.values(c.components).find((x) => x.label === label)!.id;
+  const byType = (c: ReturnType<typeof hydPress>, type: string) =>
+    Object.values(c.components).find((x) => x.type === type)!.id;
+
+  it('11 prensa hidráulica: en el tope la presión llega al tarado (±3 %)', () => {
+    const c = hydPress();
+    const sim = new Simulation(c);
+    sim.advance(0.3);
+    expect(sim.state(byType(c, 'hyd-power-unit')).pBar).toBeLessThan(3);
+    const valve = byType(c, 'hyd-valve-43-tandem');
+    sim.userAction(valve, 'press', 'left');
+    sim.userAction(valve, 'release');
+    sim.advance(4);
+    expect(sim.state(comp(c, '1A')).pos).toBeGreaterThan(0.999);
+    const p = sim.state(byType(c, 'hyd-gauge')).bar;
+    expect(p).toBeGreaterThan(48.5);
+    expect(p).toBeLessThan(51.5);
+    expect(sim.state(byType(c, 'hyd-relief')).q).toBeGreaterThan(7);
+  });
+
+  it('12 regulación compensada: misma velocidad con 0 N y con 2000 N', () => {
+    const v = [0, 2000].map((load) => {
+      const c = hydSpeed();
+      c.components[comp(c, '1A')].params.load = load;
+      const sim = new Simulation(c);
+      const valve = byType(c, 'hyd-valve-43-closed');
+      sim.advance(0.2);
+      sim.userAction(valve, 'press', 'left');
+      sim.userAction(valve, 'release');
+      sim.advance(1.5);
+      return sim.state(comp(c, '1A')).v;
+    });
+    expect(Math.abs(v[0] - v[1]) / v[0]).toBeLessThan(0.05);
+  });
+
+  it('13 carga sostenida: con la válvula en el centro el cilindro no baja', () => {
+    const c = hydLoadHolding();
+    const sim = new Simulation(c);
+    const valve = byType(c, 'hyd-valve-43-float');
+    const cyl = comp(c, '1A');
+    sim.advance(0.2);
+    sim.userAction(valve, 'press', 'left');
+    sim.userAction(valve, 'release');
+    sim.advance(1.2);
+    sim.userAction(valve, 'press', 'left');
+    sim.userAction(valve, 'release');
+    sim.advance(0.2);
+    const pos = sim.state(cyl).pos;
+    sim.advance(3);
+    expect(Math.abs(sim.state(cyl).pos - pos)).toBeLessThan(0.01);
+  });
+
+  it('14 electrohidráulica: con S1 pulsado sale hasta 1S2 y se para solo', () => {
+    const c = hydElectro();
+    const sim = new Simulation(c);
+    const cyl = comp(c, '1A');
+    sim.advance(0.2);
+    sim.userAction(comp(c, 'S1'), 'press');
+    sim.advance(4);
+    expect(sim.state(cyl).pos).toBeGreaterThan(0.95);
+    expect(sim.state(comp(c, 'Y1')).on).toBe(false);
+    sim.userAction(comp(c, 'S1'), 'release');
+    sim.userAction(comp(c, 'S2'), 'press');
+    sim.advance(4);
+    expect(sim.state(cyl).pos).toBeLessThan(0.05);
   });
 });

@@ -11,7 +11,7 @@ import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { Params } from '../../../core/model/types';
 import { str } from '../../../core/registry';
-import { useSim } from '../../../store/sim';
+import { maxBarFor } from '../../../store/sim';
 import { setPressureColor } from '../../../view3d/colors';
 import { box, cylX, oringX, polylineTube, PolylineSampler, sphere } from '../../../view3d/geom';
 import { AXIS_Y } from '../../../view3d/layout';
@@ -203,7 +203,7 @@ export function makeWayValve3D(cfg: WayValveConfig) {
       if (spool.current) spool.current.position.x = off;
       if (!!s?.leftOn !== engaged.l || !!s?.rightOn !== engaged.r)
         setEngaged({ l: !!s?.leftOn, r: !!s?.rightOn });
-      const maxBar = useSim.getState().maxBar;
+      const maxBar = maxBarFor(cfg.medium);
       const bar = (id: string) => s?.portBar[id] ?? 0;
 
       setSpring(springL.current, L.wall, L.seat + off - L.wall);
@@ -215,16 +215,16 @@ export function makeWayValve3D(cfg: WayValveConfig) {
       };
       chamber(pilotL.current, L.wall, L.seat + off);
       chamber(pilotR.current, R.seat + off, R.wall);
-      setPressureColor(pilotMatL.color, bar(cfg.pilots.left), maxBar);
-      setPressureColor(pilotMatR.color, bar(cfg.pilots.right), maxBar);
+      setPressureColor(pilotMatL.color, bar(cfg.pilots.left), maxBar, cfg.medium);
+      setPressureColor(pilotMatR.color, bar(cfg.pilots.right), maxBar, cfg.medium);
       cfg.ports.forEach((pc, i) => {
-        setPressureColor(portMats[i].color, bar(pc.id), maxBar);
+        setPressureColor(portMats[i].color, bar(pc.id), maxBar, cfg.medium);
         chanMats[i].color.copy(portMats[i].color);
       });
       // Cada cámara anular tiene la presión de los puertos que toca en este momento.
       chamberPorts(sol, lands, off).forEach((ports, i) => {
         const b = ports.length ? Math.max(...ports.map(bar)) : 0;
-        setPressureColor(chamberMats[i].color, s ? b : 0, maxBar);
+        setPressureColor(chamberMats[i].color, s ? b : 0, maxBar, cfg.medium);
       });
 
       const im = particles.current;
@@ -237,11 +237,12 @@ export function makeWayValve3D(cfg: WayValveConfig) {
         const visible = open > 0.05 && Math.abs(flow) > 2e-6;
         const speed = Math.sign(flow) * 300 * Math.sqrt(Math.abs(flow) / 1e-3);
         phase[i] = (phase[i] + (speed * dtSim) / Math.max(1, fp.sampler.length) + 1) % 1;
-        setPressureColor(tmp.c, Math.max(bar(paths[i].from), bar(paths[i].to)), maxBar).offsetHSL(
-          0,
-          0,
-          0.18,
-        );
+        setPressureColor(
+          tmp.c,
+          Math.max(bar(paths[i].from), bar(paths[i].to)),
+          maxBar,
+          cfg.medium,
+        ).offsetHSL(0, 0, 0.18);
         for (let k = 0; k < PARTICLES_PER_PATH; k++, idx++) {
           if (!visible) tmp.m.makeScale(0, 0, 0);
           else {

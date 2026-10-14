@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { getView } from '../components/views';
-import { INK, pressureColor, wireColor } from '../components/symbols';
+import { INK, oilColor, pressureColor, wireColor } from '../components/symbols';
 import {
   addComponent,
   connect,
@@ -61,6 +61,7 @@ export function Canvas() {
   const status = useSim((s) => s.status);
   const snapshot = useSim((s) => s.snapshot);
   const maxBar = useSim((s) => s.maxBar);
+  const maxHydBar = useSim((s) => s.maxHydBar);
   const simMode = status !== 'stopped';
 
   const toWorld = (e: { clientX: number; clientY: number }): Vec2 => {
@@ -412,7 +413,9 @@ export function Canvas() {
                 ? INK
                 : elec
                   ? wireColor(snapshot.elec.connLevel[conn.id])
-                  : pressureColor(barOf(node), maxBar);
+                  : conn.medium === 'hyd'
+                    ? oilColor(barOf(node), maxHydBar)
+                    : pressureColor(barOf(node), maxBar);
               const selected = selConns.has(conn.id);
               const pts = poly.map((p) => `${p.x},${p.y}`).join(' ');
               return (
@@ -431,7 +434,17 @@ export function Canvas() {
                     points={pts}
                     fill="none"
                     stroke={color}
-                    strokeWidth={elec ? 1.3 : snapshot ? 2.2 : 1.6}
+                    strokeWidth={
+                      elec
+                        ? 1.3
+                        : conn.medium === 'hyd'
+                          ? snapshot
+                            ? 2.8
+                            : 2
+                          : snapshot
+                            ? 2.2
+                            : 1.6
+                    }
                     strokeLinejoin="round"
                   />
                   {!simMode &&
@@ -458,7 +471,9 @@ export function Canvas() {
                 ? INK
                 : j.medium === 'elec'
                   ? wireColor(snapshot.elec.junctionLevel[j.id])
-                  : pressureColor(barOf(snapshot.junctionNode[j.id]), maxBar);
+                  : j.medium === 'hyd'
+                    ? oilColor(barOf(snapshot.junctionNode[j.id]), maxHydBar)
+                    : pressureColor(barOf(snapshot.junctionNode[j.id]), maxBar);
               return (
                 <g key={j.id}>
                   {selJunctions.has(j.id) && (
@@ -486,6 +501,7 @@ export function Canvas() {
               const bb = m.bbox(params);
               const wb = worldBBox(c);
               const interactive = simMode && m.interactive?.(params);
+              const hyd = m.ports(params).some((p) => p.medium === 'hyd');
               return (
                 <g key={c.id}>
                   <g
@@ -503,7 +519,12 @@ export function Canvas() {
                       fill="transparent"
                       className="no-export"
                     />
-                    <View params={params} state={snapshot?.comp[c.id]} maxBar={maxBar} />
+                    <View
+                      params={params}
+                      state={snapshot?.comp[c.id]}
+                      maxBar={hyd ? maxHydBar : maxBar}
+                      medium={hyd ? 'hyd' : 'pneu'}
+                    />
                   </g>
                   {selComps.has(c.id) && (
                     <rect

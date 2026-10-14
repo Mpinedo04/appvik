@@ -17,6 +17,8 @@ export interface Model3DProps {
   params: import('../core/model/types').Params;
   compId: string;
   mode: Render3D;
+  /** Fluido del componente (escala de colores de presión). */
+  medium?: 'pneu' | 'hyd';
 }
 
 /** Carcasa: le afectan los modos rayos X y corte. */
