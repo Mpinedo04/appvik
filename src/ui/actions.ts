@@ -1,6 +1,7 @@
 /** Acciones de la aplicación compartidas por la barra de herramientas y los atajos de teclado. */
 import { canvasApi } from '../editor/canvasApi';
 import {
+  addComponent,
   extractSubcircuit,
   flipItems,
   pasteSubcircuit,
@@ -11,7 +12,14 @@ import { renumber } from '../core/model/labels';
 import type { Circuit, Project } from '../core/model/types';
 import { parseProject, toProject, useProject } from '../store/project';
 import { useSim } from '../store/sim';
-import { openTextFile, saveFile as saveFileTo, type FileKind } from '../platform/files';
+import {
+  openBinaryFile,
+  openTextFile,
+  saveFile as saveFileTo,
+  type FileKind,
+} from '../platform/files';
+import { useView } from '../store/view';
+import { sceneApi } from '../view3d/sceneApi';
 
 const P = () => useProject.getState();
 const editing = () => useSim.getState().status === 'stopped';
@@ -181,6 +189,113 @@ export async function exportPng() {
   }, 'image/png');
 }
 
+// ---------- Intercambio con CAD (SolidWorks y otros) ----------
+
+const CAD_FILE = {
+  label: 'Pieza CAD (STEP, IGES, STL, OBJ, 3MF, VRML, glTF, PLY)',
+  exts: ['step', 'stp', 'iges', 'igs', 'stl', 'obj', '3mf', 'wrl', 'glb', 'gltf', 'ply'],
+};
+
+/** Importa una pieza o conjunto de CAD y la coloca en el centro del esquema. */
+export async function importCadPart() {
+  if (!editing()) return;
+  try {
+    const f = await openBinaryFile(CAD_FILE);
+    if (!f) return;
+    const { importCad, extOf } = await import('../cad/import');
+    const { encodeMesh, extents } = await import('../cad/mesh');
+    const step = ['step', 'stp', 'iges', 'igs'].includes(extOf(f.name));
+    P().notify(
+      step
+        ? `Leyendo «${f.name}» con OpenCascade… (la primera vez descarga el lector, unos 8 MB)`
+        : `Leyendo «${f.name}»…`,
+    );
+    const r = await importCad(f.name, f.bytes);
+    const e = extents(r.mesh);
+    const mesh = await encodeMesh(r.mesh);
+    const c = canvasApi.centerWorld();
+    let id = '';
+    P().commit((d) => {
+      id = addComponent(d as Circuit, 'cad-part', c.x, c.y, {
+        file: f.name,
+        mesh,
+        ext: [...e.min, ...e.max].map((v) => Math.round(v * 1e4) / 1e4).join(','),
+        tris: r.triangles,
+        unit: r.unit,
+      });
+    });
+    P().select({ comps: [id] });
+    if (useView.getState().layout === '2d') useView.getState().setLayout('split');
+    const unitNote = r.unitKnown
+      ? ''
+      : ` Unidades estimadas: ${r.unit}; si no cuadra el tamaño, cámbialas en Propiedades.`;
+    P().notify(
+      `Importada «${f.name}» (${r.triangles.toLocaleString('es-ES')} triángulos).${unitNote}`,
+    );
+  } catch (err) {
+    P().notify(`No se pudo importar: ${(err as Error).message}`);
+  }
+}
+
+/** Esquema 2D a DXF (para abrirlo en SolidWorks como dibujo o boceto). */
+export async function exportDxf() {
+  if (!Object.keys(P().circuit.components).length) return;
+  try {
+    const { circuitToDxf } = await import('../cad/dxfCircuit');
+    const ok = await saveFileTo(`${fileBase()}.dxf`, circuitToDxf(P().circuit), {
+      label: 'Dibujo DXF',
+      ext: 'dxf',
+      mime: 'image/vnd.dxf',
+    });
+    if (ok) P().notify('Esquema exportado a DXF (escala 1 unidad = 0,5 mm; ábrelo en milímetros).');
+  } catch (e) {
+    P().notify(`No se pudo exportar: ${(e as Error).message}`);
+  }
+}
+
+/** Espera a que la vista 3D esté montada (la abre en vista dividida si hace falta). */
+async function sceneRoot() {
+  if (useView.getState().sheet !== 'circuit') useView.getState().setSheet('circuit');
+  if (useView.getState().layout === '2d') useView.getState().setLayout('split');
+  for (let i = 0; i < 100 && !sceneApi.root(); i++) await new Promise((r) => setTimeout(r, 100));
+  const root = sceneApi.root();
+  // Unos fotogramas más para que terminen de cargarse las piezas CAD.
+  if (root) await new Promise((r) => setTimeout(r, 600));
+  return root;
+}
+
+/** Modelo 3D (todo o sólo lo seleccionado) a STL o 3MF, en milímetros con Y arriba. */
+export async function exportCad3d(format: 'stl' | '3mf') {
+  if (!Object.keys(P().circuit.components).length) return;
+  try {
+    P().notify('Preparando el modelo 3D…');
+    const root = await sceneRoot();
+    if (!root) throw new Error('la vista 3D no se ha podido abrir.');
+    const { collectScene, exportTriangles, to3mf, toStl } = await import('../cad/export3d');
+    const sel = new Set(P().selection.comps);
+    const parts = collectScene(root, (id) => (sel.size ? !!id && sel.has(id) : true));
+    if (!parts.length) throw new Error('no hay nada que exportar.');
+    const tris = exportTriangles(parts);
+    const bytes = format === 'stl' ? toStl(parts, P().name) : to3mf(parts, P().name);
+    const ok = await saveFileTo(
+      `${fileBase()}.${format}`,
+      bytes,
+      format === 'stl'
+        ? { label: 'Malla STL', ext: 'stl', mime: 'model/stl' }
+        : { label: 'Modelo 3MF', ext: '3mf', mime: 'model/3mf' },
+    );
+    if (ok)
+      P().notify(
+        `${sel.size ? 'Selección exportada' : 'Modelo exportado'} (${tris.toLocaleString('es-ES')} triángulos, mm).` +
+          (tris > 500000
+            ? ' SolidWorks sólo lo abrirá como «cuerpo gráfico» (más de 500 000 triángulos).'
+            : ''),
+      );
+  } catch (e) {
+    P().notify(`No se pudo exportar: ${(e as Error).message}`);
+  }
+}
+
 // ---------- Autoguardado ----------
 const AUTOSAVE_KEY = 'fluidlab3d.autosave';
 
@@ -197,14 +312,21 @@ export function restoreAutosave(): boolean {
 
 export function startAutosave() {
   let timer = 0;
+  let warned = false;
   return useProject.subscribe((s, prev) => {
     if (s.circuit === prev.circuit && s.name === prev.name) return;
     clearTimeout(timer);
     timer = window.setTimeout(() => {
       try {
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(toProject()));
+        warned = false;
       } catch {
-        /* almacenamiento no disponible: se ignora */
+        // Almacenamiento no disponible o lleno (piezas CAD muy grandes): se avisa una vez.
+        if (!warned && Object.values(s.circuit.components).some((c) => c.type === 'cad-part'))
+          P().notify(
+            'El proyecto no cabe en el autoguardado del navegador (piezas CAD grandes): guárdalo con Ctrl+S.',
+          );
+        warned = true;
       }
     }, 500);
   });

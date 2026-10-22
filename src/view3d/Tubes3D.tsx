@@ -107,7 +107,7 @@ export function Tubes3D({ circuit }: { circuit: Circuit }) {
   });
 
   return (
-    <group>
+    <group userData={{ exportName: 'Tuberías' }}>
       {tubes.map((t) => (
         <mesh key={t.id} geometry={t.geom} material={t.mat} />
       ))}
@@ -127,6 +127,7 @@ export function Tubes3D({ circuit }: { circuit: Circuit }) {
           key={total}
           ref={particles}
           args={[sphere(1.5), partMat('white'), total]}
+          userData={{ noExport: true }}
           frustumCulled={false}
         />
       )}

@@ -19,6 +19,7 @@ interface TauriGlobal {
     writeTextFile(path: string, text: string): Promise<void>;
     writeFile(path: string, data: Uint8Array): Promise<void>;
     readTextFile(path: string): Promise<string>;
+    readFile(path: string): Promise<Uint8Array>;
   };
 }
 
@@ -81,6 +82,37 @@ export async function openTextFile(kind: FileKind): Promise<{ name: string; text
     input.onchange = async () => {
       const f = input.files?.[0];
       resolve(f ? { name: f.name, text: await f.text() } : null);
+    };
+    input.click();
+  });
+}
+
+/** Pide un archivo binario de alguno de los tipos dados (p. ej. piezas CAD). null si cancela. */
+export async function openBinaryFile(kind: {
+  label: string;
+  exts: string[];
+}): Promise<{ name: string; bytes: Uint8Array } | null> {
+  const t = tauri();
+  if (t?.dialog) {
+    const path = await t.dialog.open({
+      multiple: false,
+      filters: [
+        { name: kind.label, extensions: [...kind.exts, ...kind.exts.map((e) => e.toUpperCase())] },
+      ],
+    });
+    if (!path || Array.isArray(path)) return null;
+    return {
+      name: path.split(/[\\/]/).pop() ?? path,
+      bytes: new Uint8Array(await t.fs.readFile(path)),
+    };
+  }
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = kind.exts.map((e) => `.${e}`).join(',');
+    input.onchange = async () => {
+      const f = input.files?.[0];
+      resolve(f ? { name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) } : null);
     };
     input.click();
   });

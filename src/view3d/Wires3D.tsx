@@ -56,7 +56,7 @@ export function Wires3D({ circuit }: { circuit: Circuit }) {
   });
 
   return (
-    <group>
+    <group userData={{ exportName: 'Cables' }}>
       {wires.map((w) => (
         <mesh key={w.id} geometry={w.geom} material={w.mat} />
       ))}

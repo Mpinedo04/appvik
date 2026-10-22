@@ -80,6 +80,7 @@ export default function Scene3D() {
   const layout = useView((s) => s.layout);
   const cutOffset = useView((s) => s.cutOffset);
   const controls = useRef<CameraControls>(null);
+  const root = useRef<THREE.Group>(null);
   const bounds = useMemo(() => circuitBounds(circuit), [circuit]);
   const boundsRef = useRef(bounds);
   boundsRef.current = bounds;
@@ -112,6 +113,13 @@ export default function Scene3D() {
     ).getBoundingSphere(new THREE.Sphere());
     void cc.fitToSphere(sphere, true);
   };
+
+  useEffect(() => {
+    sceneApi.root = () => root.current;
+    return () => {
+      sceneApi.root = () => null;
+    };
+  }, []);
 
   // Encuadre inicial (y al cargar otro proyecto).
   const nComp = Object.keys(circuit.components).length;
@@ -170,7 +178,7 @@ export default function Scene3D() {
           minDistance={0.3}
           maxDistance={40}
         />
-        <group scale={S}>
+        <group ref={root} scale={S}>
           <Board bounds={bounds} />
           <Tubes3D circuit={circuit} />
           <Wires3D circuit={circuit} />

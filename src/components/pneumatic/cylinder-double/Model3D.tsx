@@ -6,6 +6,7 @@ import { setPressureColor } from '../../../view3d/colors';
 import { box, cylX, oringX, pipeX } from '../../../view3d/geom';
 import { AXIS_Y } from '../../../view3d/layout';
 import { partMat, tintMat } from '../../../view3d/materials';
+import { useAnchor } from '../../../view3d/anchors';
 import { useLiveState } from '../../../view3d/useLive';
 import { Fitting, Part, Shell, Spring, setSpring, type Model3DProps } from '../../parts3d';
 import { parseMarks, type CylState } from '../cylinder-core';
@@ -36,6 +37,7 @@ export function CylinderRod3D({
   medium,
 }: Model3DProps & { single?: boolean; noSpring?: boolean }) {
   const piston = useRef<THREE.Group>(null);
+  useAnchor(compId, piston);
   const capCh = useRef<THREE.Mesh>(null);
   const rodCh = useRef<THREE.Mesh>(null);
   const spring = useRef<THREE.InstancedMesh>(null);

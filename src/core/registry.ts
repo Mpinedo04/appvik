@@ -26,7 +26,9 @@ export type CategoryId =
   | 'electric-sensors'
   | 'hydraulic'
   | 'hyd-valves'
-  | 'control';
+  | 'control'
+  /** Piezas CAD importadas (no salen en la biblioteca: se añaden con «CAD › Importar»). */
+  | 'cad';
 
 export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'supply', name: 'Alimentación' },
@@ -186,6 +188,8 @@ export interface ComponentModel<S = any, H = any> {
   sharedLabel?: boolean;
   /** No dibujar la etiqueta (el símbolo ya lleva su texto, p. ej. +24 V). */
   hideLabel?: boolean;
+  /** Datos de sólo lectura para el panel de propiedades. */
+  info?(p: Params): string[];
 }
 
 const models = new Map<string, ComponentModel>();

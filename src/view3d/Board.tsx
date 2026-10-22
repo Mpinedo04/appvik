@@ -39,6 +39,7 @@ export function Board({ bounds }: { bounds: BBox }) {
         position={[(bounds.x0 + bounds.x1) / 2, -3, (bounds.y0 + bounds.y1) / 2]}
         material={mat}
         receiveShadow
+        userData={{ noExport: true }}
       >
         <boxGeometry args={[w, 6, d]} />
       </mesh>

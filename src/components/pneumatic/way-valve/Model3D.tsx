@@ -370,6 +370,7 @@ export function makeWayValve3D(cfg: WayValveConfig) {
         <instancedMesh
           ref={particles}
           args={[sphere(1.2), partMat('white'), Math.max(1, paths.length * PARTICLES_PER_PATH)]}
+          userData={{ noExport: true }}
           frustumCulled={false}
         />
 

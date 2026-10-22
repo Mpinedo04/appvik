@@ -44,6 +44,7 @@ export function CircuitDrawing({ circuit, labels = true }: { circuit: Circuit; l
             .join(' ')}
           fill="none"
           stroke={INK}
+          data-layer={conn.medium === 'elec' ? 'CABLES' : 'TUBERIAS'}
           strokeWidth={conn.medium === 'hyd' ? 2 : conn.medium === 'elec' ? 1.2 : 1.6}
           strokeLinejoin="round"
         />

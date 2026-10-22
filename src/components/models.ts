@@ -1,5 +1,6 @@
 /** Registro de la parte lógica de todos los componentes. Importar una vez al arrancar. */
 import { registerModel } from '../core/registry';
+import { cadPartModel } from './cad/model';
 import { plcModel } from './control/plc';
 import { ELECTRIC_MODELS } from './electric/models';
 import { HYDRAULIC_MODELS, hydGaugeModel } from './hydraulic/models';
@@ -88,6 +89,8 @@ export function registerAllModels() {
   registerModel(hydGaugeModel);
   // Autómata programable
   registerModel(plcModel);
+  // Piezas CAD importadas
+  registerModel(cadPartModel);
   // Alimentación
   registerModel(supplyModel);
   registerModel(compressorModel);

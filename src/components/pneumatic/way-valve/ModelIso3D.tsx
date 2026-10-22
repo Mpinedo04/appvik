@@ -212,6 +212,7 @@ export function makeWayValveIso3D(cfg: WayValveConfig) {
           ))}
           <instancedMesh
             ref={particles}
+            userData={{ noExport: true }}
             args={[
               sphere(1.3),
               partMat('white'),

@@ -87,6 +87,7 @@ export function sectionMat(): THREE.Material {
       side: THREE.BackSide,
       clippingPlanes: [CUT_PLANE],
     });
+    m.userData.noExport = true;
     cache.set('section', m);
   }
   return m;
@@ -104,7 +105,7 @@ export function edgeMat(): THREE.LineBasicMaterial {
 
 /** Material propio (no compartido) para piezas cuyo color cambia con la presión. */
 export function tintMat(opacity = 0.42): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({
+  const m = new THREE.MeshStandardMaterial({
     color: '#2f6fde',
     transparent: opacity < 1,
     opacity,
@@ -112,6 +113,9 @@ export function tintMat(opacity = 0.42): THREE.MeshStandardMaterial {
     roughness: 0.4,
     metalness: 0,
   });
+  // Aire o aceite: no se exporta a CAD.
+  m.userData.fluid = true;
+  return m;
 }
 
 /** Bobina de cobre; al energizarse brilla (emisiva). */

@@ -177,6 +177,11 @@ function CircuitProperties() {
         <div className="props-body">
           <h2>{m.name}</h2>
           <p className="desc">{m.description}</p>
+          {m.info?.(params).map((l, i) => (
+            <p className="desc" key={i}>
+              {l}
+            </p>
+          ))}
           <Render3DSelect id={single.id} />
           <label className="field">
             <span>Etiqueta</span>

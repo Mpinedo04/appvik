@@ -73,7 +73,7 @@ export function ComponentNode({
       onPointerOut={() => {
         document.body.style.cursor = '';
       }}
-      userData={{ compId: c.id }}
+      userData={{ compId: c.id, exportName: c.label }}
     >
       {Model ? (
         <Model

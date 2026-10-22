@@ -1,13 +1,16 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { canvasApi } from '../editor/canvasApi';
 import { useProject } from '../store/project';
 import { SPEEDS, useSim } from '../store/sim';
 import { useView, type Layout, type Sheet } from '../store/view';
 import {
   deleteSelection,
+  exportCad3d,
+  exportDxf,
   exportPdf,
   exportPng,
   flipSelection,
+  importCadPart,
   newProject,
   openFile,
   renumberAll,
@@ -122,6 +125,7 @@ export function Toolbar() {
           onClick={exportPdf}
           testId="export-pdf"
         />
+        <CadMenu disabled={!editing} />
         <button
           className="tb-select"
           onClick={() => useView.getState().setGallery(true)}
@@ -265,6 +269,75 @@ function ViewSwitch() {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Intercambio con SolidWorks y otros programas de CAD. */
+function CadMenu({ disabled }: { disabled: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [open]);
+  const item = (label: string, hint: string, run: () => void, testId: string) => (
+    <button
+      role="menuitem"
+      data-testid={testId}
+      onClick={() => {
+        setOpen(false);
+        run();
+      }}
+    >
+      <b>{label}</b>
+      <small>{hint}</small>
+    </button>
+  );
+  return (
+    <div className="tb-menu" ref={ref}>
+      <button
+        className="tb-select"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        title="Importar y exportar para SolidWorks y otros CAD"
+        data-testid="cad-menu"
+      >
+        CAD ▾
+      </button>
+      {open && (
+        <div className="tb-menu-list" role="menu">
+          {!disabled &&
+            item(
+              'Importar pieza 3D…',
+              'STEP, IGES, STL, OBJ, 3MF, VRML, glTF o PLY',
+              importCadPart,
+              'cad-import',
+            )}
+          {item(
+            'Exportar esquema a DXF',
+            'Para un dibujo o boceto de SolidWorks',
+            exportDxf,
+            'cad-export-dxf',
+          )}
+          {item(
+            'Exportar modelo 3D a STL',
+            'Una sola malla en mm (lo seleccionado o todo)',
+            () => exportCad3d('stl'),
+            'cad-export-stl',
+          )}
+          {item(
+            'Exportar modelo 3D a 3MF',
+            'Un cuerpo por componente, con colores',
+            () => exportCad3d('3mf'),
+            'cad-export-3mf',
+          )}
+        </div>
+      )}
     </div>
   );
 }

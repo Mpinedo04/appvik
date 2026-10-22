@@ -2,6 +2,7 @@
 import { createElement } from 'react';
 import { getModel, resolveParams } from '../core/registry';
 import { ALL_WAY_VALVES } from './models';
+import { CadPartSymbol } from './cad/Symbol2D';
 import { PlcSymbol } from './control/Symbol2D';
 import {
   CounterSymbol,
@@ -91,6 +92,7 @@ const views = new Map<string, ComponentView>([
   ['elec-solenoid', { Symbol2D: SolenoidSymbol }],
   ['elec-lamp', { Symbol2D: LampSymbol }],
   ['ctrl-plc', { Symbol2D: PlcSymbol }],
+  ['cad-part', { Symbol2D: CadPartSymbol }],
   // Hidráulicos
   ['hyd-power-unit', { Symbol2D: PowerUnitSymbol }],
   ['hyd-pump', { Symbol2D: PumpSymbol }],

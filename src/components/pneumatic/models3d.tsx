@@ -10,6 +10,7 @@ import { setPressureColor } from '../../view3d/colors';
 import { box, cylX, cylY, cylZ, pipeX, sphere } from '../../view3d/geom';
 import { AXIS_Y } from '../../view3d/layout';
 import { tintMat } from '../../view3d/materials';
+import { useAnchor } from '../../view3d/anchors';
 import { useLiveState } from '../../view3d/useLive';
 import { Fitting, Part, Shell, Spring, setSpring, type Model3DProps } from '../parts3d';
 import { TIMER_CFG, TIMER_SIGNAL_X } from './timer/model';
@@ -376,6 +377,7 @@ export function Compressor3D({ compId, mode }: Model3DProps) {
 // ------------------------------------------------------------------ Cilindro sin vástago
 export function Rodless3D({ compId, mode, params }: Model3DProps) {
   const carriage = useRef<THREE.Group>(null);
+  useAnchor(compId, carriage);
   const a = useTint(0.45);
   const b = useTint(0.45);
   const chA = useRef<THREE.Mesh>(null);
@@ -421,6 +423,7 @@ export function Rodless3D({ compId, mode, params }: Model3DProps) {
 // ------------------------------------------------------------------ Actuador de giro
 export function Rotary3D({ compId, mode, params }: Model3DProps) {
   const flag = useRef<THREE.Group>(null);
+  useAnchor(compId, flag);
   const rack = useRef<THREE.Mesh>(null);
   const range = (num(params, 'angle') * Math.PI) / 180;
   useLiveState(compId, (s: { pos: number } | undefined) => {
@@ -453,6 +456,7 @@ export function Rotary3D({ compId, mode, params }: Model3DProps) {
 // ------------------------------------------------------------------ Pinza
 export function Gripper3D({ compId, mode }: Model3DProps) {
   const left = useRef<THREE.Mesh>(null);
+  useAnchor(compId, left);
   const right = useRef<THREE.Mesh>(null);
   useLiveState(compId, (s: { pos: number } | undefined) => {
     const gap = 4 + 10 * (1 - (s?.pos ?? 0));
@@ -475,6 +479,7 @@ export function Gripper3D({ compId, mode }: Model3DProps) {
 // ------------------------------------------------------------------ Motor neumático
 export function Motor3D({ compId, mode }: Model3DProps) {
   const rotor = useRef<THREE.Group>(null);
+  useAnchor(compId, rotor);
   useLiveState(compId, (s: { angle: number } | undefined) => {
     if (rotor.current) rotor.current.rotation.y = -(s?.angle ?? 0);
   });

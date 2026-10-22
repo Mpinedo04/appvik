@@ -48,6 +48,18 @@ npm run dev          # abre http://localhost:5173
 - **Exportar:** imagen PNG del esquema o **PDF** (botón PDF): esquema en vectorial con cajetín, GRAFCET y esquema de contactos si los hay, y lista de componentes con sus parámetros.
 - Los proyectos se guardan como `.fluidlab.json`; además hay autoguardado en el navegador.
 
+### Intercambio con SolidWorks y otros CAD (menú **CAD** de la barra)
+
+Los archivos propios de SolidWorks (`.sldprt`, `.sldasm`, `.slddrw`) son cerrados y ningún programa ajeno los lee: el intercambio se hace con formatos neutros.
+
+| Sentido | Cómo | Formato recomendado |
+| --- | --- | --- |
+| SolidWorks → FluidLab | En SolidWorks: *Archivo › Guardar como* **STEP AP214** (`.step`). En FluidLab: *CAD › Importar pieza 3D…* | STEP (sólido exacto, con colores y unidades). También valen IGES, STL, OBJ, 3MF, VRML, glTF/GLB y PLY |
+| FluidLab → SolidWorks (3D) | *CAD › Exportar modelo 3D a 3MF* (un cuerpo por componente, con colores) o *a STL* (una sola malla). Exporta lo seleccionado o, si no hay nada seleccionado, todo | 3MF o STL, en milímetros y con Y hacia arriba como SolidWorks. En SolidWorks: *Archivo › Abrir*, tipo *Mesh/3MF*; en *Opciones* elige importar como *cuerpo gráfico* (ligero) o *cuerpo sólido* (hasta 500 000 triángulos) |
+| FluidLab → SolidWorks (2D) | *CAD › Exportar esquema a DXF* | DXF R12 a escala 1 unidad = 0,5 mm (un esquema normal cabe en un A3). En SolidWorks: *Archivo › Abrir* el `.dxf` como dibujo nuevo o *Insertar › Boceto DXF/DWG*, en **milímetros** |
+
+La pieza importada aparece en el esquema como su huella (rectángulo discontinuo) y en la vista 3D con su forma y colores. En sus propiedades se ajustan las unidades (STL y OBJ no las guardan: se estiman por el tamaño), la escala, qué eje es el vertical (Y en SolidWorks, Z en Fusion 360 o FreeCAD), el giro, la altura y la opacidad. Si en **Unida al actuador** se escribe la etiqueta de un cilindro, carro, actuador giratorio o motor (p. ej. `1A`), la pieza se mueve con su vástago, carro o eje al simular: así se ve el útil, la pinza o la compuerta del diseño de SolidWorks movida por el circuito. La malla va dentro del archivo del proyecto (comprimida). STEP e IGES se triangulan con [OpenCascade](https://dev.opencascade.org/) mediante [occt-import-js](https://github.com/kovacsv/occt-import-js) (LGPL-2.1), que se descarga aparte (unos 8 MB) sólo la primera vez que se importa uno.
+
 ## Componentes
 
 | Grupo | Componentes |
@@ -108,3 +120,4 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 - [x] **Fase 3:** biblioteca neumática completa (tabla de arriba) con símbolo 2D, modelo 3D, explicación y test de cada componente; finales de carrera vinculados a marcas del cilindro; etiquetado automático; diagramas espacio-tiempo y espacio-fase (PNG/CSV); 7 ejemplos, entre ellos el ciclo A+ B+ B− A−.
 - [x] **Fase 4:** electroneumática: red eléctrica de 24 V acoplada al motor neumático, 15 componentes eléctricos (pulsadores, interruptor, seta, lámpara, relés normal y temporizado, contactos, contador, bobina de electroválvula, finales de carrera, sensores de proximidad, presostato) con símbolo IEC, modelo 3D (bobinas que brillan, contactos y armaduras que se mueven) y explicación; electroimanes en todas las válvulas de vías; cables coloreados en 2D y 3D; ejemplos `08`–`10`. Además, las válvulas 3D muestran su **corredera real**.
 - [x] **Fase 5:** hidráulica (13 componentes, válvulas 4/2 y 4/3, ejemplos `11`–`14`: la prensa sube exactamente hasta el tarado de la limitadora); GRAFCET (editor, reglas de evolución, divergencias O/Y, acciones N/S/R/D/L y contadores) y PLC programable con GRAFCET o contactos (ejemplos `15`–`17`); galería de 17 ejemplos; exportación a PDF; aplicación de escritorio para Windows con Tauri, compilada en GitHub Actions.
+- [x] **Intercambio con CAD:** importación de piezas y conjuntos STEP, IGES, STL, OBJ, 3MF, VRML, glTF y PLY (unibles a un actuador para que se muevan con él) y exportación del modelo 3D a STL/3MF y del esquema a DXF para SolidWorks.

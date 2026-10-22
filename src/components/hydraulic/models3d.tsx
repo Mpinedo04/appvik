@@ -10,6 +10,7 @@ import { setPressureColor } from '../../view3d/colors';
 import { box, cylX, cylY, sphere } from '../../view3d/geom';
 import { AXIS_Y } from '../../view3d/layout';
 import { coilMat, tintMat } from '../../view3d/materials';
+import { useAnchor } from '../../view3d/anchors';
 import { useLiveState } from '../../view3d/useLive';
 import { Fitting, Part, Shell, Spring, setSpring, type Model3DProps } from '../parts3d';
 import { CylinderRod3D } from '../pneumatic/cylinder-double/Model3D';
@@ -329,6 +330,7 @@ const partGas = () =>
 
 export function HydMotor3D({ compId, mode }: Model3DProps) {
   const shaft = useRef<THREE.Group>(null);
+  useAnchor(compId, shaft);
   useLiveState<{ angle: number }>(compId, (s) => {
     if (shaft.current) shaft.current.rotation.x = s?.angle ?? 0;
   });
