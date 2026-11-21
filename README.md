@@ -33,8 +33,13 @@ npm run dev          # abre http://localhost:5173
 ## Uso rápido
 
 - **Añadir componentes:** arrástralos desde la biblioteca (o doble clic).
+- **Configurar componentes:** haz **doble clic** sobre cualquier componente en el lienzo 2D (o pulsa *⚙ Configurar componente…* en el panel derecho) para abrir el configurador avanzado con **vista previa ISO 1219 en vivo**, rotación (`0°/90°/180°/270°`), espejo **horizontal y vertical**, etiqueta, descripción y vista 3D:
+  - **Válvulas de vías (neumáticas e hidráulicas):** accionamiento izquierdo y derecho (muelle, muelle neumático, manual, mecánico con rodillo/abatible, pilotaje y electroimán/servopilotado), cambio rápido de cuerpo (`3/2 NC ↔ NA`, `5/2 ↔ 5/3`, `4/2 ↔ 4/3`), edición libre **casilla por casilla (hasta 4 posiciones)**, válvula **reversible**, posición inicial, **señal dominante** (izquierda / ninguna / derecha), caudal nominal y **terminaciones de escape ISO 1219** (abierto, silenciador, escape roscado o tapón ciego).
+  - **Cilindros y actuadores:** indicadores calculados en vivo (fuerzas de avance/retroceso y volumen por carrera), **inclinación (`−90°` a `+90°`)**, **regla de distancia visual** para marcas de final de carrera y editor gráfico de **perfil de fuerza variable (`mm → N`)**.
+  - **Hidráulica, auxiliares y eléctrica:** parámetros técnicos con deslizadores e indicadores calculados (potencia hidráulica, par motor, etc.).
 - **Conectar:** arrastra desde un puerto ○ hasta otro. Si sueltas sobre una tubería se crea una derivación en T.
-- **Editar tuberías:** arrastra un tramo intermedio para desplazarlo.
+- **Editar tuberías:** arrastra un tramo intermedio para desplazarlo; al seleccionar una tubería puedes alternar su **estilo ISO 1219** entre línea de **trabajo (continua)** y **pilotaje (discontinua)**.
+- **Anotaciones:** añade **textos libres / notas** y **cajetines técnicos** desde la categoría *Anotaciones y texto*.
 - **Atajos:** `R` girar · `F` reflejar · `Supr` borrar · `Ctrl+Z / Ctrl+Y` deshacer/rehacer · `Ctrl+C / Ctrl+V` copiar/pegar · `Ctrl+A` seleccionar todo · `Ctrl+S` guardar · `F9` iniciar/pausar · `Esc` parar.
 - **Vista:** rueda = zoom; botón central o `Espacio` + arrastrar = desplazar.
 - **Vistas 2D / 3D:** el selector `2D · 2D | 3D · 3D` de la barra superior. El esquema 2D sirve para diseñar; la vista 3D, generada automáticamente a partir del esquema, sirve para ver por dentro cómo funciona cada pieza. En 3D: arrastrar = girar, rueda = zoom, botón derecho = desplazar, doble clic = enfocar un componente. Los modos **Normal**, **Rayos X** y **Corte** (con altura del plano ajustable) se eligen arriba a la izquierda y también por componente en el panel de propiedades. Las válvulas se accionan también haciendo clic en 3D. Las válvulas de vías se ven por defecto con su **corredera real** (cuerpo con taladro y ranuras, corredera con resaltes y juntas, cámaras anulares que se tiñen según la presión); el botón **Esquema ISO** las muestra como cámaras que se desplazan igual que las casillas del símbolo.
@@ -46,6 +51,7 @@ npm run dev          # abre http://localhost:5173
 - **Renumerar:** botón 🏷 de la barra: etiqueta la parte neumática según la norma (`1A`, `1V1`, `1S1`, `0Z1`…). Las etiquetas de los componentes eléctricos no se tocan, porque son sus enlaces.
 - **Ejemplos:** botón *Ejemplos…* de la barra: galería con 17 circuitos explicados, agrupados en neumática, electroneumática, hidráulica y GRAFCET/PLC.
 - **Exportar:** imagen PNG del esquema o **PDF** (botón PDF): esquema en vectorial con cajetín, GRAFCET y esquema de contactos si los hay, y lista de componentes con sus parámetros.
+- **Importar desde FluidSIM (`.ct`):** el botón **Abrir…** acepta tanto proyectos `.fluidlab.json` como archivos binarios `.ct` de FluidSIM 4.x (neumática, hidráulica y esquemas eléctricos de 24 V), conservando etiquetas, marcas de cilindro, textos libres, silenciadores, estilo continuo/discontinuo de tuberías y trazado ortogonal en L.
 - Los proyectos se guardan como `.fluidlab.json`; además hay autoguardado en el navegador.
 
 ### Intercambio con SolidWorks y otros CAD (menú **CAD** de la barra)
@@ -65,8 +71,8 @@ La pieza importada aparece en el esquema como su huella (rectángulo discontinuo
 | Grupo | Componentes |
 | --- | --- |
 | Alimentación | Fuente de aire, compresor con depósito y presostato, unidad de mantenimiento (FRL), depósito, silenciador |
-| Actuadores | Cilindro de simple efecto (muelle), de doble efecto (amortiguación regulable), sin vástago, actuador de giro, motor neumático, pinza |
-| Válvulas de vías | 2/2, 3/2 NC, 3/2 NA, 4/2, 5/2, 5/3 (centro cerrado, a escape, a presión), 5/2 pilotada, 5/2 biestable y electroválvulas 3/2, 5/2 monoestable y 5/2 biestable. Accionamientos por lado: pulsador, palanca con enclavamiento, pedal, rodillo, rodillo abatible, pilotaje, servopilotado, electroimán, electroimán servopilotado, muelle |
+| Actuadores | Cilindro de simple efecto (muelle), de doble efecto (amortiguación regulable), sin vástago, actuador de giro, motor neumático, pinza. Con inclinación, marcas de final de carrera y perfil de fuerza variable |
+| Válvulas de vías | 2/2, 3/2 NC, 3/2 NA, 4/2, 5/2, 5/3 (centro cerrado, a escape, a presión), 5/2 pilotada, 5/2 biestable y electroválvulas 3/2, 5/2 monoestable y 5/2 biestable (con edición libre de 2 a 4 casillas, reversible, señal dominante y terminaciones de escape). Accionamientos por lado: pulsador, palanca con enclavamiento, pedal, rodillo, rodillo abatible, pilotaje, servopilotado, electroimán, electroimán servopilotado, muelle, muelle neumático |
 | Bloqueo y lógica | Antirretorno, selectora (O), simultaneidad (Y), escape rápido |
 | Caudal y presión | Estranguladora, estranguladora antirretorno, limitadora, reguladora con escape, válvula de secuencia, temporizador neumático |
 | Sensores | Final de carrera 3/2 con rodillo |
@@ -77,6 +83,7 @@ La pieza importada aparece en el esquema como su huella (rectángulo discontinuo
 | Hidráulica: alimentación y actuadores | Grupo hidráulico (motor + bomba + depósito + limitadora), bomba, depósito, acumulador de vejiga, cilindro hidráulico de doble y de simple efecto, motor hidráulico, manómetro hidráulico |
 | Autómata | PLC de 8 entradas y 8 salidas a 24 V programable con GRAFCET o con esquema de contactos |
 | Hidráulica: válvulas | 4/2 y 4/3 (centro cerrado, en tándem, flotante y en H) con cualquier accionamiento (palanca, electroimán, pilotaje…), limitadora de presión, filtro, antirretorno, antirretorno desbloqueable, estranguladora, reguladora de caudal compensada |
+| Anotaciones y texto | Texto libre / nota (multilínea con color y marco opcional), cajetín técnico ISO |
 
 Ejemplos incluidos: mando directo, mando indirecto, funciones O e Y, regulación de velocidad, temporizador, ciclo A+ B+ B− A−, enclavamiento marcha/paro con relé, ciclo A+ B+ A− B− electroneumático con sensores (ciclo único o continuo), retorno temporizado con relé, prensa hidráulica, regulación de velocidad hidráulica, carga sostenida con antirretorno desbloqueable, electrohidráulica, GRAFCET del ciclo A+ B+ B− A−, PLC con esquema de contactos (marcha/paro, temporizador) y PLC con GRAFCET y contador, y una prueba de rendimiento.
 
@@ -93,9 +100,10 @@ src/
                    + Model3D.tsx (modelo 3D procedural)
   view3d/          Escena 3D (Three.js / react-three-fiber): tablero, tuberías, partículas,
                    materiales por modo (normal, rayos X, corte), cámara
-  editor/          Lienzo SVG (selección, arrastre, trazado de tuberías)
+  editor/          Lienzo SVG (selección, arrastre, trazado de tuberías, estilos ISO 1219)
+  io/              Importador binario de circuitos FluidSIM 4.x (.ct: neumática, hidráulica y eléctrica)
   store/           Zustand: proyecto (historial) y simulación
-  ui/              Barra de herramientas, biblioteca, propiedades, barra de estado
+  ui/              Barra de herramientas, biblioteca, propiedades, configurador avanzado (ConfigModal), barra de estado
   examples/        Circuitos de ejemplo (.json)
 ```
 
@@ -121,3 +129,4 @@ El plan completo, con la arquitectura y los criterios de aceptación de cada fas
 - [x] **Fase 4:** electroneumática: red eléctrica de 24 V acoplada al motor neumático, 15 componentes eléctricos (pulsadores, interruptor, seta, lámpara, relés normal y temporizado, contactos, contador, bobina de electroválvula, finales de carrera, sensores de proximidad, presostato) con símbolo IEC, modelo 3D (bobinas que brillan, contactos y armaduras que se mueven) y explicación; electroimanes en todas las válvulas de vías; cables coloreados en 2D y 3D; ejemplos `08`–`10`. Además, las válvulas 3D muestran su **corredera real**.
 - [x] **Fase 5:** hidráulica (13 componentes, válvulas 4/2 y 4/3, ejemplos `11`–`14`: la prensa sube exactamente hasta el tarado de la limitadora); GRAFCET (editor, reglas de evolución, divergencias O/Y, acciones N/S/R/D/L y contadores) y PLC programable con GRAFCET o contactos (ejemplos `15`–`17`); galería de 17 ejemplos; exportación a PDF; aplicación de escritorio para Windows con Tauri, compilada en GitHub Actions.
 - [x] **Intercambio con CAD:** importación de piezas y conjuntos STEP, IGES, STL, OBJ, 3MF, VRML, glTF y PLY (unibles a un actuador para que se muevan con él) y exportación del modelo 3D a STL/3MF y del esquema a DXF para SolidWorks.
+- [x] **Importador FluidSIM (`.ct`) y edición avanzada:** descompresión e importación directa de archivos `.ct` de FluidSIM 4.x (neumática, hidráulica y eléctrica 24 V) con trazado en L, estilos ISO 1219 (trabajo continuo / pilotaje discontinuo) y silenciadores; configurador modal avanzado con vista previa en vivo para todos los componentes (casillas libres 2–4 pos., reversible, muelle neumático, señal dominante, espejo horizontal y vertical, regla de distancia visual, inclinación y perfil de fuerza variable, y textos/cajetines en el lienzo).
