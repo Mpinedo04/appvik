@@ -126,6 +126,7 @@ export function splitConnection(circuit: Circuit, connId: string, p: Vec2): stri
     a: conn.a,
     b: j,
     medium: conn.medium,
+    ...(conn.style ? { style: conn.style } : {}),
     points: poly.slice(1, seg + 1),
   };
   circuit.connections[id2] = {
@@ -133,6 +134,7 @@ export function splitConnection(circuit: Circuit, connId: string, p: Vec2): stri
     a: j,
     b: conn.b,
     medium: conn.medium,
+    ...(conn.style ? { style: conn.style } : {}),
     points: poly.slice(seg + 1, poly.length - 1),
   };
   delete circuit.connections[connId];
@@ -164,6 +166,7 @@ export function cleanupJunctions(circuit: Circuit) {
           a: other1,
           b: other2,
           medium: c1.medium,
+          ...(c1.style === c2.style && c1.style ? { style: c1.style } : {}),
           points: simplifyInterior(first[0], points, second[second.length - 1]),
         };
         delete circuit.connections[c1.id];
@@ -389,10 +392,36 @@ export function pasteSubcircuit(circuit: Circuit, sub: Circuit, dx: number, dy: 
     circuit.connections[id] = {
       id,
       medium: w.medium,
+      ...(w.style ? { style: w.style } : {}),
       a: { kind: 'port', comp: map.get(w.a.comp)!, port: w.a.port },
       b: { kind: 'port', comp: map.get(w.b.comp)!, port: w.b.port },
       points: w.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
     };
   }
   return [...map.values()];
+}
+
+/**
+ * Cambia el tipo de un componente (p. ej. 3/2 NC ↔ 3/2 NA, 5/2 ↔ 5/3 o 4/2 ↔ 4/3) conservando
+ * posición, orientación, etiqueta, conexiones válidas y parámetros compatibles.
+ */
+export function changeComponentType(
+  circuit: Circuit,
+  id: string,
+  newType: string,
+  params?: Params,
+) {
+  const c = circuit.components[id];
+  if (!c) return;
+  const nextModel = getModel(newType);
+  const allowed = new Set(nextModel.params.map((d) => d.key));
+  const merged: Params = {};
+  const src = params ?? c.params;
+  for (const [k, v] of Object.entries(src)) {
+    if (allowed.has(k)) merged[k] = v;
+  }
+  c.type = newType;
+  c.params = merged;
+  pruneDanglingConnections(circuit);
+  rerouteAttached(circuit, new Set([id]));
 }

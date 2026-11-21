@@ -116,7 +116,7 @@ export function Toolbar() {
 
       <div className="tb-group" aria-label="Archivo">
         <Btn icon="new" label="Nuevo" onClick={newProject} />
-        <Btn icon="open" label="Abrir…" onClick={openFile} />
+        <Btn icon="open" label="Abrir proyecto (.json) o importar FluidSIM (.ct)…" onClick={openFile} />
         <Btn icon="save" label="Guardar (Ctrl+S)" onClick={saveFile} />
         <Btn icon="image" label="Exportar imagen PNG" onClick={exportPng} />
         <Btn

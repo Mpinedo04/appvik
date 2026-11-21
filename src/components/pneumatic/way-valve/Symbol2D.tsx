@@ -3,7 +3,40 @@ import { Arrow, INK, PAPER, SW, pressureColor, type SymbolProps } from '../../sy
 import { isRoller, isSolenoid } from '../actuation';
 import { Actuator2D, PilotLine } from '../actuator2d';
 import { BOX_H, boxesExtent, spoolShift, valvePortPos, type WayValveConfig } from './config';
-import { hasPilot, type WayValveState } from './model';
+import { hasPilot, initialBoxOf, type WayValveState } from './model';
+
+/** Símbolo ISO 1219 para terminación de puerto de escape (silenciador, roscado o tapón). */
+function ExhaustTerminator({ x, y, kind }: { x: number; y: number; kind: string }) {
+  if (kind === 'silencer') {
+    return (
+      <g stroke={INK} strokeWidth={1.1} fill="none">
+        <rect x={x - 3.2} y={y + 1} width={6.4} height={9} fill={PAPER} />
+        <line x1={x - 1.5} y1={y + 3.5} x2={x + 1.5} y2={y + 3.5} strokeWidth={0.9} />
+        <line x1={x - 1.5} y1={y + 6} x2={x + 1.5} y2={y + 6} strokeWidth={0.9} />
+        <polygon points={`${x - 3},${y + 10} ${x + 3},${y + 10} ${x},${y + 14}`} fill={PAPER} />
+      </g>
+    );
+  }
+  if (kind === 'exhaust') {
+    return (
+      <polygon
+        points={`${x - 4},${y} ${x + 4},${y} ${x},${y + 7}`}
+        fill={PAPER}
+        stroke={INK}
+        strokeWidth={1.1}
+      />
+    );
+  }
+  if (kind === 'plug') {
+    return (
+      <g stroke={INK} strokeWidth={1.3}>
+        <line x1={x} y1={y} x2={x} y2={y + 6} />
+        <line x1={x - 4.5} y1={y + 6} x2={x + 4.5} y2={y + 6} />
+      </g>
+    );
+  }
+  return null;
+}
 
 /**
  * Símbolo ISO 1219 generado a partir de la configuración de la válvula.
@@ -19,7 +52,7 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
 
   return function WayValveSymbol({ params, state, maxBar, medium }: SymbolProps) {
     const s = state as WayValveState | undefined;
-    const pos = s?.pos ?? cfg.rest;
+    const pos = s?.pos ?? initialBoxOf(cfg, params);
     const shift = spoolShift(cfg, pos);
     const actLeft = str(params, 'actLeft');
     const actRight = str(params, 'actRight');
@@ -70,16 +103,21 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
       <g>
         {cfg.ports.map((pc) => {
           const p = valvePortPos(cfg, pc);
+          const exKind = pc.exhaust ? str(params, `ex_${pc.id}`) : '';
           return (
-            <line
-              key={pc.id}
-              x1={p.x}
-              y1={p.y}
-              x2={p.x}
-              y2={portY(pc.side)}
-              stroke={INK}
-              strokeWidth={SW}
-            />
+            <g key={pc.id}>
+              <line
+                x1={p.x}
+                y1={p.y}
+                x2={p.x}
+                y2={portY(pc.side)}
+                stroke={INK}
+                strokeWidth={SW}
+              />
+              {exKind && exKind !== 'open' && (
+                <ExhaustTerminator x={p.x} y={p.y} kind={exKind} />
+              )}
+            </g>
           );
         })}
         {cfg.ports.map((pc) => {

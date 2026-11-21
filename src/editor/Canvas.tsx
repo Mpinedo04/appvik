@@ -29,6 +29,7 @@ import { endpointKey, type Circuit, type Dir, type Endpoint, type Vec2 } from '.
 import { getModel, resolveParams } from '../core/registry';
 import { paToBarGauge } from '../core/units';
 import { useProject } from '../store/project';
+import { useView } from '../store/view';
 import { canvasApi, LIBRARY_MIME } from './canvasApi';
 import { useSim } from '../store/sim';
 
@@ -382,6 +383,15 @@ export function Canvas() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onDoubleClick={(e) => {
+          if (simMode) return;
+          const el = (e.target as Element).closest('[data-kind="comp"]') as SVGElement | null;
+          const id = el?.dataset.id;
+          if (id && circuit.components[id]) {
+            project().select({ comps: [id] });
+            useView.getState().openConfig(id);
+          }
+        }}
         onContextMenu={(e) => e.preventDefault()}
         data-sim={simMode ? 'on' : 'off'}
       >
@@ -445,6 +455,7 @@ export function Canvas() {
                             ? 2.2
                             : 1.6
                     }
+                    strokeDasharray={conn.style === 'pilot' ? '6 4' : undefined}
                     strokeLinejoin="round"
                   />
                   {!simMode &&
@@ -557,9 +568,15 @@ export function Canvas() {
               const ek = endpointKey({ kind: 'port', comp: wp.comp, port: wp.def.id });
               const connected = connectedKeys.has(ek);
               const open = openPortKeys.has(key);
+              const comp = circuit.components[wp.comp];
+              const hasExhaustTerm =
+                wp.def.exhaust &&
+                comp &&
+                Boolean(comp.params[`ex_${wp.def.id}`]) &&
+                comp.params[`ex_${wp.def.id}`] !== 'open';
               return (
                 <g key={key}>
-                  {!connected && (
+                  {!connected && !hasExhaustTerm && (
                     <circle
                       cx={wp.pos.x}
                       cy={wp.pos.y}

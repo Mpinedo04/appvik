@@ -33,6 +33,8 @@ interface ViewStore {
   ctrlSel: string | null;
   /** Galería de ejemplos abierta. */
   gallery: boolean;
+  /** ID del componente abierto en el modal de configuración avanzada (null si cerrado). */
+  configCompId: string | null;
   setLayout(l: Layout): void;
   setRender(r: Render3D): void;
   setCompRender(id: string, r: Render3D | null): void;
@@ -44,6 +46,8 @@ interface ViewStore {
   setSheet(s: Sheet): void;
   setCtrlSel(id: string | null): void;
   setGallery(v: boolean): void;
+  openConfig(id: string): void;
+  closeConfig(): void;
 }
 
 const KEY = 'fluidlab3d.view';
@@ -78,6 +82,7 @@ export const useView = create<ViewStore>((set, get) => {
     sheet: 'circuit',
     ctrlSel: null,
     gallery: false,
+    configCompId: null,
     setLayout(layout) {
       set({ layout });
       persist();
@@ -118,6 +123,12 @@ export const useView = create<ViewStore>((set, get) => {
     },
     setGallery(gallery) {
       set({ gallery });
+    },
+    openConfig(id) {
+      set({ configCompId: id });
+    },
+    closeConfig() {
+      set({ configCompId: null });
     },
   };
 });

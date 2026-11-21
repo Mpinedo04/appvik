@@ -176,7 +176,18 @@ function CircuitProperties() {
         <div className="panel-head">Propiedades</div>
         <div className="props-body">
           <h2>{m.name}</h2>
+          {single.desc && <p className="desc cfg-user-desc">{single.desc}</p>}
           <p className="desc">{m.description}</p>
+          <button
+            type="button"
+            className="btn primary cfg-open-btn"
+            onClick={() => useView.getState().openConfig(single.id)}
+          >
+            ⚙ Configurar componente…
+          </button>
+          <small className="help cfg-dbl-hint">
+            También puedes hacer doble clic en cualquier componente del lienzo.
+          </small>
           {m.info?.(params).map((l, i) => (
             <p className="desc" key={i}>
               {l}
@@ -241,16 +252,51 @@ function CircuitProperties() {
 
   if (selection.conns.length === 1 && !selection.comps.length) {
     const id = selection.conns[0];
+    const conn = circuit.connections[id];
     const len = (polylineLength(connectionPolyline(circuit, id)) * TUBE_MM_PER_UNIT) / 1000;
+    const isFluid = conn && conn.medium !== 'elec';
+    const curStyle = conn?.style ?? 'work';
     return (
       <aside className="panel props">
         <div className="panel-head">Propiedades</div>
         <div className="props-body">
-          <h2>Tubería</h2>
+          <h2>{conn?.medium === 'elec' ? 'Cable eléctrico' : 'Tubería'}</h2>
           <p className="desc">
             Longitud equivalente: {len.toFixed(2)} m · Ø interior {TUBE_INNER_DIAMETER_MM} mm.
             Arrastra un tramo intermedio para moverlo.
           </p>
+          {isFluid && (
+            <div className="field">
+              <span>Tipo de línea (ISO 1219)</span>
+              <div className="cfg-seg full">
+                <button
+                  type="button"
+                  className={curStyle === 'work' ? 'active' : ''}
+                  onClick={() =>
+                    commit((d) => {
+                      d.connections[id].style = 'work';
+                    })
+                  }
+                >
+                  — Trabajo
+                </button>
+                <button
+                  type="button"
+                  className={curStyle === 'pilot' ? 'active' : ''}
+                  onClick={() =>
+                    commit((d) => {
+                      d.connections[id].style = 'pilot';
+                    })
+                  }
+                >
+                  - - Pilotaje
+                </button>
+              </div>
+              <small className="help">
+                Continua para líneas de potencia/trabajo; discontinua para señales de pilotaje y control.
+              </small>
+            </div>
+          )}
           <button
             className="btn"
             onClick={() => commit((d) => rerouteConnection(d as Circuit, id))}

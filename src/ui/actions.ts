@@ -12,12 +12,7 @@ import { renumber } from '../core/model/labels';
 import type { Circuit, Project } from '../core/model/types';
 import { parseProject, toProject, useProject } from '../store/project';
 import { useSim } from '../store/sim';
-import {
-  openBinaryFile,
-  openTextFile,
-  saveFile as saveFileTo,
-  type FileKind,
-} from '../platform/files';
+import { openBinaryFile, saveFile as saveFileTo, type FileKind } from '../platform/files';
 import { useView } from '../store/view';
 import { sceneApi } from '../view3d/sceneApi';
 
@@ -113,11 +108,27 @@ const PROJECT_FILE: FileKind = {
   mime: 'application/json',
 };
 
+const OPEN_PROJECT_FILES = {
+  label: 'Proyecto FluidLab o FluidSIM (.json, .ct)',
+  exts: ['json', 'ct'],
+};
+
 export async function openFile() {
   try {
-    const f = await openTextFile(PROJECT_FILE);
+    const f = await openBinaryFile(OPEN_PROJECT_FILES);
     if (!f) return;
-    loadProject(parseProject(f.text));
+    if (f.name.toLowerCase().endsWith('.ct')) {
+      const { importFluidSimCt } = await import('../io/fluidsim');
+      const { project, warnings, stats } = importFluidSimCt(f.bytes, f.name);
+      loadProject(project);
+      const warnNote = warnings.length ? ` (${warnings.length} aviso/s)` : '';
+      P().notify(
+        `Importado de FluidSIM «${f.name}»: ${stats.components} componentes y ${stats.connections} conexiones.${warnNote}`,
+      );
+      return;
+    }
+    const text = new TextDecoder('utf-8').decode(f.bytes);
+    loadProject(parseProject(text));
     P().notify(`Abierto «${f.name}».`);
   } catch (e) {
     P().notify(`No se pudo abrir: ${(e as Error).message}`);

@@ -57,6 +57,21 @@ export function allPaths(cfg: WayValveConfig) {
 export const hasPilot = (p: Params, side: 'left' | 'right') =>
   str(p, side === 'left' ? 'actLeft' : 'actRight') === 'pilot';
 
+/** Casilla inicial configurada por el usuario (por defecto `cfg.rest`). */
+export function initialBoxOf(cfg: WayValveConfig, p: Params): number {
+  const raw = str(p, 'initPos');
+  if (!raw || raw === 'rest') return cfg.rest;
+  const idx = Number(raw);
+  return Number.isInteger(idx) && idx >= 0 && idx < cfg.positions.length ? idx : cfg.rest;
+}
+
+export const EXHAUST_OPTIONS = [
+  { value: 'open', label: 'Abierto (sin accesorio)' },
+  { value: 'silencer', label: 'Silenciador' },
+  { value: 'exhaust', label: 'Escape roscado' },
+  { value: 'plug', label: 'Tapón ciego (bloqueado)' },
+];
+
 /** Puertos de pilotaje (14/12…) a los lados del símbolo. */
 export function pilotPorts(cfg: WayValveConfig, p: Params): PortDef[] {
   const { left, right } = boxesExtent(cfg);
@@ -118,6 +133,34 @@ export function makeWayValveModel(
   // En las de 3 posiciones los muelles centran la corredera además del accionamiento de cada lado.
   if (n >= 3)
     params.push({ key: 'springs', label: 'Centrado por muelles', type: 'boolean', default: true });
+  params.push({
+    key: 'initPos',
+    label: 'Posición inicial',
+    type: 'select',
+    default: 'rest',
+    options: [
+      { value: 'rest', label: 'Por defecto (reposo)' },
+      ...cfg.positions.map((_, i) => ({
+        value: String(i),
+        label:
+          n === 2
+            ? i === 0
+              ? 'Casilla izquierda'
+              : 'Casilla derecha'
+            : ['Casilla izquierda', 'Casilla central', 'Casilla derecha'][i],
+      })),
+    ],
+  });
+  for (const pc of cfg.ports) {
+    if (!pc.exhaust || hyd) continue;
+    params.push({
+      key: `ex_${pc.id}`,
+      label: `Terminación de escape (${pc.id})`,
+      type: 'select',
+      default: 'open',
+      options: EXHAUST_OPTIONS,
+    });
+  }
   for (const d of params) {
     const v = preset.defaults?.[d.key];
     if (v !== undefined) (d as { default: unknown }).default = v;
@@ -155,13 +198,16 @@ export function makeWayValveModel(
       };
     },
     interactive: (p) => isManual(str(p, 'actLeft')) || isManual(str(p, 'actRight')),
-    initState: () => ({
-      ...initActuation(),
-      pos: cfg.rest,
-      openings: paths.map((pt) => (pt.box === cfg.rest ? 1 : 0)),
-      flows: paths.map(() => 0),
-      portBar: Object.fromEntries(cfg.ports.map((pc) => [pc.id, 0])),
-    }),
+    initState: (p) => {
+      const start = initialBoxOf(cfg, p);
+      return {
+        ...initActuation(),
+        pos: start,
+        openings: paths.map((pt) => (pt.box === start ? 1 : 0)),
+        flows: paths.map(() => 0),
+        portBar: Object.fromEntries(cfg.ports.map((pc) => [pc.id, 0])),
+      };
+    },
     build(b, p) {
       const flow = hyd
         ? { K: oilKFromNominalFlow(num(p, 'qn')) }

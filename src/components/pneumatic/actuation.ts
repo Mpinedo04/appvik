@@ -135,6 +135,17 @@ export const actuationParams = (defaults: { left: ActuatorType; right: ActuatorT
       ['pilot', 'servo', 'solenoid-servo'].includes(str(p, 'actLeft')) ||
       ['pilot', 'servo', 'solenoid-servo'].includes(str(p, 'actRight')),
   },
+  {
+    key: 'dominant',
+    label: 'Señal dominante',
+    type: 'select' as const,
+    default: 'none',
+    options: [
+      { value: 'none', label: 'Ninguna (mantener)' },
+      { value: 'left', label: 'Izquierda' },
+      { value: 'right', label: 'Derecha' },
+    ],
+  },
 ];
 
 export const initActuation = (): ActuationState => ({
@@ -222,7 +233,12 @@ export function targetBox(
 ): number {
   if (left && !right) return 0;
   if (right && !left) return n - 1;
-  if (left && right) return Math.round(current);
+  if (left && right) {
+    const dom = str(p, 'dominant');
+    if (dom === 'left') return 0;
+    if (dom === 'right') return n - 1;
+    return Math.round(current);
+  }
   const sL = str(p, 'actLeft') === 'spring';
   const sR = str(p, 'actRight') === 'spring';
   if (n >= 3) return p.springs || sL || sR ? rest : Math.round(current);

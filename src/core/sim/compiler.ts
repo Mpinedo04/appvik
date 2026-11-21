@@ -93,7 +93,8 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
 
   for (const c of Object.values(circuit.components)) {
     const m = getModel(c.type);
-    for (const p of m.ports(resolveParams(m, c.params))) {
+    const resolved = resolveParams(m, c.params);
+    for (const p of m.ports(resolved)) {
       if (!FLUID.includes(p.medium)) continue;
       const hyd = p.medium === 'hyd';
       const key = endpointKey({ kind: 'port', comp: c.id, port: p.id });
@@ -101,15 +102,19 @@ export function compileFluidNets(circuit: Circuit, net: FluidNetwork): CompiledN
       net.nodes[n].baseVolume += hyd ? HYD_PORT_DEAD_VOLUME : PORT_DEAD_VOLUME;
       result.portNode.set(portKey(c.id, p.id), n);
       if (!connected.has(key)) {
-        result.openPorts.push({ comp: c.id, port: p });
-        net.addOrifice(
-          n,
-          net.atmosphere,
-          hyd ? OPEN_PORT_K : OPEN_PORT_C,
-          0.3,
-          `abierto ${c.label}:${p.id}`,
-          hyd ? 'oil' : 'gas',
-        );
+        // Si el puerto de escape lleva un tapón ciego (plug), no ventila a la atmósfera.
+        const plugged = p.exhaust && resolved[`ex_${p.id}`] === 'plug';
+        if (!plugged) {
+          result.openPorts.push({ comp: c.id, port: p });
+          net.addOrifice(
+            n,
+            net.atmosphere,
+            hyd ? OPEN_PORT_K : OPEN_PORT_C,
+            0.3,
+            `abierto ${c.label}:${p.id}`,
+            hyd ? 'oil' : 'gas',
+          );
+        }
       }
     }
   }

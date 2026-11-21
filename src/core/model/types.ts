@@ -1,6 +1,7 @@
 /** Modelo de datos del proyecto: topología + disposición 2D. Es la única fuente de verdad. */
 
 export type Medium = 'pneu' | 'hyd' | 'elec';
+export type LineStyle = 'work' | 'pilot';
 export type Rotation = 0 | 90 | 180 | 270;
 export type Dir = 'up' | 'down' | 'left' | 'right';
 export type ParamValue = number | string | boolean;
@@ -20,6 +21,8 @@ export interface ComponentInstance {
   rot: Rotation;
   flip: boolean;
   label: string;
+  /** Descripción opcional del componente (p. ej. importada de FluidSIM o notas del usuario). */
+  desc?: string;
   params: Params;
 }
 
@@ -42,6 +45,8 @@ export interface Connection {
   /** Puntos de codo intermedios (sin incluir los extremos). */
   points: Vec2[];
   medium: Medium;
+  /** Estilo ISO 1219: línea de trabajo continua ('work') o de pilotaje discontinua ('pilot'). */
+  style?: LineStyle;
 }
 
 export interface Circuit {

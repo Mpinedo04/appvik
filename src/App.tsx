@@ -3,6 +3,7 @@ import { canvasApi } from './editor/canvasApi';
 import { EXAMPLES } from './examples';
 import { parseProject, useProject } from './store/project';
 import { restoreAutosave, startAutosave } from './ui/actions';
+import { ConfigModal } from './ui/ConfigModal';
 import { Diagrams } from './ui/Diagrams';
 import { Gallery } from './ui/Gallery';
 import { Library } from './ui/Library';
@@ -37,6 +38,7 @@ export function App() {
       <Diagrams />
       <StatusBar />
       <Gallery />
+      <ConfigModal />
     </div>
   );
 }
