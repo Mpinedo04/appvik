@@ -170,6 +170,7 @@ interface FsGate {
 }
 
 interface FsPLine {
+  kind: 'pneu' | 'hyd' | 'elec';
   a: number;
   b: number;
   style: number;
@@ -239,10 +240,11 @@ function parseFluidSimText(text: string) {
         portOwner.set(portIdx, { compIdx, gateNum });
         continue;
       }
-      const pm = /^CON PLine\s+(\d+)\s+(\d+)$/.exec(line);
+      const pm = /^CON (PLine|HLine|ELine)\s+(\d+)\s+(\d+)$/.exec(line);
       if (pm) {
         if (curLine) plines.push(curLine);
-        curLine = { a: Number(pm[1]), b: Number(pm[2]), style: 2 };
+        const kind = pm[1] === 'HLine' ? 'hyd' : pm[1] === 'ELine' ? 'elec' : 'pneu';
+        curLine = { kind, a: Number(pm[2]), b: Number(pm[3]), style: 2 };
         continue;
       }
       const st = /^\s+S\s+Style\s+I\s+(\d+)$/.exec(line);
@@ -274,6 +276,8 @@ function mapActuation(
   if (ma.endsWith('F')) return { act: 'lever' };
   if (ma.includes('_MA')) return { act: 'pushbutton' };
 
+  const pneuSpringKey = side === 'L' ? 'PNEU_SPRING_L' : 'PNEU_SPRING_R';
+  if (!is3Pos && props[pneuSpringKey] === 'TRUE') return { act: 'pneu-spring' };
   const springKey = side === 'L' ? 'SPRING_L' : 'SPRING_R';
   if (!is3Pos && props[springKey] === 'TRUE') return { act: 'spring' };
   return { act: 'none' };
@@ -414,11 +418,24 @@ export function importFluidSimCt(
 
   const SKIP_TYPES = new Set([
     'PConnection',
+    'HConnection',
+    'EConnection',
+    'DConnection',
+    'GConnection',
     'UEConnection',
     'UMConnection',
+    'UPAConnection',
     'PTriconnection',
+    'HTriconnection',
+    'ETriconnection',
+    'DTriconnection',
     'R_SCHALT',
     'text',
+    'group',
+    'DIAGRAM',
+    'PART_LIST',
+    'DXF',
+    'GRAPHRECT',
   ]);
 
   // 1. Asociar etiquetas de texto cortas (1A, 1V1, 1S1…) a su componente más cercano
@@ -489,7 +506,8 @@ export function importFluidSimCt(
   }
 
   // Calcular origen mínimo para centrar el circuito en coordenadas limpias (>= 80, 80)
-  const allPlaced = objs.filter((o) => !SKIP_TYPES.has(o.type) || o.type === 'PTriconnection');
+  const JUNCTION_TYPES = new Set(['PTriconnection', 'HTriconnection', 'ETriconnection']);
+  const allPlaced = objs.filter((o) => !SKIP_TYPES.has(o.type) || JUNCTION_TYPES.has(o.type));
   const minX = allPlaced.length ? Math.min(...allPlaced.map((o) => o.x1)) : 0;
   const minY = allPlaced.length ? Math.min(...allPlaced.map((o) => o.y1)) : 0;
   const toCanvas = (x: number, y: number) => ({
@@ -501,13 +519,32 @@ export function importFluidSimCt(
   const compMap = new Map<number, { id: string; portMap: Record<number, string> }>();
   const junctionMap = new Map<number, string>();
 
-  // 3. Crear derivaciones en T (PTriconnection)
+  // 3. Crear derivaciones en T (neumáticas, hidráulicas y eléctricas)
   for (const o of objs) {
-    if (o.type !== 'PTriconnection') continue;
+    if (!JUNCTION_TYPES.has(o.type)) continue;
+    const medium =
+      o.type === 'HTriconnection' ? 'hyd' : o.type === 'ETriconnection' ? 'elec' : 'pneu';
     const pt = toCanvas((o.x1 + o.x2) / 2, (o.y1 + o.y2) / 2);
     const jid = newId('j');
-    circuit.junctions[jid] = { id: jid, x: pt.x, y: pt.y, medium: 'pneu' };
+    circuit.junctions[jid] = { id: jid, x: pt.x, y: pt.y, medium };
     junctionMap.set(o.idx, jid);
+  }
+
+  // 3b. Importar textos libres (títulos y notas que no eran etiquetas cortas de componente)
+  for (const o of objs) {
+    if (o.type !== 'text' || usedTexts.has(o.idx)) continue;
+    const raw = (o.props.text ?? '').trim();
+    if (!raw || raw.length < 2) continue;
+    // Ignorar encabezados gigantes o cadenas vacías; conservar títulos como «Ejercicio 5»
+    const pt = toCanvas((o.x1 + o.x2) / 2, (o.y1 + o.y2) / 2);
+    const isHeading = /^ejercicio|pr[aá]ctica|esquema|circuito/i.test(raw);
+    addComponent(circuit, 'util-text', pt.x, pt.y, {
+      text: raw,
+      fontSize: isHeading ? 18 : 13,
+      color: '#0f172a',
+      bold: isHeading,
+      border: false,
+    });
   }
 
   // 4. Crear componentes neumáticos equivalentes
@@ -561,6 +598,10 @@ export function importFluidSimCt(
         const sReset = Number(o.props.S_RESET);
         if (Number.isFinite(sReset) && sReset > 0 && stroke > 0) {
           params.startPos = clampNum(Math.round((sReset / stroke) * 100), 0, 0, 100);
+        }
+        const alpha = Number(o.props.ALPHA);
+        if (Number.isFinite(alpha) && alpha !== 0) {
+          params.angle = clampNum(Math.round(alpha), 0, -90, 90);
         }
         const marks = marksForCyl.get(o.idx);
         if (marks) params.marks = marks;
@@ -698,6 +739,170 @@ export function importFluidSimCt(
         portMap = { 1: '1', 2: '2' };
         break;
       }
+      /* ───────────── Componentes hidráulicos de FluidSIM-H ───────────── */
+      case 'Ag1':
+      case 'Ag2': {
+        flType = 'hyd-power-unit';
+        params.flow = clampNum(o.props.FLOW, 8, 0.5, 200);
+        params.pset = clampNum(o.props.P_LIM, 60, 5, 350);
+        rot = normalizeRot(o.rot);
+        portMap = o.type === 'Ag2' ? { 1: 'P', 2: 'T' } : { 1: 'P' };
+        break;
+      }
+      case 'tank1': {
+        flType = 'hyd-tank';
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1' };
+        break;
+      }
+      case 'man1': {
+        const isHydGauge = gateList.some((g) => objs[g.portIdx]?.type === 'HConnection');
+        flType = isHydGauge ? 'hyd-gauge' : 'pneu-gauge';
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1' };
+        break;
+      }
+      case 'dbv': {
+        flType = 'hyd-relief';
+        params.pset = clampNum(o.props.P_SOLL, 50, 2, 350);
+        rot = normalizeRot(o.rot);
+        portMap = { 1: 'P', 2: 'T' };
+        break;
+      }
+      case 'CylH3': {
+        const hydGates = gateList.filter((g) => objs[g.portIdx]?.type === 'HConnection');
+        const isSingle = hydGates.length === 1;
+        flType = isSingle ? 'hyd-cyl-single' : 'hyd-cyl-double';
+        const stroke = clampNum(o.props.HUB, 200, 5, 2000);
+        params.stroke = stroke;
+        const marks = marksForCyl.get(o.idx);
+        if (marks) params.marks = marks;
+        const alpha = Number(o.props.ALPHA);
+        if (Number.isFinite(alpha) && alpha !== 0) params.angle = clampNum(Math.round(alpha), 0, -90, 90);
+        rot = normalizeRot(o.rot);
+        portMap = isSingle ? { 1: 'A' } : { 1: 'A', 2: 'B' };
+        break;
+      }
+      case 'HWV_4': {
+        const pr = o.props.POS_RESET ?? '';
+        const is3Pos =
+          Number(o.props.BODY_COUNT ?? 2) === 3 ||
+          /C4(C|RB|H|F|E|U)/i.test(pr) ||
+          (o.props.description ?? '').includes('4/3');
+        const left = mapActuation(o.props, 'L', is3Pos);
+        const right = mapActuation(o.props, 'R', is3Pos);
+        const sols = activeConnectionLabel(objs, gateList, 'UEConnection');
+        if (is3Pos) {
+          if (pr.includes('C4RB') || (o.props.description ?? '').toLowerCase().includes('umlauf')) {
+            flType = 'hyd-valve-43-tandem';
+          } else if (pr.includes('C4F') || pr.includes('C4E')) {
+            flType = 'hyd-valve-43-float';
+          } else if (pr.includes('C4H')) {
+            flType = 'hyd-valve-43-open';
+          } else {
+            flType = 'hyd-valve-43-closed';
+          }
+          params.springs = o.props.SPRING_L === 'TRUE' || o.props.SPRING_R === 'TRUE';
+        } else {
+          flType = 'hyd-valve-42';
+        }
+        params.actLeft = left.act;
+        params.actRight = right.act;
+        if (sols[0]) params.solLeft = sols[0];
+        if (sols[1]) params.solRight = sols[1];
+        rot = normalizeRot(o.rot);
+        portMap = { 1: 'A', 2: 'B', 3: 'P', 4: 'T', 5: 'X', 6: 'Y' };
+        break;
+      }
+      case 'rsvfed': {
+        flType = 'hyd-check';
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1', 2: '2' };
+        break;
+      }
+      case 'V16': {
+        flType = 'hyd-pilot-check';
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1', 2: 'X', 3: '2' };
+        break;
+      }
+      case 'drorueck':
+      case 'absperr': {
+        flType = 'hyd-throttle';
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1', 2: '2' };
+        break;
+      }
+      case 'srv': {
+        flType = 'hyd-flow-control';
+        params.qset = clampNum(o.props.FLOW_SOLL, 3, 0.1, 200);
+        rot = normalizeRot(o.rot);
+        portMap = { 1: '1', 2: '2' };
+        break;
+      }
+      /* ───────────── Componentes eléctricos de FluidSIM (24 V DC) ───────────── */
+      case 'pol2': {
+        flType = 'elec-24v';
+        rot = 0;
+        portMap = { 1: '1' };
+        break;
+      }
+      case 'pol1': {
+        flType = 'elec-0v';
+        rot = 0;
+        portMap = { 1: '1' };
+        break;
+      }
+      case 'schliesser': {
+        flType = 'elec-button-no';
+        rot = 0;
+        portMap = { 1: '3', 2: '4' };
+        break;
+      }
+      case 'oeffner': {
+        flType = 'elec-button-nc';
+        rot = 0;
+        portMap = { 1: '1', 2: '2' };
+        break;
+      }
+      case 'schalter_schliesser':
+      case 'schalter_oeffner': {
+        flType = 'elec-switch';
+        const isNc = o.type === 'schalter_oeffner';
+        params.kind = isNc ? 'nc' : 'no';
+        rot = 0;
+        portMap = isNc ? { 1: '1', 2: '2' } : { 1: '3', 2: '4' };
+        break;
+      }
+      case 'rschliesser':
+      case 'roeffner':
+      case 'rwechsler': {
+        flType = 'elec-contact';
+        const kind = o.type === 'roeffner' ? 'nc' : o.type === 'rwechsler' ? 'co' : 'no';
+        params.kind = kind;
+        rot = 0;
+        portMap =
+          kind === 'nc' ? { 1: '1', 2: '2' } : kind === 'co' ? { 1: '1', 2: '2', 3: '4' } : { 1: '3', 2: '4' };
+        break;
+      }
+      case 'magnet2': {
+        flType = 'elec-relay';
+        rot = 0;
+        portMap = { 1: 'A1', 2: 'A2' };
+        break;
+      }
+      case 'magnet': {
+        flType = 'elec-solenoid';
+        rot = 0;
+        portMap = { 1: 'A1', 2: 'A2' };
+        break;
+      }
+      case 'lampe': {
+        flType = 'elec-lamp';
+        rot = 0;
+        portMap = { 1: 'X1', 2: 'X2' };
+        break;
+      }
       default: {
         warnings.push(`Componente FluidSIM no soportado omitido: ${o.type} (${lbl ?? o.oid}).`);
         continue;
@@ -707,7 +912,8 @@ export function importFluidSimCt(
     const id = addComponent(circuit, flType, pos.x, pos.y, params);
     const comp = circuit.components[id];
     comp.rot = rot;
-    if (lbl) comp.label = lbl;
+    const explicitLabel = o.props.label?.trim() || lbl;
+    if (explicitLabel) comp.label = explicitLabel;
     if (o.props.description?.trim()) comp.desc = o.props.description.trim();
     compMap.set(o.idx, { id, portMap });
   }

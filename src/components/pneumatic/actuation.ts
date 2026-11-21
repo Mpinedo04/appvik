@@ -16,6 +16,7 @@ export type ActuatorType =
   | 'servo'
   | 'solenoid'
   | 'solenoid-servo'
+  | 'pneu-spring'
   | 'spring';
 
 export const ACTUATOR_OPTIONS: { value: ActuatorType; label: string }[] = [
@@ -28,6 +29,7 @@ export const ACTUATOR_OPTIONS: { value: ActuatorType; label: string }[] = [
   { value: 'servo', label: 'Pulsador servopilotado' },
   { value: 'solenoid', label: 'Electroimán (bobina Y)' },
   { value: 'solenoid-servo', label: 'Electroimán servopilotado' },
+  { value: 'pneu-spring', label: 'Muelle neumático' },
   { value: 'spring', label: 'Muelle' },
   { value: 'none', label: 'Ninguno' },
 ];
@@ -50,6 +52,7 @@ export const ACT_NAME: Record<ActuatorType, string> = {
   servo: 'el pulsador servopilotado',
   solenoid: 'el electroimán',
   'solenoid-servo': 'el electroimán servopilotado',
+  'pneu-spring': 'el muelle neumático',
   spring: 'el muelle',
 };
 
@@ -239,8 +242,8 @@ export function targetBox(
     if (dom === 'right') return n - 1;
     return Math.round(current);
   }
-  const sL = str(p, 'actLeft') === 'spring';
-  const sR = str(p, 'actRight') === 'spring';
+  const sL = str(p, 'actLeft') === 'spring' || str(p, 'actLeft') === 'pneu-spring';
+  const sR = str(p, 'actRight') === 'spring' || str(p, 'actRight') === 'pneu-spring';
   if (n >= 3) return p.springs || sL || sR ? rest : Math.round(current);
   if (sL && sR) return rest;
   if (sR) return n - 1;

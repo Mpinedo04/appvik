@@ -20,6 +20,8 @@ export interface ComponentInstance {
   y: number;
   rot: Rotation;
   flip: boolean;
+  /** Espejo vertical (opcional, por defecto false). */
+  flipY?: boolean;
   label: string;
   /** Descripción opcional del componente (p. ej. importada de FluidSIM o notas del usuario). */
   desc?: string;

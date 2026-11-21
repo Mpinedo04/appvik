@@ -20,12 +20,15 @@ import {
   toLmin,
 } from '../../core/units';
 import {
+  angleParam,
   areaOf,
   buildCyl,
   commonCylParams,
   explainCyl,
+  forceProfileParam,
   initCyl,
   marksParam,
+  parseForceProfile,
   parseMarks,
   updateCyl,
   type CylHandles,
@@ -621,8 +624,10 @@ export const hydCylinderModel: ComponentModel<CylState, CylHandles> = {
     hStroke,
     hMass,
     hLoad,
+    angleParam,
     hStart,
     marksParam,
+    forceProfileParam,
   ],
   ports: () => [
     H('A', -50, 30, 'down', 'A (lado émbolo)'),
@@ -645,7 +650,16 @@ export const hydCylinderSingleModel: ComponentModel<CylState, CylHandles> = {
   description:
     'El aceite sólo empuja para sacar el vástago; vuelve por la carga (su peso). La cámara del vástago respira al exterior.',
   autoLabel: (n) => `${n}A`,
-  params: [hBore, hStroke, hMass, { ...hLoad, default: 300 } as ParamDef, hStart, marksParam],
+  params: [
+    hBore,
+    hStroke,
+    hMass,
+    { ...hLoad, default: 300 } as ParamDef,
+    angleParam,
+    hStart,
+    marksParam,
+    forceProfileParam,
+  ],
   ports: () => [H('A', -50, 30, 'down', 'A')],
   bbox: () => ({ x0: -60, y0: -15, x1: 140, y1: 30 }),
   initState: initCyl,
@@ -656,6 +670,7 @@ export const hydCylinderSingleModel: ComponentModel<CylState, CylHandles> = {
       cap: { port, chamber: port, main: null, throttle: null },
       rod: atm,
       marks: parseMarks(String(p.marks ?? '')),
+      profile: parseForceProfile(String(p.forceProfile ?? '')),
     };
   },
   update(ctx, s, h, p, dt) {

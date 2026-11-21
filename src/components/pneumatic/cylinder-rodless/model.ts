@@ -1,10 +1,12 @@
 import { num, type ComponentModel } from '../../../core/registry';
 import {
+  angleParam,
   areaOf,
   buildCyl,
   commonCylParams,
   cushionParams,
   explainCyl,
+  forceProfileParam,
   initCyl,
   marksParam,
   updateCyl,
@@ -22,7 +24,17 @@ export const cylinderRodlessModel: ComponentModel<CylState, CylHandles> = {
   description:
     'El émbolo arrastra un carro por fuera del tubo. Ocupa poco más que su carrera y empuja igual en los dos sentidos.',
   autoLabel: (n) => `${n}A`,
-  params: [bore, stroke, mass, load, startPos, ...cushionParams, marksParam],
+  params: [
+    bore,
+    stroke,
+    mass,
+    load,
+    angleParam,
+    startPos,
+    ...cushionParams,
+    marksParam,
+    forceProfileParam,
+  ],
   ports: () => [
     { id: '1', medium: 'pneu', x: -80, y: 20, dir: 'down', label: 'Cámara izquierda' },
     { id: '2', medium: 'pneu', x: 80, y: 20, dir: 'down', label: 'Cámara derecha' },

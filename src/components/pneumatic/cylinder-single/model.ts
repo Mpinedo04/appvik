@@ -2,13 +2,18 @@ import { num, type ComponentModel } from '../../../core/registry';
 import { stepPiston } from '../../../core/sim/mechanics';
 import { P_ATM, cm3, mm, paToBarGauge } from '../../../core/units';
 import {
+  angleParam,
   areaOf,
   commonCylParams,
+  evalForceProfile,
+  forceProfileParam,
   initCyl,
   marksParam,
+  parseForceProfile,
   parseMarks,
   publishMarks,
   type CylState,
+  type ForcePoint,
   type Mark,
 } from '../cylinder-core';
 
@@ -20,6 +25,7 @@ export interface SingleState extends CylState {
 interface Handles {
   cap: number;
   marks: Mark[];
+  profile: ForcePoint[];
 }
 
 const [bore, stroke, mass, load, startPos] = commonCylParams({ bore: 20, stroke: 50, mass: 0.5 });
@@ -37,6 +43,7 @@ export const cylinderSingleModel: ComponentModel<SingleState, Handles> = {
     stroke,
     mass,
     load,
+    angleParam,
     startPos,
     {
       key: 'springF0',
@@ -59,11 +66,16 @@ export const cylinderSingleModel: ComponentModel<SingleState, Handles> = {
       step: 0.05,
     },
     marksParam,
+    forceProfileParam,
   ],
   ports: () => [{ id: '1', medium: 'pneu', x: -50, y: 30, dir: 'down', label: 'Cámara trasera' }],
   bbox: () => ({ x0: -60, y0: -15, x1: 140, y1: 30 }),
   initState: (p) => ({ ...initCyl(p), spring: 0 }),
-  build: (b, p) => ({ cap: b.port('1'), marks: parseMarks(String(p.marks ?? '')) }),
+  build: (b, p) => ({
+    cap: b.port('1'),
+    marks: parseMarks(String(p.marks ?? '')),
+    profile: parseForceProfile(String(p.forceProfile ?? '')),
+  }),
   update(ctx, s, h, p, dt) {
     const L = mm(num(p, 'stroke'));
     const a = areaOf(num(p, 'bore'));
@@ -71,6 +83,9 @@ export const cylinderSingleModel: ComponentModel<SingleState, Handles> = {
     s.spring = num(p, 'springF0') + num(p, 'springK') * s.x * 1000;
     // La cámara del muelle está abierta a la atmósfera (respiradero).
     s.force = (pCap - P_ATM) * a - s.spring;
+    const angleDeg = Number(p.angle ?? 0);
+    const fGravity = angleDeg ? num(p, 'mass') * 9.81 * Math.sin((angleDeg * Math.PI) / 180) : 0;
+    const fProfile = h.profile.length ? evalForceProfile(h.profile, s.x * 1000) : 0;
     if (dt > 0)
       stepPiston(
         s,
@@ -81,7 +96,7 @@ export const cylinderSingleModel: ComponentModel<SingleState, Handles> = {
           fCoulomb: 2 + a * 2e4,
           cViscous: 20 + a * 1e5,
         },
-        s.force - num(p, 'load'),
+        s.force - (num(p, 'load') + fGravity + fProfile),
         dt,
       );
     s.pos = L > 0 ? s.x / L : 0;

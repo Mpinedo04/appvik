@@ -1,10 +1,12 @@
 import { num, type ComponentModel } from '../../../core/registry';
 import {
+  angleParam,
   areaOf,
   buildCyl,
   commonCylParams,
   cushionParams,
   explainCyl,
+  forceProfileParam,
   initCyl,
   marksParam,
   updateCyl,
@@ -38,9 +40,11 @@ export const cylinderDoubleModel: ComponentModel<CylState, CylHandles> = {
     stroke,
     mass,
     load,
+    angleParam,
     startPos,
     ...cushionParams,
     marksParam,
+    forceProfileParam,
   ],
   ports: () => [
     { id: '1', medium: 'pneu', x: -50, y: 30, dir: 'down', label: 'Cámara trasera' },

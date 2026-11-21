@@ -3,6 +3,8 @@
  * El mismo dato genera la física (orificios), el símbolo ISO 1219, el modelo 3D y la explicación.
  */
 
+import type { Params } from '../../../core/model/types';
+
 export interface ValvePortCfg {
   id: string;
   side: 'top' | 'bottom';
@@ -353,3 +355,183 @@ export const HVALVE_43_CLOSED = hvalve43('closed');
 export const HVALVE_43_TANDEM = hvalve43('tandem');
 export const HVALVE_43_FLOAT = hvalve43('float');
 export const HVALVE_43_OPEN = hvalve43('open');
+
+/* ───────────── Catálogo de casillas internas (configuración libre casilla por casilla) ───────────── */
+
+export type ValveSignature = '2' | '3' | '4' | '5' | 'H4';
+
+export interface BoxPattern {
+  key: string;
+  label: string;
+  pos: ValvePositionCfg;
+}
+
+export const VALVE_BOX_CATALOG: Record<ValveSignature, BoxPattern[]> = {
+  '2': [
+    { key: 'open', label: 'Abierta (1 → 2)', pos: { paths: [['1', '2']], blocked: [] } },
+    { key: 'closed', label: 'Cerrada (1, 2 bloq.)', pos: { paths: [], blocked: ['1', '2'] } },
+  ],
+  '3': [
+    { key: 'p2', label: 'Alimentación (1 → 2 · 3 bloq.)', pos: { paths: [['1', '2']], blocked: ['3'] } },
+    { key: 'e2', label: 'Escape (2 → 3 · 1 bloq.)', pos: { paths: [['2', '3']], blocked: ['1'] } },
+    { key: 'closed', label: 'Centro cerrado (todas bloq.)', pos: { paths: [], blocked: ['1', '2', '3'] } },
+    {
+      key: 'all',
+      label: 'Todas unidas (1 → 2 → 3)',
+      pos: {
+        paths: [
+          ['1', '2'],
+          ['2', '3'],
+        ],
+        blocked: [],
+      },
+    },
+  ],
+  '4': [
+    {
+      key: 'parallel',
+      label: 'Paralelo (1 → 4 · 2 → 3)',
+      pos: {
+        paths: [
+          ['1', '4'],
+          ['2', '3'],
+        ],
+        blocked: [],
+      },
+    },
+    {
+      key: 'cross',
+      label: 'Cruzado (1 → 2 · 4 → 3)',
+      pos: {
+        paths: [
+          ['1', '2'],
+          ['4', '3'],
+        ],
+        blocked: [],
+      },
+    },
+    { key: 'closed', label: 'Centro cerrado', pos: { paths: [], blocked: ['1', '2', '3', '4'] } },
+    { key: 'tandem', label: 'Tándem (1 → 3 · 2, 4 bloq.)', pos: { paths: [['1', '3']], blocked: ['2', '4'] } },
+    {
+      key: 'float',
+      label: 'Flotante (2, 4 → 3 · 1 bloq.)',
+      pos: {
+        paths: [
+          ['2', '3'],
+          ['4', '3'],
+        ],
+        blocked: ['1'],
+      },
+    },
+    {
+      key: 'open',
+      label: 'Abierto H (todas a 3)',
+      pos: {
+        paths: [
+          ['1', '3'],
+          ['2', '3'],
+          ['4', '3'],
+        ],
+        blocked: [],
+      },
+    },
+  ],
+  '5': [
+    { key: 'left', label: 'Avance (1 → 4 · 2 → 3 · 5 bloq.)', pos: P52_LEFT },
+    { key: 'right', label: 'Retroceso (1 → 2 · 4 → 5 · 3 bloq.)', pos: P52_RIGHT },
+    { key: 'closed', label: 'Centro cerrado (todas bloq.)', pos: { paths: [], blocked: ['1', '2', '3', '4', '5'] } },
+    {
+      key: 'exhaust',
+      label: 'Centro a escape (2 → 3 · 4 → 5)',
+      pos: {
+        paths: [
+          ['2', '3'],
+          ['4', '5'],
+        ],
+        blocked: ['1'],
+      },
+    },
+    {
+      key: 'pressure',
+      label: 'Centro a presión (1 → 2, 4)',
+      pos: {
+        paths: [
+          ['1', '2'],
+          ['1', '4'],
+        ],
+        blocked: ['3', '5'],
+      },
+    },
+  ],
+  H4: [
+    { key: 'parallel', label: 'Paralelo (P → A · B → T)', pos: H4_LEFT },
+    { key: 'cross', label: 'Cruzado (P → B · A → T)', pos: H4_RIGHT },
+    { key: 'closed', label: 'Centro cerrado (P, T, A, B bloq.)', pos: { paths: [], blocked: ['P', 'T', 'A', 'B'] } },
+    { key: 'tandem', label: 'Tándem (P → T · A, B bloq.)', pos: { paths: [['P', 'T']], blocked: ['A', 'B'] } },
+    {
+      key: 'float',
+      label: 'Flotante (A, B → T · P bloq.)',
+      pos: {
+        paths: [
+          ['A', 'T'],
+          ['B', 'T'],
+        ],
+        blocked: ['P'],
+      },
+    },
+    {
+      key: 'open',
+      label: 'Centro abierto H (P, A, B → T)',
+      pos: {
+        paths: [
+          ['P', 'T'],
+          ['A', 'T'],
+          ['B', 'T'],
+        ],
+        blocked: [],
+      },
+    },
+  ],
+};
+
+export function valveSignature(cfg: WayValveConfig): ValveSignature {
+  if (cfg.medium === 'hyd') return 'H4';
+  const n = cfg.ports.length;
+  if (n <= 2) return '2';
+  if (n === 3) return '3';
+  if (n === 4) return '4';
+  return '5';
+}
+
+/** Devuelve las casillas efectivas (personalizadas con `customBoxes` o las de `cfg.positions`). */
+export function resolvePositions(cfg: WayValveConfig, params?: Params): ValvePositionCfg[] {
+  const raw = typeof params?.customBoxes === 'string' ? params.customBoxes.trim() : '';
+  if (!raw) return cfg.positions;
+  const catalog = VALVE_BOX_CATALOG[valveSignature(cfg)];
+  const map = new Map(catalog.map((b) => [b.key, b.pos]));
+  const parsed = raw
+    .split(',')
+    .map((k) => map.get(k.trim()))
+    .filter((p): p is ValvePositionCfg => Boolean(p));
+  return parsed.length >= 2 ? parsed.slice(0, 4) : cfg.positions;
+}
+
+/** Claves de casilla actuales (útil para poblar los selectores del configurador). */
+export function boxKeysOf(cfg: WayValveConfig, params?: Params): string[] {
+  const catalog = VALVE_BOX_CATALOG[valveSignature(cfg)];
+  const positions = resolvePositions(cfg, params);
+  return positions.map((pos) => {
+    const match = catalog.find(
+      (b) =>
+        b.pos.blocked.join(',') === pos.blocked.join(',') &&
+        b.pos.paths.map((p) => p.join('-')).join(',') ===
+          pos.paths.map((p) => p.join('-')).join(','),
+    );
+    return match?.key ?? catalog[0].key;
+  });
+}
+
+/** Extremos izquierdo y derecho para `nBoxes` casillas (soporta 2, 3 ó 4 casillas personalizadas). */
+export function boxesExtentFor(cfg: WayValveConfig, nBoxes: number) {
+  return { left: -cfg.rest * cfg.boxW, right: (nBoxes - cfg.rest) * cfg.boxW };
+}

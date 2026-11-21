@@ -303,6 +303,14 @@ export function flipItems(circuit: Circuit, comps: string[]) {
   rerouteAttached(circuit, new Set(comps));
 }
 
+export function flipItemsY(circuit: Circuit, comps: string[]) {
+  for (const id of comps) {
+    const c = circuit.components[id];
+    if (c) c.flipY = !c.flipY;
+  }
+  rerouteAttached(circuit, new Set(comps));
+}
+
 /** Arrastra el tramo interior `seg` de una tubería en perpendicular. */
 export function dragSegment(
   circuit: Circuit,

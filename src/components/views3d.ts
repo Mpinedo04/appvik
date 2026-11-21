@@ -95,6 +95,8 @@ const models = new Map<string, FC<Model3DProps>>([
   ...ALL_WAY_VALVES.map(({ cfg }) => [cfg.type, wayValve3D(cfg)] as [string, FC<Model3DProps>]),
   ['ctrl-plc', Plc3D],
   ['cad-part', CadPart3D],
+  ['util-text', () => null],
+  ['util-titleblock', () => null],
   // Hidráulicos
   ['hyd-power-unit', PowerUnit3D],
   ['hyd-pump', Pump3D],

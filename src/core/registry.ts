@@ -27,6 +27,7 @@ export type CategoryId =
   | 'hydraulic'
   | 'hyd-valves'
   | 'control'
+  | 'annotations'
   /** Piezas CAD importadas (no salen en la biblioteca: se añaden con «CAD › Importar»). */
   | 'cad';
 
@@ -44,6 +45,7 @@ export const CATEGORIES: { id: CategoryId; name: string }[] = [
   { id: 'hydraulic', name: 'Hidráulica: alimentación y actuadores' },
   { id: 'hyd-valves', name: 'Hidráulica: válvulas' },
   { id: 'control', name: 'Autómata programable (PLC)' },
+  { id: 'annotations', name: 'Anotaciones y texto' },
 ];
 
 export interface PortDef {

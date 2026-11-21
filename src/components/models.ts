@@ -1,5 +1,6 @@
 /** Registro de la parte lógica de todos los componentes. Importar una vez al arrancar. */
 import { registerModel } from '../core/registry';
+import { ANNOTATION_MODELS } from './annotations/models';
 import { cadPartModel } from './cad/model';
 import { plcModel } from './control/plc';
 import { ELECTRIC_MODELS } from './electric/models';
@@ -91,6 +92,8 @@ export function registerAllModels() {
   registerModel(plcModel);
   // Piezas CAD importadas
   registerModel(cadPartModel);
+  // Anotaciones y texto libre
+  for (const m of ANNOTATION_MODELS) registerModel(m);
   // Alimentación
   registerModel(supplyModel);
   registerModel(compressorModel);

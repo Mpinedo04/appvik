@@ -2,7 +2,14 @@ import { str } from '../../../core/registry';
 import { Arrow, INK, PAPER, SW, pressureColor, type SymbolProps } from '../../symbols';
 import { isRoller, isSolenoid } from '../actuation';
 import { Actuator2D, PilotLine } from '../actuator2d';
-import { BOX_H, boxesExtent, spoolShift, valvePortPos, type WayValveConfig } from './config';
+import {
+  BOX_H,
+  boxesExtentFor,
+  resolvePositions,
+  spoolShift,
+  valvePortPos,
+  type WayValveConfig,
+} from './config';
 import { hasPilot, initialBoxOf, type WayValveState } from './model';
 
 /** Símbolo ISO 1219 para terminación de puerto de escape (silenciador, roscado o tapón). */
@@ -48,20 +55,22 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
   const portX = (col: number, ox: number) => ox + W / 2 + col;
   const portY = (side: 'top' | 'bottom', inset = 0) =>
     side === 'top' ? -H / 2 + inset : H / 2 - inset;
-  const ext = boxesExtent(cfg);
 
   return function WayValveSymbol({ params, state, maxBar, medium }: SymbolProps) {
+    const positions = resolvePositions(cfg, params);
+    const ext = boxesExtentFor(cfg, positions.length);
     const s = state as WayValveState | undefined;
     const pos = s?.pos ?? initialBoxOf(cfg, params);
     const shift = spoolShift(cfg, pos);
     const actLeft = str(params, 'actLeft');
     const actRight = str(params, 'actRight');
-    const springs = cfg.positions.length >= 3 && Boolean(params.springs);
+    const springs = positions.length >= 3 && Boolean(params.springs);
+    const reversible = Boolean(params.reversible);
     const activeBox = Math.round(pos);
 
     const box = (i: number) => {
       const ox = (i - cfg.rest) * W;
-      const position = cfg.positions[i];
+      const position = positions[i];
       const live = !!s && i === activeBox;
       return (
         <g key={i}>
@@ -72,15 +81,15 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
             const color = live
               ? pressureColor(Math.max(s!.portBar[from] ?? 0, s!.portBar[to] ?? 0), maxBar, medium)
               : INK;
+            const x1 = portX(pf.col, ox);
+            const y1 = portY(pf.side, 2);
+            const x2 = portX(pt.col, ox);
+            const y2 = portY(pt.side, 2);
             return (
-              <Arrow
-                key={`${from}-${to}`}
-                x1={portX(pf.col, ox)}
-                y1={portY(pf.side, 2)}
-                x2={portX(pt.col, ox)}
-                y2={portY(pt.side, 2)}
-                color={color}
-              />
+              <g key={`${from}-${to}`}>
+                <Arrow x1={x1} y1={y1} x2={x2} y2={y2} color={color} />
+                {reversible && <Arrow x1={x2} y1={y2} x2={x1} y2={y1} color={color} />}
+              </g>
             );
           })}
           {position.blocked.map((id) => {
@@ -142,7 +151,7 @@ export function makeWayValveSymbol(cfg: WayValveConfig) {
           <PilotLine from={ext.right + 30} to={ext.right + shift + 9} active={!!s?.rightOn} />
         )}
         <g transform={`translate(${shift} 0)`}>
-          {cfg.positions.map((_, i) => box(i))}
+          {positions.map((_, i) => box(i))}
           {springs && actLeft !== 'spring' && (
             <g transform="translate(0 12)">
               <Actuator2D x={ext.left} side="left" type="spring" engaged={false} />

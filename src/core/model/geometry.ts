@@ -4,24 +4,24 @@ import type { Circuit, ComponentInstance, Dir, Endpoint, Rotation, Vec2 } from '
 export const GRID = 10;
 export const snap = (v: number, g = GRID) => Math.round(v / g) * g;
 
-/** Local → mundo: primero reflejo horizontal, luego giro horario (eje y hacia abajo). */
+/** Local → mundo: primero reflejo horizontal/vertical, luego giro horario (eje y hacia abajo). */
 export function localToWorld(
-  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip'>,
+  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip' | 'flipY'>,
   p: Vec2,
 ): Vec2 {
   let x = c.flip ? -p.x : p.x;
-  let y = p.y;
+  let y = c.flipY ? -p.y : p.y;
   [x, y] = rotate(x, y, c.rot);
   return { x: c.x + x, y: c.y + y };
 }
 
 /** Mundo → local (inversa de localToWorld). */
 export function worldToLocal(
-  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip'>,
+  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip' | 'flipY'>,
   p: Vec2,
 ): Vec2 {
   const [x, y] = rotate(p.x - c.x, p.y - c.y, ((360 - c.rot) % 360) as Rotation);
-  return { x: c.flip ? -x : x, y };
+  return { x: c.flip ? -x : x, y: c.flipY ? -y : y };
 }
 
 /** Mitad del componente (izquierda/derecha en coordenadas locales) en la que cae un punto. */
@@ -55,9 +55,10 @@ export function dirVec(d: Dir): Vec2 {
   return DIR_VEC[d];
 }
 
-export function transformDir(c: Pick<ComponentInstance, 'rot' | 'flip'>, d: Dir): Dir {
+export function transformDir(c: Pick<ComponentInstance, 'rot' | 'flip' | 'flipY'>, d: Dir): Dir {
   let { x, y } = DIR_VEC[d];
   if (c.flip) x = -x;
+  if (c.flipY) y = -y;
   [x, y] = rotate(x, y, c.rot);
   if (x === 1) return 'right';
   if (x === -1) return 'left';
@@ -65,8 +66,10 @@ export function transformDir(c: Pick<ComponentInstance, 'rot' | 'flip'>, d: Dir)
 }
 
 /** Transformación SVG equivalente a localToWorld. */
-export function svgTransform(c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip'>): string {
-  return `translate(${c.x} ${c.y}) rotate(${c.rot}) scale(${c.flip ? -1 : 1} 1)`;
+export function svgTransform(
+  c: Pick<ComponentInstance, 'x' | 'y' | 'rot' | 'flip' | 'flipY'>,
+): string {
+  return `translate(${c.x} ${c.y}) rotate(${c.rot}) scale(${c.flip ? -1 : 1} ${c.flipY ? -1 : 1})`;
 }
 
 export interface WorldPort {

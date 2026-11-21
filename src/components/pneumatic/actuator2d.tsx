@@ -35,6 +35,13 @@ export function Actuator2D({
           strokeLinejoin="round"
         />
       )}
+      {type === 'pneu-spring' && (
+        <>
+          <rect x={-16} y={-7} width={16} height={14} fill={PAPER} />
+          <polygon points="-2,0 -9,-4 -9,4" fill={PAPER} strokeWidth={1.1} />
+          <line x1={-16} y1={0} x2={-9} y2={0} strokeWidth={1.1} />
+        </>
+      )}
       {type === 'pushbutton' && (
         <>
           <line x1={0} y1={0} x2={-10} y2={0} />

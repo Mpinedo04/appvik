@@ -24,7 +24,14 @@ import {
   type ActuationState,
   type ActuatorType,
 } from '../actuation';
-import { boxesExtent, pathOpening, valvePortPos, type WayValveConfig } from './config';
+import {
+  boxesExtentFor,
+  pathOpening,
+  resolvePositions,
+  valvePortPos,
+  type ValvePositionCfg,
+  type WayValveConfig,
+} from './config';
 
 export interface WayValveState extends ActuationState {
   /** Índice continuo de la casilla que está bajo los puertos (reposo = cfg.rest). */
@@ -50,8 +57,10 @@ const switchTime = (cfg: WayValveConfig) => (cfg.boxW <= 40 ? 0.006 : 0.012);
 const PILOT_VOLUME = cm3(0.3);
 
 /** Lista plana de las vías de todas las casillas. */
-export function allPaths(cfg: WayValveConfig) {
-  return cfg.positions.flatMap((pos, box) => pos.paths.map(([from, to]) => ({ from, to, box })));
+export function allPaths(cfg: WayValveConfig, positions?: ValvePositionCfg[]) {
+  return (positions ?? cfg.positions).flatMap((pos, box) =>
+    pos.paths.map(([from, to]) => ({ from, to, box })),
+  );
 }
 
 export const hasPilot = (p: Params, side: 'left' | 'right') =>
@@ -59,10 +68,11 @@ export const hasPilot = (p: Params, side: 'left' | 'right') =>
 
 /** Casilla inicial configurada por el usuario (por defecto `cfg.rest`). */
 export function initialBoxOf(cfg: WayValveConfig, p: Params): number {
+  const n = resolvePositions(cfg, p).length;
   const raw = str(p, 'initPos');
-  if (!raw || raw === 'rest') return cfg.rest;
+  if (!raw || raw === 'rest') return Math.min(cfg.rest, n - 1);
   const idx = Number(raw);
-  return Number.isInteger(idx) && idx >= 0 && idx < cfg.positions.length ? idx : cfg.rest;
+  return Number.isInteger(idx) && idx >= 0 && idx < n ? idx : Math.min(cfg.rest, n - 1);
 }
 
 export const EXHAUST_OPTIONS = [
@@ -74,7 +84,7 @@ export const EXHAUST_OPTIONS = [
 
 /** Puertos de pilotaje (14/12…) a los lados del símbolo. */
 export function pilotPorts(cfg: WayValveConfig, p: Params): PortDef[] {
-  const { left, right } = boxesExtent(cfg);
+  const { left, right } = boxesExtentFor(cfg, resolvePositions(cfg, p).length);
   const out: PortDef[] = [];
   const medium = cfg.medium ?? 'pneu';
   if (hasPilot(p, 'left'))
@@ -110,7 +120,6 @@ export function makeWayValveModel(
   cfg: WayValveConfig,
   preset: ValvePreset = {},
 ): ComponentModel<WayValveState, Handles> {
-  const paths = allPaths(cfg);
   const n = cfg.positions.length;
   const hyd = cfg.medium === 'hyd';
   const params: ParamDef[] = [
@@ -134,21 +143,29 @@ export function makeWayValveModel(
   if (n >= 3)
     params.push({ key: 'springs', label: 'Centrado por muelles', type: 'boolean', default: true });
   params.push({
+    key: 'reversible',
+    label: 'Válvula reversible (flujo bidireccional)',
+    type: 'boolean',
+    default: false,
+  });
+  params.push({
+    key: 'customBoxes',
+    label: 'Casillas personalizadas (avanzado)',
+    type: 'text',
+    default: '',
+    placeholder: 'Se edita desde «Configurar…»',
+    when: () => false,
+  });
+  params.push({
     key: 'initPos',
     label: 'Posición inicial',
     type: 'select',
     default: 'rest',
     options: [
       { value: 'rest', label: 'Por defecto (reposo)' },
-      ...cfg.positions.map((_, i) => ({
-        value: String(i),
-        label:
-          n === 2
-            ? i === 0
-              ? 'Casilla izquierda'
-              : 'Casilla derecha'
-            : ['Casilla izquierda', 'Casilla central', 'Casilla derecha'][i],
-      })),
+      { value: '0', label: 'Casilla 1 (izquierda)' },
+      { value: '1', label: 'Casilla 2' },
+      ...(n >= 3 ? [{ value: '2', label: 'Casilla 3' }] : []),
     ],
   });
   for (const pc of cfg.ports) {
@@ -189,7 +206,7 @@ export function makeWayValveModel(
       ...pilotPorts(cfg, p),
     ],
     bbox: (p) => {
-      const { left, right } = boxesExtent(cfg);
+      const { left, right } = boxesExtentFor(cfg, resolvePositions(cfg, p).length);
       return {
         x0: left - (hasPilot(p, 'left') ? 30 : 25),
         y0: -30,
@@ -199,16 +216,18 @@ export function makeWayValveModel(
     },
     interactive: (p) => isManual(str(p, 'actLeft')) || isManual(str(p, 'actRight')),
     initState: (p) => {
+      const dynPaths = allPaths(cfg, resolvePositions(cfg, p));
       const start = initialBoxOf(cfg, p);
       return {
         ...initActuation(),
         pos: start,
-        openings: paths.map((pt) => (pt.box === start ? 1 : 0)),
-        flows: paths.map(() => 0),
+        openings: dynPaths.map((pt) => (pt.box === start ? 1 : 0)),
+        flows: dynPaths.map(() => 0),
         portBar: Object.fromEntries(cfg.ports.map((pc) => [pc.id, 0])),
       };
     },
     build(b, p) {
+      const dynPaths = allPaths(cfg, resolvePositions(cfg, p));
       const flow = hyd
         ? { K: oilKFromNominalFlow(num(p, 'qn')) }
         : { C: conductanceFromNominalFlow(num(p, 'qn')) };
@@ -219,7 +238,7 @@ export function makeWayValveModel(
         return node;
       };
       return {
-        orifices: paths.map((path) => ({
+        orifices: dynPaths.map((path) => ({
           ...path,
           index: b.addOrifice(b.port(path.from), b.port(path.to), {
             ...flow,
@@ -238,6 +257,7 @@ export function makeWayValveModel(
       };
     },
     update(ctx, s, h, p, dt) {
+      const nBoxes = resolvePositions(cfg, p).length;
       const io = {
         pilotBar: (side: 'left' | 'right') => {
           const node = side === 'left' ? h.pilotLeft : h.pilotRight;
@@ -253,7 +273,7 @@ export function makeWayValveModel(
       s.rightOn = sideActive('right', s, p, io);
       if (s.leftOn && !s.rightOn) s.memory = 'left';
       else if (s.rightOn && !s.leftOn) s.memory = 'right';
-      const target = targetBox(s.pos, n, cfg.rest, s.leftOn, s.rightOn, p, s.memory);
+      const target = targetBox(s.pos, nBoxes, cfg.rest, s.leftOn, s.rightOn, p, s.memory);
       const maxStep = dt / switchTime(cfg);
       s.pos += Math.max(-maxStep, Math.min(maxStep, target - s.pos));
       h.orifices.forEach((o, i) => {
@@ -295,15 +315,17 @@ export function makeWayValveModel(
           `Corredera en la ${boxName(box)} (sin accionamiento: se queda donde está, efecto memoria).`,
         );
 
+      const dynPositions = resolvePositions(cfg, p);
+      const dynPaths = allPaths(cfg, dynPositions);
       const bar = (port: string) => `${paToBarGauge(ctx.p(port)).toFixed(1)} bar`;
       const role = (id: string) => cfg.ports.find((x) => x.id === id)?.role ?? '';
-      paths.forEach((path, i) => {
+      dynPaths.forEach((path, i) => {
         if (s.openings[i] > 0.01)
           lines.push(
             `Vía ${path.from}→${path.to} abierta: ${role(path.from)} (${bar(path.from)}) comunica con ${role(path.to)} ${path.to} (${bar(path.to)}).`,
           );
       });
-      const blocked = cfg.positions[box]?.blocked ?? [];
+      const blocked = dynPositions[box]?.blocked ?? [];
       if (blocked.length) lines.push(`Vías bloqueadas: ${blocked.join(', ')}.`);
       for (const side of ['left', 'right'] as const) {
         if (hasPilot(p, side)) {

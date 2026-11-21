@@ -2,6 +2,7 @@
 import { createElement } from 'react';
 import { getModel, resolveParams } from '../core/registry';
 import { ALL_WAY_VALVES } from './models';
+import { TextNoteSymbol, TitleBlockSymbol } from './annotations/symbols2d';
 import { CadPartSymbol } from './cad/Symbol2D';
 import { PlcSymbol } from './control/Symbol2D';
 import {
@@ -93,6 +94,8 @@ const views = new Map<string, ComponentView>([
   ['elec-lamp', { Symbol2D: LampSymbol }],
   ['ctrl-plc', { Symbol2D: PlcSymbol }],
   ['cad-part', { Symbol2D: CadPartSymbol }],
+  ['util-text', { Symbol2D: TextNoteSymbol }],
+  ['util-titleblock', { Symbol2D: TitleBlockSymbol }],
   // Hidráulicos
   ['hyd-power-unit', { Symbol2D: PowerUnitSymbol }],
   ['hyd-pump', { Symbol2D: PumpSymbol }],

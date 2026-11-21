@@ -29,6 +29,64 @@ export function parseMarks(text: string): Mark[] {
     .filter((m) => m.label && Number.isFinite(m.mm));
 }
 
+export interface ForcePoint {
+  mm: number;
+  N: number;
+}
+
+/** «0:50; 50:150; 100:200» → puntos ordenados por posición [mm]. */
+export function parseForceProfile(text: string): ForcePoint[] {
+  return String(text ?? '')
+    .split(/[;,\n]+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((t) => {
+      const [pos, f] = t.split(/[:@\s]+/).map((x) => Number(x.trim()));
+      return { mm: pos, N: f };
+    })
+    .filter((pt) => Number.isFinite(pt.mm) && Number.isFinite(pt.N))
+    .sort((a, b) => a.mm - b.mm);
+}
+
+/** Interpolación lineal por tramos del perfil de fuerza [N] para la posición `xMm` [mm]. */
+export function evalForceProfile(pts: ForcePoint[], xMm: number): number {
+  if (!pts.length) return 0;
+  if (xMm <= pts[0].mm) return pts[0].N;
+  const last = pts[pts.length - 1];
+  if (xMm >= last.mm) return last.N;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (xMm >= a.mm && xMm <= b.mm) {
+      const span = b.mm - a.mm;
+      if (span <= 0) return b.N;
+      return a.N + ((b.N - a.N) * (xMm - a.mm)) / span;
+    }
+  }
+  return 0;
+}
+
+export const angleParam: ParamDef = {
+  key: 'angle',
+  label: 'Inclinación del cilindro',
+  unit: '°',
+  type: 'number',
+  default: 0,
+  min: -90,
+  max: 90,
+  step: 5,
+  help: '0° horizontal · +90° vertical subiendo (el peso se opone al avance) · −90° bajando.',
+};
+
+export const forceProfileParam: ParamDef = {
+  key: 'forceProfile',
+  label: 'Perfil de fuerza variable (mm:N)',
+  type: 'text',
+  default: '',
+  placeholder: '0:0; 50:120; 100:250',
+  help: 'Fuerza resistente adicional interpolada por tramos según la posición del vástago.',
+};
+
 export const marksParam: ParamDef = {
   key: 'marks',
   label: 'Marcas de final de carrera (etiqueta@mm)',
@@ -123,6 +181,7 @@ export interface CylHandles {
   cap: ChamberHandles;
   rod: ChamberHandles;
   marks: Mark[];
+  profile?: ForcePoint[];
 }
 
 function chamber(b: BuildCtx, portId: string, cushion: boolean, pct: number): ChamberHandles {
@@ -144,6 +203,7 @@ export function buildCyl(b: BuildCtx, p: Params, capPort = '1', rodPort = '2'): 
     cap: chamber(b, capPort, cushion, pct),
     rod: chamber(b, rodPort, cushion, pct),
     marks: parseMarks(String(p.marks ?? '')),
+    profile: parseForceProfile(String(p.forceProfile ?? '')),
   };
 }
 
@@ -167,6 +227,10 @@ export function updateCyl(
   const pCap = ctx.p(h.cap.chamber);
   const pRod = ctx.p(h.rod.chamber);
   s.force = pCap * aCap - pRod * (aCap - aRod) - P_ATM * aRod;
+  const angleDeg = Number(p.angle ?? 0);
+  const fGravity = angleDeg ? num(p, 'mass') * 9.81 * Math.sin((angleDeg * Math.PI) / 180) : 0;
+  const fProfile = h.profile?.length ? evalForceProfile(h.profile, s.x * 1000) : 0;
+  const extLoad = Number(p.load ?? 0) + fGravity + fProfile;
   if (dt > 0) {
     stepPiston(
       s,
@@ -178,7 +242,7 @@ export function updateCyl(
         fCoulomb: 2 + aCap * 2.5e4,
         cViscous: 20 + aCap * 1e5,
       },
-      s.force - Number(p.load ?? 0),
+      s.force - extLoad,
       dt,
       // Rigidez del fluido encerrado (decisiva con aceite; despreciable con aire).
       aCap * aCap * ctx.dpdV(h.cap.chamber) + (aCap - aRod) ** 2 * ctx.dpdV(h.rod.chamber),

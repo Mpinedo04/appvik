@@ -1,6 +1,16 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { registerAllModels } from '../components/models';
-import { addComponent, changeComponentType, connect } from '../core/model/edit';
+import { evalForceProfile, parseForceProfile } from '../components/pneumatic/cylinder-core';
+import { resolvePositions } from '../components/pneumatic/way-valve/config';
+import { VALVE_52 } from '../components/pneumatic/way-valve/config';
+import {
+  addComponent,
+  changeComponentType,
+  connect,
+  flipItemsY,
+  validate,
+} from '../core/model/edit';
+import { localToWorld, transformDir } from '../core/model/geometry';
 import { emptyCircuit } from '../core/model/types';
 import { Simulation } from '../core/sim/engine';
 import { parseProject } from '../store/project';
@@ -205,5 +215,110 @@ describe('importador de FluidSIM (.ct)', () => {
     changeComponentType(c, v, 'pneu-valve-53-closed');
     expect(c.components[v].type).toBe('pneu-valve-53-closed');
     expect(Object.keys(c.connections).length).toBe(1);
+  });
+
+  it('soporta casillas personalizadas (hasta 4 pos.), muelle neumático, espejo vertical, texto libre y perfil de fuerza', () => {
+    // 1. Casillas personalizadas (4 posiciones)
+    const customPos = resolvePositions(VALVE_52, { customBoxes: 'left,closed,exhaust,right' });
+    expect(customPos.length).toBe(4);
+    expect(customPos[1].blocked).toContain('1');
+
+    // 2. Espejo vertical (flipY)
+    const c = emptyCircuit();
+    const id = addComponent(c, 'pneu-valve-32nc', 100, 100, { actRight: 'pneu-spring' });
+    flipItemsY(c, [id]);
+    expect(c.components[id].flipY).toBe(true);
+    expect(localToWorld(c.components[id], { x: 10, y: 20 })).toEqual({ x: 110, y: 80 });
+    expect(transformDir(c.components[id], 'down')).toBe('up');
+
+    // 3. Texto libre y cajetín sin puertos abiertos
+    addComponent(c, 'util-text', 200, 200, { text: 'Ejercicio 5' });
+    addComponent(c, 'util-titleblock', 300, 300, { title: 'Examen Neumática' });
+    const issues = validate(c).filter((i) => !i.comp.includes(id));
+    expect(issues).toEqual([]);
+
+    // 4. Perfil de fuerza por tramos
+    const pts = parseForceProfile('0:0; 50:100; 100:300');
+    expect(evalForceProfile(pts, 25)).toBeCloseTo(50, 5);
+    expect(evalForceProfile(pts, 75)).toBeCloseTo(200, 5);
+  });
+
+  it('importa circuitos hidráulicos y eléctricos de FluidSIM (.ct) junto con textos libres', () => {
+    const hydElecCt = `Ag1 O0 102400 307200 122880 327680 0 0 0
+ S FLOW F 6
+ S P_LIM F 80
+HConnection O1 107520 302080 117760 312320 0 0 0
+tank1 O2 163840 307200 176128 319488 0 0 0
+HConnection O3 164864 302080 175104 312320 0 0 0
+CylH3 O4 102400 61440 163840 94208 0 0 0
+ S HUB F 200
+ S ALPHA F 90
+HConnection O5 107520 89088 117760 99328 0 0 0
+HConnection O6 153600 89088 163840 99328 0 0 0
+HWV_4 O7 102400 184320 184320 221184 0 0 0
+ S ACTUATION_L_EL_PN S AL_EL1
+ S SPRING_R S TRUE
+HConnection O8 122880 179200 133120 189440 0 0 0
+HConnection O9 135168 179200 145408 189440 0 0 0
+HConnection O10 122880 216064 133120 226304 0 0 0
+HConnection O11 135168 216064 145408 226304 0 0 0
+UEConnection O12 102400 199680 112640 209920 0 0 0
+ S label S Y1
+pol2 O13 307200 81920 322560 88064 0 0 0
+EConnection O14 317440 79872 327680 90112 0 0 0
+pol1 O15 307200 286720 322560 292864 0 0 0
+EConnection O16 317440 284672 327680 294912 0 0 0
+schliesser O17 307200 143360 322560 174080 0 0 0
+ S label S S1
+EConnection O18 317440 138240 327680 148480 0 0 0
+EConnection O19 317440 168960 327680 179200 0 0 0
+magnet O20 307200 215040 348160 245760 0 0 0
+ S label S Y1
+EConnection O21 317440 209920 327680 220160 0 0 0
+EConnection O22 317440 240640 327680 250880 0 0 0
+text O23 102400 20480 204800 40960 0 0 0
+ S text S Ejercicio Hidraulico
+0 0 0 # 0 0 0 0 0 0
+gate1 # 0 1
+gate1 # 2 3
+gate1 # 4 5
+gate2 # 4 6
+gate1 # 7 8
+gate2 # 7 9
+gate3 # 7 10
+gate4 # 7 11
+gate5 # 7 12
+CON HLine 1 10
+ S Style I 2
+CON HLine 3 11
+ S Style I 2
+CON HLine 5 8
+ S Style I 2
+CON HLine 6 9
+ S Style I 2
+gate1 # 13 14
+gate1 # 15 16
+gate1 # 17 18
+gate2 # 17 19
+gate1 # 20 21
+gate2 # 20 22
+CON ELine 14 18
+CON ELine 19 21
+CON ELine 22 16
+ENDCT
+ENDSYM
+`;
+    const { project, warnings } = importFluidSimCt(encodeMockCt(hydElecCt), 'electrohyd.ct');
+    expect(warnings).toEqual([]);
+    const comps = Object.values(project.circuit.components);
+    expect(comps.some((x) => x.type === 'hyd-power-unit')).toBe(true);
+    expect(comps.some((x) => x.type === 'hyd-cyl-double' && x.params.angle === 90)).toBe(true);
+    expect(comps.some((x) => x.type === 'hyd-valve-42' && x.params.solLeft === 'Y1')).toBe(true);
+    expect(comps.some((x) => x.type === 'elec-solenoid' && x.label === 'Y1')).toBe(true);
+    expect(comps.some((x) => x.type === 'util-text' && x.params.text === 'Ejercicio Hidraulico')).toBe(true);
+
+    const conns = Object.values(project.circuit.connections);
+    expect(conns.filter((x) => x.medium === 'hyd').length).toBe(4);
+    expect(conns.filter((x) => x.medium === 'elec').length).toBe(3);
   });
 });
